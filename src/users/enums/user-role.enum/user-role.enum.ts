@@ -1,11 +1,10 @@
 export class UserRoleEnum {
-
-    static REGULAR = 'regular'; 
-    static BUYER = 'buyer';
-    static STUDENT = 'student';
-    static SUPPLIER = 'supplier';
-    static INSTRUCTOR = 'instructor';
-    static SUPERADMIN = 'superadmin';
+  static REGULAR = 'regular';
+  static BUYER = 'buyer';
+  static STUDENT = 'student';
+  static SUPPLIER = 'supplier';
+  static INSTRUCTOR = 'instructor';
+  static SUPERADMIN = 'superadmin';
 }
 
 export enum UserRole {
@@ -16,4 +15,3 @@ export enum UserRole {
   INSTRUCTOR = 'instructor',
   SUPERADMIN = 'superadmin',
 }
-

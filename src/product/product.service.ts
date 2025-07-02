@@ -21,7 +21,7 @@ export class ProductsService {
   }
 
   findByCategory(category: string): Product[] {
-    return this.products.filter(p => p.category === category);
+    return this.products.filter((p) => p.category === category);
   }
 
   create(dto: CreateProductDto): Product {
@@ -34,14 +34,14 @@ export class ProductsService {
   }
 
   update(id: number, dto: UpdateProductDto): Product {
-    const product = this.products.find(p => p.id === id);
+    const product = this.products.find((p) => p.id === id);
     if (!product) throw new NotFoundException('Product not found');
     Object.assign(product, dto);
     return product;
   }
 
   delete(id: number): void {
-    const index = this.products.findIndex(p => p.id === id);
+    const index = this.products.findIndex((p) => p.id === id);
     if (index === -1) throw new NotFoundException('Product not found');
     this.products.splice(index, 1);
   }
