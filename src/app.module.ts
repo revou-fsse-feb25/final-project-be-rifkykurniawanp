@@ -1,30 +1,27 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './user/user.module';
+import { AccountModule } from './account/account.module';
+import { TransactionModule } from './transaction/transaction.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { ProductModule } from './product/product.module';
-import { CourseModule } from './course/course.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-// import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-    UsersModule,
-    ProductModule,
-    CourseModule,
+    ConfigModule.forRoot({
+      isGlobal: true,        // Make config available globally
+      envFilePath: '.env',   // Path to .env file
+      cache: true,           // Cache environment variables
+    }),
+    UserModule,
+    AccountModule,
+    TransactionModule,
+    PrismaModule,
     AuthModule,
-    // TypeOrmModule.forRoot({
-    //   type: 'postgres',
-    //   host: 'localhost',
-    //   port: 5432,
-    //   username: 'postgres',
-    //   password: 'yourpassword',
-    //   database: 'yourdbname',
-    //   autoLoadEntities: true,
-    //   synchronize: true,
-    // }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController], // Optional: for health check or general route
+  providers: [AppService],      // Optional: if needed
 })
 export class AppModule {}
