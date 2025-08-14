@@ -1,27 +1,51 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { UserModule } from './user/user.module';
-import { AccountModule } from './account/account.module';
-import { TransactionModule } from './transaction/transaction.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+
+// Core / Shared Modules
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+
+// Feature Modules
+import { UsersModule } from './users/users.module';
+import { RolesModule } from './roles/roles.module';
+import { ProductsModule } from './products/products.module';
+import { CoursesModule } from './courses/courses.module';
+import { AssignmentsModule } from './assignments/assignments.module';
+import { CartsModule } from './carts/carts.module';
+import { PaymentsModule } from './payments/payments.module';
+import { OrdersModule } from './orders/orders.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';
+import { CertificatesModule } from './certificates/certificates.module';
+
+// Root App
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,        // Make config available globally
-      envFilePath: '.env',   // Path to .env file
-      cache: true,           // Cache environment variables
+      isGlobal: true,
+      envFilePath: '.env',
+      cache: true,
     }),
-    UserModule,
-    AccountModule,
-    TransactionModule,
+
+    // Core
     PrismaModule,
     AuthModule,
+
+    // Features
+    UsersModule,
+    RolesModule,
+    ProductsModule,
+    CoursesModule,
+    AssignmentsModule,
+    CartsModule,
+    PaymentsModule,
+    OrdersModule,
+    EnrollmentsModule,
+    CertificatesModule,
   ],
-  controllers: [AppController], // Optional: for health check or general route
-  providers: [AppService],      // Optional: if needed
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
