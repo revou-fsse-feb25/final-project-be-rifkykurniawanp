@@ -6,7 +6,14 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   controllers: [ProductReviewsController],
-  providers: [ProductReviewsService, ProductReviewsRepository, PrismaService],
+  providers: [
+    PrismaService,
+    ProductReviewsService,
+    {
+      provide: 'IProductReviewsRepository', // token untuk interface
+      useClass: ProductReviewsRepository,
+    },
+  ],
   exports: [ProductReviewsService],
 })
 export class ProductReviewsModule {}

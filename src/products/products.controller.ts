@@ -23,7 +23,7 @@ import {
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/request/create-product.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
-import { ProductResponseDto } from './dto/response/product.response.dto';
+import { ProductResponseDto } from './dto/response/review.response.dto';
 import { ProductCategory, ProductOrigin, ProductStatus, ProductTagName } from '@prisma/client';
 
 @ApiTags('products')

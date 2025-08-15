@@ -1,19 +1,20 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-/**
- * Extract user data (id, email, role, etc.) from JWT payload
- * via request.user injected by Passport JWT strategy.
- */
+// Define your own User type or import it from your user module
+type UserType = {
+  id?: string;
+  email?: string;
+  // add other properties as needed
+};
+
 export const User = createParamDecorator(
-  (data: keyof Express.User | undefined, ctx: ExecutionContext) => {
+  (data: keyof UserType | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
 
-    // If specific key requested (e.g. @User('id')) return just that value
     if (data) {
       return request.user?.[data];
     }
 
-    // If no key passed: return full user object
     return request.user;
   },
 );

@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { IProductReviewsRepository } from './interfaces/product-reviews.repository.interface';
 import { CreateReviewDto } from './dto/request/create-review.dto';
 import { ReviewResponseDto } from './dto/response/review-response.dto';
 
 @Injectable()
 export class ProductReviewsService {
-  constructor(private readonly repository: IProductReviewsRepository) {}
+  constructor(
+    @Inject('IProductReviewsRepository')
+    private readonly repository: IProductReviewsRepository,
+  ) {}
 
   async createReview(userId: number, dto: CreateReviewDto): Promise<ReviewResponseDto> {
     return this.repository.createReview(userId, dto);
