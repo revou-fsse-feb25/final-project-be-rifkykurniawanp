@@ -21,7 +21,7 @@ import { ProductOrdersModule } from './product-orders/product-orders.module';
 import { ProductOrderItemsModule } from './product-order-items/product-order-items.module';
 import { CourseEnrollmentsModule } from './course-enrollments/course-enrollments.module';
 import { CertificatesModule } from './certificates/certificates.module';
-import { AssignmentsSubmissionsModule } from './assignments-submissions/assignments-submissions.module';
+import { AssignmentsSubmissionsModule } from './assignments-submissions/assignment-submissions.module';
 
 @Module({
   imports: [

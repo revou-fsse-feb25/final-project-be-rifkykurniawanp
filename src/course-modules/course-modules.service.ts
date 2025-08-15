@@ -1,26 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCourseModuleDto } from './dto/request/create-course-module.dto';
-import { UpdateCourseModuleDto } from './dto/request/update-course-module.dto';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { CourseModulesRepository } from './course-modules.repository';
+import { CreateModuleDto } from './dto/request/create-module.dto';
+import { UpdateModuleDto } from './dto/request/update-module.dto';
 
 @Injectable()
 export class CourseModulesService {
-  create(createCourseModuleDto: CreateCourseModuleDto) {
-    return 'This action adds a new courseModule';
+  constructor(
+    private readonly courseModulesRepository: CourseModulesRepository,
+  ) {}
+
+  async create(createModuleDto: CreateModuleDto) {
+    try {
+      return await this.courseModulesRepository.create(createModuleDto);
+    } catch (error) {
+      if (error.code === 'P2003') {
+        throw new BadRequestException('Course not found');
+      }
+      throw error;
+    }
   }
 
-  findAll() {
-    return `This action returns all courseModules`;
+  async findAll() {
+    return await this.courseModulesRepository.findAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} courseModule`;
+  async findOne(id: number) {
+    const module = await this.courseModulesRepository.findById(id);
+    
+    if (!module) {
+      throw new NotFoundException(`Course module with ID ${id} not found`);
+    }
+    
+    return module;
   }
 
-  update(id: number, updateCourseModuleDto: UpdateCourseModuleDto) {
-    return `This action updates a #${id} courseModule`;
+  async findByCourse(courseId: number) {
+    return await this.courseModulesRepository.findByCourseId(courseId);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} courseModule`;
+  async update(id: number, updateModuleDto: UpdateModuleDto) {
+    const existingModule = await this.courseModulesRepository.findById(id);
+    
+    if (!existingModule) {
+      throw new NotFoundException(`Course module with ID ${id} not found`);
+    }
+
+    try {
+      return await this.courseModulesRepository.update(id, updateModuleDto);
+    } catch (error) {
+      if (error.code === 'P2003') {
+        throw new BadRequestException('Course not found');
+      }
+      throw error;
+    }
+  }
+
+  async remove(id: number) {
+    const existingModule = await this.courseModulesRepository.findById(id);
+    
+    if (!existingModule) {
+      throw new NotFoundException(`Course module with ID ${id} not found`);
+    }
+
+    await this.courseModulesRepository.delete(id);
+    
+    return { message: 'Course module deleted successfully' };
   }
 }

@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCourseEnrollmentDto } from './dto/request/enroll-course.dto';
-import { UpdateCourseEnrollmentDto } from './dto/request/update-enrollment.dto';
+import { CourseEnrollmentsRepository } from './course-enrollments.repository';
+import { EnrollCourseDto } from './dto/request/enroll-course.dto';
+import { UpdateEnrollmentDto } from './dto/request/update-enrollment.dto';
 
 @Injectable()
 export class CourseEnrollmentsService {
-  create(createCourseEnrollmentDto: CreateCourseEnrollmentDto) {
-    return 'This action adds a new courseEnrollment';
+  constructor(private readonly repository: CourseEnrollmentsRepository) {}
+
+  enroll(dto: EnrollCourseDto, paymentId: number) {
+    return this.repository.enroll({ ...dto, paymentId });
   }
 
   findAll() {
-    return `This action returns all courseEnrollments`;
+    return this.repository.findAll();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} courseEnrollment`;
+    return this.repository.findOne(id);
   }
 
-  update(id: number, updateCourseEnrollmentDto: UpdateCourseEnrollmentDto) {
-    return `This action updates a #${id} courseEnrollment`;
+  update(id: number, dto: UpdateEnrollmentDto) {
+    return this.repository.update(id, dto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} courseEnrollment`;
+    return this.repository.remove(id);
   }
 }

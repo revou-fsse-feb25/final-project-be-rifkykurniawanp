@@ -1,34 +1,46 @@
-// import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-// import { AssignmentsService } from './assignments.service';
-// import { CreateAssignmentDto } from './dto/create-assignment.dto';
-// import { UpdateAssignmentDto } from './dto/update-assignment.dto';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { AssignmentsService } from './assignments.service';
+import { CreateAssignmentDto } from './dto/request/create-assignment.dto';
+import { UpdateAssignmentDto } from './dto/request/update-assignment.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AssignmentResponseDto } from './dto/response/assignment.response.dto';
 
-// @Controller('assignments')
-// export class AssignmentsController {
-//   constructor(private readonly assignmentsService: AssignmentsService) {}
+@ApiTags('Assignments')
+@Controller('assignments')
+export class AssignmentsController {
+  constructor(private readonly service: AssignmentsService) {}
 
-//   @Post()
-//   create(@Body() createAssignmentDto: CreateAssignmentDto) {
-//     return this.assignmentsService.create(createAssignmentDto);
-//   }
+  @Post()
+  @ApiOperation({ summary: 'Create a new assignment' })
+  @ApiResponse({ status: 201, type: AssignmentResponseDto })
+  create(@Body() dto: CreateAssignmentDto) {
+    return this.service.create(dto);
+  }
 
-//   @Get()
-//   findAll() {
-//     return this.assignmentsService.findAll();
-//   }
+  @Get()
+  @ApiOperation({ summary: 'Get all assignments' })
+  @ApiResponse({ status: 200, type: [AssignmentResponseDto] })
+  findAll() {
+    return this.service.findAll();
+  }
 
-//   @Get(':id')
-//   findOne(@Param('id') id: string) {
-//     return this.assignmentsService.findOne(+id);
-//   }
+  @Get(':id')
+  @ApiOperation({ summary: 'Get assignment by id' })
+  @ApiResponse({ status: 200, type: AssignmentResponseDto })
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(id);
+  }
 
-//   @Patch(':id')
-//   update(@Param('id') id: string, @Body() updateAssignmentDto: UpdateAssignmentDto) {
-//     return this.assignmentsService.update(+id, updateAssignmentDto);
-//   }
+  @Put(':id')
+  @ApiOperation({ summary: 'Update an assignment' })
+  @ApiResponse({ status: 200, type: AssignmentResponseDto })
+  update(@Param('id') id: number, @Body() dto: UpdateAssignmentDto) {
+    return this.service.update(id, dto);
+  }
 
-//   @Delete(':id')
-//   remove(@Param('id') id: string) {
-//     return this.assignmentsService.remove(+id);
-//   }
-// }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete an assignment' })
+  remove(@Param('id') id: number) {
+    return this.service.remove(id);
+  }
+}

@@ -1,34 +1,47 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { ProductReviewsService } from './product-reviews.service';
-import { CreateProductReviewDto } from './dto/request/create-product-review.dto';
-import { UpdateProductReviewDto } from './dto/request/update-product-review.dto';
+import { CreateReviewDto } from './dto/request/create-review.dto';
+import { ReviewResponseDto } from './dto/response/review-response.dto';
 
+@ApiTags('Product Reviews')
 @Controller('product-reviews')
 export class ProductReviewsController {
-  constructor(private readonly productReviewsService: ProductReviewsService) {}
+  constructor(private readonly service: ProductReviewsService) {}
 
   @Post()
-  create(@Body() createProductReviewDto: CreateProductReviewDto) {
-    return this.productReviewsService.create(createProductReviewDto);
+  async createReview(
+    @Query('userId') userId: number,
+    @Body() dto: CreateReviewDto,
+  ): Promise<ReviewResponseDto> {
+    return this.service.createReview(userId, dto);
   }
 
-  @Get()
-  findAll() {
-    return this.productReviewsService.findAll();
+  @Get('product/:productId')
+  async getByProduct(@Param('productId') productId: number): Promise<ReviewResponseDto[]> {
+    return this.service.findByProductId(productId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productReviewsService.findOne(+id);
+  @Get('user/:userId')
+  async getByUser(@Param('userId') userId: number): Promise<ReviewResponseDto[]> {
+    return this.service.findByUserId(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductReviewDto: UpdateProductReviewDto) {
-    return this.productReviewsService.update(+id, updateProductReviewDto);
+  @Get('product/:productId/average-rating')
+  async getAverage(@Param('productId') productId: number): Promise<number> {
+    return this.service.getProductAverageRating(productId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productReviewsService.remove(+id);
+  @Patch(':reviewId')
+  async updateReview(
+    @Param('reviewId') reviewId: number,
+    @Body() dto: CreateReviewDto,
+  ): Promise<ReviewResponseDto> {
+    return this.service.updateReview(reviewId, dto);
+  }
+
+  @Delete(':reviewId')
+  async deleteReview(@Param('reviewId') reviewId: number): Promise<void> {
+    return this.service.deleteReview(reviewId);
   }
 }

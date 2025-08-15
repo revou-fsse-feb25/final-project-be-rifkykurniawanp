@@ -1,34 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { CourseEnrollmentsService } from './course-enrollments.service';
-import { CreateCourseEnrollmentDto } from './dto/request/enroll-course.dto';
-import { UpdateCourseEnrollmentDto } from './dto/request/update-enrollment.dto';
+import { EnrollCourseDto } from './dto/request/enroll-course.dto';
+import { UpdateEnrollmentDto } from './dto/request/update-enrollment.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { EnrollmentResponseDto } from './dto/response/enrollment.response.dto';
 
+@ApiTags('Course Enrollments')
 @Controller('course-enrollments')
 export class CourseEnrollmentsController {
-  constructor(private readonly courseEnrollmentsService: CourseEnrollmentsService) {}
+  constructor(private readonly service: CourseEnrollmentsService) {}
 
-  @Post()
-  create(@Body() createCourseEnrollmentDto: CreateCourseEnrollmentDto) {
-    return this.courseEnrollmentsService.create(createCourseEnrollmentDto);
+  @Post(':paymentId')
+  @ApiOperation({ summary: 'Enroll student to course' })
+  @ApiResponse({ status: 201, type: EnrollmentResponseDto })
+  enroll(@Param('paymentId') paymentId: number, @Body() dto: EnrollCourseDto) {
+    return this.service.enroll(dto, paymentId);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all course enrollments' })
+  @ApiResponse({ status: 200, type: [EnrollmentResponseDto] })
   findAll() {
-    return this.courseEnrollmentsService.findAll();
+    return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.courseEnrollmentsService.findOne(+id);
+  @ApiOperation({ summary: 'Get enrollment by id' })
+  @ApiResponse({ status: 200, type: EnrollmentResponseDto })
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseEnrollmentDto: UpdateCourseEnrollmentDto) {
-    return this.courseEnrollmentsService.update(+id, updateCourseEnrollmentDto);
+  @Put(':id')
+  @ApiOperation({ summary: 'Update enrollment' })
+  @ApiResponse({ status: 200, type: EnrollmentResponseDto })
+  update(@Param('id') id: number, @Body() dto: UpdateEnrollmentDto) {
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.courseEnrollmentsService.remove(+id);
+  @ApiOperation({ summary: 'Delete enrollment' })
+  remove(@Param('id') id: number) {
+    return this.service.remove(id);
   }
 }

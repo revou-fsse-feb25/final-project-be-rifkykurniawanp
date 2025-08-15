@@ -1,34 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { CartsService } from './carts.service';
-import { CreateCartDto } from './dto/add-to-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
+import { AddToCartDto } from './dto/request/add-to-cart.dto';
+import { UpdateCartDto } from './dto/request/update-cart.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CartResponseDto } from './dto/response/cart.response.dto';
 
+@ApiTags('Carts')
 @Controller('carts')
 export class CartsController {
-  constructor(private readonly cartsService: CartsService) {}
+  constructor(private readonly service: CartsService) {}
 
   @Post()
-  create(@Body() createCartDto: CreateCartDto) {
-    return this.cartsService.create(createCartDto);
+  @ApiOperation({ summary: 'Add item to cart' })
+  @ApiResponse({ status: 201, type: CartResponseDto })
+  addItem(@Body() dto: AddToCartDto) {
+    return this.service.addItem(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.cartsService.findAll();
+  @Put(':cartItemId')
+  @ApiOperation({ summary: 'Update cart item' })
+  @ApiResponse({ status: 200, type: CartResponseDto })
+  updateItem(@Param('cartItemId') cartItemId: number, @Body() dto: UpdateCartDto) {
+    return this.service.updateItem(cartItemId, dto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartsService.findOne(+id);
+  @Get(':userId')
+  @ApiOperation({ summary: 'Get cart by user' })
+  @ApiResponse({ status: 200, type: CartResponseDto })
+  getCartByUser(@Param('userId') userId: number) {
+    return this.service.getCartByUser(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartsService.update(+id, updateCartDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartsService.remove(+id);
+  @Delete(':cartItemId')
+  @ApiOperation({ summary: 'Remove cart item' })
+  removeItem(@Param('cartItemId') cartItemId: number) {
+    return this.service.removeItem(cartItemId);
   }
 }

@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductReviewDto } from './dto/request/create-product-review.dto';
-import { UpdateProductReviewDto } from './dto/request/update-product-review.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { IProductReviewsRepository } from './interfaces/product-reviews.repository.interface';
+import { CreateReviewDto } from './dto/request/create-review.dto';
+import { ReviewResponseDto } from './dto/response/review-response.dto';
 
 @Injectable()
 export class ProductReviewsService {
-  create(createProductReviewDto: CreateProductReviewDto) {
-    return 'This action adds a new productReview';
+  constructor(private readonly repository: IProductReviewsRepository) {}
+
+  async createReview(userId: number, dto: CreateReviewDto): Promise<ReviewResponseDto> {
+    return this.repository.createReview(userId, dto);
   }
 
-  findAll() {
-    return `This action returns all productReviews`;
+  async findByProductId(productId: number): Promise<ReviewResponseDto[]> {
+    return this.repository.findByProductId(productId);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} productReview`;
+  async findByUserId(userId: number): Promise<ReviewResponseDto[]> {
+    return this.repository.findByUserId(userId);
   }
 
-  update(id: number, updateProductReviewDto: UpdateProductReviewDto) {
-    return `This action updates a #${id} productReview`;
+  async getProductAverageRating(productId: number): Promise<number> {
+    return this.repository.getProductAverageRating(productId);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} productReview`;
+  async updateReview(reviewId: number, dto: CreateReviewDto): Promise<ReviewResponseDto> {
+    const review = await this.repository.updateReview(reviewId, dto);
+    if (!review) throw new NotFoundException('Review not found');
+    return review;
+  }
+
+  async deleteReview(reviewId: number): Promise<void> {
+    return this.repository.deleteReview(reviewId);
   }
 }

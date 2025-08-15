@@ -1,34 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
 import { CertificatesService } from './certificates.service';
-import { CreateCertificateDto } from './dto/request/issue-certificate.dto';
-import { UpdateCertificateDto } from './dto/update-certificate.dto';
+import { IssueCertificateDto } from './dto/request/issue-certificate.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CertificateResponseDto } from './dto/response/certificate.response.dto';
 
+@ApiTags('Certificates')
 @Controller('certificates')
 export class CertificatesController {
-  constructor(private readonly certificatesService: CertificatesService) {}
+  constructor(private readonly service: CertificatesService) {}
 
   @Post()
-  create(@Body() createCertificateDto: CreateCertificateDto) {
-    return this.certificatesService.create(createCertificateDto);
+  @ApiOperation({ summary: 'Issue certificate' })
+  @ApiResponse({ status: 201, type: CertificateResponseDto })
+  issue(@Body() dto: IssueCertificateDto) {
+    return this.service.issue(dto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all certificates' })
+  @ApiResponse({ status: 200, type: [CertificateResponseDto] })
   findAll() {
-    return this.certificatesService.findAll();
+    return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.certificatesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCertificateDto: UpdateCertificateDto) {
-    return this.certificatesService.update(+id, updateCertificateDto);
+  @ApiOperation({ summary: 'Get certificate by id' })
+  @ApiResponse({ status: 200, type: CertificateResponseDto })
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.certificatesService.remove(+id);
+  @ApiOperation({ summary: 'Delete certificate' })
+  remove(@Param('id') id: number) {
+    return this.service.remove(id);
   }
 }

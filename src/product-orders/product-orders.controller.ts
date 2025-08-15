@@ -1,34 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { ProductOrdersService } from './product-orders.service';
-import { CreateProductOrderDto } from './dto/create-product-order.dto';
-import { UpdateProductOrderDto } from './dto/update-product-order.dto';
+import { CreateOrderDto } from './dto/request/create-order.dto';
+import { UpdateOrderDto } from './dto/request/update-order.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { OrderResponseDto } from './dto/response/order.response.dto';
 
+@ApiTags('Product Orders')
 @Controller('product-orders')
 export class ProductOrdersController {
-  constructor(private readonly productOrdersService: ProductOrdersService) {}
+  constructor(private readonly service: ProductOrdersService) {}
 
   @Post()
-  create(@Body() createProductOrderDto: CreateProductOrderDto) {
-    return this.productOrdersService.create(createProductOrderDto);
+  @ApiOperation({ summary: 'Create product order' })
+  @ApiResponse({ status: 201, type: OrderResponseDto })
+  create(@Body() dto: CreateOrderDto) {
+    return this.service.create(dto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all product orders' })
+  @ApiResponse({ status: 200, type: [OrderResponseDto] })
   findAll() {
-    return this.productOrdersService.findAll();
+    return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productOrdersService.findOne(+id);
+  @ApiOperation({ summary: 'Get product order by id' })
+  @ApiResponse({ status: 200, type: OrderResponseDto })
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductOrderDto: UpdateProductOrderDto) {
-    return this.productOrdersService.update(+id, updateProductOrderDto);
+  @Put(':id')
+  @ApiOperation({ summary: 'Update product order' })
+  @ApiResponse({ status: 200, type: OrderResponseDto })
+  update(@Param('id') id: number, @Body() dto: UpdateOrderDto) {
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productOrdersService.remove(+id);
+  @ApiOperation({ summary: 'Delete product order' })
+  remove(@Param('id') id: number) {
+    return this.service.remove(id);
   }
 }

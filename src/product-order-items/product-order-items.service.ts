@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProductOrderItemDto } from './dto/request/create-order-item.dto';
-import { UpdateProductOrderItemDto } from './dto/request/update-order-item.dto';
+import { ProductOrderItemsRepository } from './product-order-items.repository';
+import { CreateOrderItemDto } from './dto/request/create-order-item.dto';
+import { UpdateOrderItemDto } from './dto/request/update-order-item.dto';
 
 @Injectable()
 export class ProductOrderItemsService {
-  create(createProductOrderItemDto: CreateProductOrderItemDto) {
-    return 'This action adds a new productOrderItem';
+  constructor(private readonly repository: ProductOrderItemsRepository) {}
+
+  create(dto: CreateOrderItemDto) {
+    return this.repository.create(dto);
   }
 
   findAll() {
-    return `This action returns all productOrderItems`;
+    return this.repository.findAll();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} productOrderItem`;
+    return this.repository.findOne(id);
   }
 
-  update(id: number, updateProductOrderItemDto: UpdateProductOrderItemDto) {
-    return `This action updates a #${id} productOrderItem`;
+  update(id: number, dto: UpdateOrderItemDto) {
+    return this.repository.update(id, dto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} productOrderItem`;
+    return this.repository.remove(id);
   }
 }

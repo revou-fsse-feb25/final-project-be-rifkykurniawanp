@@ -1,26 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLessonProgressDto } from './dto/create-lesson-progress.dto';
-import { UpdateLessonProgressDto } from './dto/update-lesson-progress.dto';
+import { LessonProgressesRepository } from './lesson-progresses.repository';
 
 @Injectable()
 export class LessonProgressesService {
-  create(createLessonProgressDto: CreateLessonProgressDto) {
-    return 'This action adds a new lessonProgress';
+  constructor(private readonly repository: LessonProgressesRepository) {}
+
+  getProgress(userId: number, lessonId: number) {
+    return this.repository.findOne(userId, lessonId);
   }
 
-  findAll() {
-    return `This action returns all lessonProgresses`;
+  markCompleted(userId: number, lessonId: number) {
+    return this.repository.markCompleted(userId, lessonId);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} lessonProgress`;
-  }
-
-  update(id: number, updateLessonProgressDto: UpdateLessonProgressDto) {
-    return `This action updates a #${id} lessonProgress`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} lessonProgress`;
+  getAllByUser(userId: number) {
+    return this.repository.findAllByUser(userId);
   }
 }

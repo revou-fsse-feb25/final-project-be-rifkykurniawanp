@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateCourseEnrollmentDto } from './enroll-course.dto';
+import { PartialType } from '@nestjs/mapped-types';
+import { EnrollCourseDto } from './enroll-course.dto';
 
-export class UpdateCourseEnrollmentDto extends PartialType(CreateCourseEnrollmentDto) {}
+export class UpdateEnrollmentDto extends PartialType(EnrollCourseDto) {}

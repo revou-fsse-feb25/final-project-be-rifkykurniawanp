@@ -8,7 +8,7 @@ export class CoursesService {
     return 'This action adds a new course';
   }
 
-  findAll() {
+  findAll(page: number, limit: number, p0: unknown) {
     return `This action returns all courses`;
   }
 

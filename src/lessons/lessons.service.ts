@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLessonDto } from './dto/create-lesson.dto';
-import { UpdateLessonDto } from './dto/update-lesson.dto';
+import { LessonsRepository } from './lessons.repository';
+import { CreateLessonDto } from './dto/request/create-lesson.dto';
+import { UpdateLessonDto } from './dto/request/update-lesson.dto';
 
 @Injectable()
 export class LessonsService {
-  create(createLessonDto: CreateLessonDto) {
-    return 'This action adds a new lesson';
+  constructor(private readonly lessonsRepository: LessonsRepository) {}
+
+  create(dto: CreateLessonDto) {
+    return this.lessonsRepository.create(dto);
   }
 
   findAll() {
-    return `This action returns all lessons`;
+    return this.lessonsRepository.findAll();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} lesson`;
+    return this.lessonsRepository.findOne(id);
   }
 
-  update(id: number, updateLessonDto: UpdateLessonDto) {
-    return `This action updates a #${id} lesson`;
+  update(id: number, dto: UpdateLessonDto) {
+    return this.lessonsRepository.update(id, dto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} lesson`;
+    return this.lessonsRepository.remove(id);
   }
 }

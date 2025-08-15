@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateAssignmentsSubmissionDto } from './submit-assignment.dto';
+import { PartialType } from '@nestjs/mapped-types';
+import { SubmitAssignmentDto } from './submit-assignment.dto';
 
-export class UpdateAssignmentsSubmissionDto extends PartialType(CreateAssignmentsSubmissionDto) {}
+export class UpdateSubmissionDto extends PartialType(SubmitAssignmentDto) {}
