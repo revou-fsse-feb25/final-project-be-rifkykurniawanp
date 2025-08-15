@@ -20,11 +20,11 @@ export class OrderResponseDto {
   @ApiProperty({ example: '2025-08-15T12:00:00Z' })
   createdAt: Date;
 
-  @ApiProperty({ type: () => [OrderItemResponseDto] })
-  items: OrderItemResponseDto[];
+  @ApiProperty({ type: () => [OrderOrderItemResponseDto] })
+  items: OrderOrderItemResponseDto[];
 }
 
-export class OrderItemResponseDto {
+export class OrderOrderItemResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
 

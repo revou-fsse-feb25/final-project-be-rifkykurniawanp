@@ -1,6 +1,7 @@
 // src/courses/dto/response/course.response.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CourseCategory, CourseLevel } from '@prisma/client';
+import { InstructorResponseDto } from './instructor.response.dto';
 
 export class CourseResponseDto {
   @ApiProperty() id: number;
@@ -18,15 +19,8 @@ export class CourseResponseDto {
   @ApiProperty() certificate: boolean;
   @ApiProperty() createdAt: Date;
 
-  @ApiProperty({
-    type: () => ({
-      id: Number,
-      firstName: String,
-      lastName: String,
-      email: String,
-    }),
-  })
-  instructor: any;
+  @ApiProperty({ type: () => InstructorResponseDto })
+  instructor: InstructorResponseDto;
 
   @ApiPropertyOptional({
     type: [Object],

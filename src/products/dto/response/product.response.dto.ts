@@ -1,5 +1,7 @@
 import { ProductCategory, ProductOrigin, ProductStatus, ProductTagName } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { SupplierResponseDto } from './supplier.response.dto';
+import { ProductReviewResponseDto } from './product-review.response.dto';
 
 export class ProductResponseDto {
   @ApiProperty({ description: 'The unique ID of the product', example: 1 })
@@ -47,53 +49,9 @@ export class ProductResponseDto {
   @ApiProperty({ description: 'Creation date of the product', example: '2023-01-01T00:00:00.000Z' })
   createdAt: Date;
 
-  @ApiProperty({
-    description: 'Supplier of the product',
-    type: 'object',
-    properties: {
-      id: { type: 'number' },
-      firstName: { type: 'string' },
-      lastName: { type: 'string' },
-      email: { type: 'string' },
-    },
-  })
-  supplier: {
-    id: number;
-    firstName?: string;
-    lastName?: string;
-    email: string;
-  };
+  @ApiProperty({ type: () => SupplierResponseDto })
+  supplier: SupplierResponseDto;
   
-  @ApiPropertyOptional({
-    description: 'Reviews for the product',
-    type: 'array',
-    items: {
-      type: 'object',
-      properties: {
-        id: { type: 'number' },
-        rating: { type: 'number' },
-        comment: { type: 'string' },
-        createdAt: { type: 'string', format: 'date-time' },
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'number' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' },
-          },
-        },
-      },
-    },
-  })
-  reviews?: Array<{
-    id: number;
-    rating: number;
-    comment?: string;
-    createdAt: Date;
-    user: {
-      id: number;
-      firstName?: string;
-      lastName?: string;
-    };
-  }>;
+  @ApiPropertyOptional({ type: () => ProductReviewResponseDto, isArray: true })
+  reviews?: ProductReviewResponseDto[];
 }

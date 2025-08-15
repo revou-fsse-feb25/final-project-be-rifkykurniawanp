@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { ProductsRepository } from './products.repository';
 import { CreateProductDto } from './dto/request/create-product.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
-import { ProductResponseDto } from './dto/response/review.response.dto';
+import { ProductResponseDto } from './dto/response/product.response.dto';
 import { ProductFilter } from './interfaces/products.repository.interface';
 
 @Injectable()

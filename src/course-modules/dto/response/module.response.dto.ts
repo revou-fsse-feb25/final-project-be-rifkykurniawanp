@@ -1,4 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CourseResponseDto } from './course.response.dto';
+import { ModuleLessonResponseDto } from './lesson.response.dto';
 
 export class ModuleResponseDto {
   @ApiProperty({
@@ -25,32 +27,9 @@ export class ModuleResponseDto {
   })
   orderNumber: number;
 
-  @ApiPropertyOptional({
-    description: 'Course information',
-    type: 'object',
-    properties: {
-      id: { type: 'number' },
-      title: { type: 'string' },
-      slug: { type: 'string' },
-    },
-    additionalProperties: false,
-  })
-  course?: {
-    id: number;
-    title: string;
-    slug: string;
-  };
+  @ApiPropertyOptional({ type: () => CourseResponseDto })
+  course?: CourseResponseDto;
 
-  @ApiPropertyOptional({
-    description: 'Lessons in this module',
-    type: 'array',
-  })
-  lessons?: Array<{
-    id: number;
-    title: string;
-    slug: string;
-    type: string;
-    duration: string;
-    orderNumber: number;
-  }>;
+  @ApiPropertyOptional({ type: () => [ModuleLessonResponseDto] })
+  lessons?: ModuleLessonResponseDto[];
 }
