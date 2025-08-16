@@ -11,7 +11,7 @@ async function bootstrap() {
 
     // CORS Configuration
     app.enableCors({
-      origin: process.env.CORS_ORIGIN?.split(',') || '*',
+      origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
       credentials: true,
     });
 
@@ -30,7 +30,12 @@ async function bootstrap() {
       exclude: [{ path: '', method: RequestMethod.GET }],
     });
 
-    // Swagger Documentation (disable in production)
+    // Root health check (important for Railway)
+    app.getHttpAdapter().get('/', (req, res) => {
+      res.send('✅ EduCommerce API is running');
+    });
+
+    // Swagger (disable in production)
     if (process.env.NODE_ENV !== 'production') {
       const config = new DocumentBuilder()
         .setTitle('EduCommerce API')
@@ -48,7 +53,7 @@ async function bootstrap() {
 
     // Port & Host
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
-    const host = process.env.HOST || '0.0.0.0'; // ⬅️ penting untuk deployment
+    const host = '0.0.0.0'; // always bind for Railway
 
     await app.listen(port, host);
 

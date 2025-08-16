@@ -9,7 +9,7 @@ async function bootstrap() {
     try {
         const app = await core_1.NestFactory.create(app_module_1.AppModule);
         app.enableCors({
-            origin: process.env.CORS_ORIGIN || '*',
+            origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
             credentials: true,
         });
         app.useGlobalPipes(new common_1.ValidationPipe({
@@ -21,6 +21,9 @@ async function bootstrap() {
         app.setGlobalPrefix('api/v1', {
             exclude: [{ path: '', method: common_1.RequestMethod.GET }],
         });
+        app.getHttpAdapter().get('/', (req, res) => {
+            res.send('✅ EduCommerce API is running');
+        });
         if (process.env.NODE_ENV !== 'production') {
             const config = new swagger_1.DocumentBuilder()
                 .setTitle('EduCommerce API')
@@ -31,14 +34,16 @@ async function bootstrap() {
             const document = swagger_1.SwaggerModule.createDocument(app, config);
             swagger_1.SwaggerModule.setup('api/docs', app, document);
         }
-        const port = process.env.PORT || 3002;
-        const host = process.env.HOST || 'localhost';
+        const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
+        const host = '0.0.0.0';
         await app.listen(port, host);
         logger.log(`🚀 Server running at http://${host}:${port}`);
-        logger.log(`📚 Swagger docs: http://${host}:${port}/api/docs`);
+        if (process.env.NODE_ENV !== 'production') {
+            logger.log(`📚 Swagger docs: http://${host}:${port}/api/docs`);
+        }
     }
     catch (error) {
-        logger.error('Failed to start application', error);
+        logger.error('❌ Failed to start application', error.stack || error.message);
         process.exit(1);
     }
 }
