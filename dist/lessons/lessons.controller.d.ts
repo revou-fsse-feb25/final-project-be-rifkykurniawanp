@@ -1,0 +1,82 @@
+import { LessonsService } from './lessons.service';
+import { CreateLessonDto } from './dto/request/create-lesson.dto';
+import { UpdateLessonDto } from './dto/request/update-lesson.dto';
+export declare class LessonsController {
+    private readonly lessonsService;
+    constructor(lessonsService: LessonsService);
+    create(dto: CreateLessonDto): import(".prisma/client").Prisma.Prisma__LessonClient<{
+        id: number;
+        createdAt: Date;
+        type: import(".prisma/client").$Enums.LessonType;
+        description: string | null;
+        title: string;
+        content: string | null;
+        slug: string | null;
+        duration: string | null;
+        orderNumber: number;
+        moduleId: number;
+        videoUrl: string | null;
+        quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
+        passingScore: import("@prisma/client/runtime/library").Decimal;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
+        id: number;
+        createdAt: Date;
+        type: import(".prisma/client").$Enums.LessonType;
+        description: string | null;
+        title: string;
+        content: string | null;
+        slug: string | null;
+        duration: string | null;
+        orderNumber: number;
+        moduleId: number;
+        videoUrl: string | null;
+        quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
+        passingScore: import("@prisma/client/runtime/library").Decimal;
+    }[]>;
+    findOne(id: number): import(".prisma/client").Prisma.Prisma__LessonClient<{
+        id: number;
+        createdAt: Date;
+        type: import(".prisma/client").$Enums.LessonType;
+        description: string | null;
+        title: string;
+        content: string | null;
+        slug: string | null;
+        duration: string | null;
+        orderNumber: number;
+        moduleId: number;
+        videoUrl: string | null;
+        quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
+        passingScore: import("@prisma/client/runtime/library").Decimal;
+    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    update(id: number, dto: UpdateLessonDto): import(".prisma/client").Prisma.Prisma__LessonClient<{
+        id: number;
+        createdAt: Date;
+        type: import(".prisma/client").$Enums.LessonType;
+        description: string | null;
+        title: string;
+        content: string | null;
+        slug: string | null;
+        duration: string | null;
+        orderNumber: number;
+        moduleId: number;
+        videoUrl: string | null;
+        quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
+        passingScore: import("@prisma/client/runtime/library").Decimal;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    remove(id: number): import(".prisma/client").Prisma.Prisma__LessonClient<{
+        id: number;
+        createdAt: Date;
+        type: import(".prisma/client").$Enums.LessonType;
+        description: string | null;
+        title: string;
+        content: string | null;
+        slug: string | null;
+        duration: string | null;
+        orderNumber: number;
+        moduleId: number;
+        videoUrl: string | null;
+        quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
+        passingScore: import("@prisma/client/runtime/library").Decimal;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+}

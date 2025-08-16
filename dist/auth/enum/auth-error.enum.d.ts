@@ -1,0 +1,4 @@
+export declare enum AuthError {
+    EMAIL_EXISTS = "EMAIL_EXISTS",
+    INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
+}
