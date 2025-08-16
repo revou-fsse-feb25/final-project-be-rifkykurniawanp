@@ -5,13 +5,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  
+
   try {
     const app = await NestFactory.create(AppModule);
 
     // CORS Configuration
     app.enableCors({
-      origin: process.env.CORS_ORIGIN || '*',
+      origin: process.env.CORS_ORIGIN?.split(',') || '*',
       credentials: true,
     });
 
@@ -22,7 +22,7 @@ async function bootstrap() {
         transform: true,
         forbidNonWhitelisted: true,
         transformOptions: { enableImplicitConversion: true },
-      })
+      }),
     );
 
     // API Prefix
@@ -30,30 +30,34 @@ async function bootstrap() {
       exclude: [{ path: '', method: RequestMethod.GET }],
     });
 
-    // Swagger Documentation (only in development)
+    // Swagger Documentation (disable in production)
     if (process.env.NODE_ENV !== 'production') {
       const config = new DocumentBuilder()
         .setTitle('EduCommerce API')
         .setDescription('API documentation for Coffee, Tea, Herbal, and Courses platform')
         .setVersion('1.0')
-        .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'Authorization')
+        .addBearerAuth(
+          { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+          'Authorization',
+        )
         .build();
 
       const document = SwaggerModule.createDocument(app, config);
       SwaggerModule.setup('api/docs', app, document);
     }
 
-    // Start Server
-    const port = process.env.PORT || 3002;
-    const host = process.env.HOST || 'localhost';
-    
+    // Port & Host
+    const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
+    const host = process.env.HOST || '0.0.0.0'; // ⬅️ penting untuk deployment
+
     await app.listen(port, host);
-    
+
     logger.log(`🚀 Server running at http://${host}:${port}`);
-    logger.log(`📚 Swagger docs: http://${host}:${port}/api/docs`);
-    
+    if (process.env.NODE_ENV !== 'production') {
+      logger.log(`📚 Swagger docs: http://${host}:${port}/api/docs`);
+    }
   } catch (error) {
-    logger.error('Failed to start application', error);
+    logger.error('❌ Failed to start application', error.stack || error.message);
     process.exit(1);
   }
 }
