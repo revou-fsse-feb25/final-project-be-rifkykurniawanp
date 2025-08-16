@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "public"."Cart" ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
