@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,12 +26,17 @@ import { CreateProductDto } from './dto/request/create-product.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
 import { ProductResponseDto } from './dto/response/product.response.dto';
 import { ProductCategory, ProductOrigin, ProductStatus, ProductTagName } from '@prisma/client';
+import { JwtGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { RolesGuard } from '../auth/guards/role.guard';
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post()
   @ApiOperation({ summary: 'Create a new product' })
   @ApiCreatedResponse({ description: 'The product has been successfully created.', type: ProductResponseDto })
@@ -101,6 +107,8 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Patch(':id')
   @ApiOperation({ summary: 'Update a product by ID' })
   @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })
@@ -115,6 +123,8 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a product by ID' })
   @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })

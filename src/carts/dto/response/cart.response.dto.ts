@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CartItemType } from '@prisma/client';
 
 export class CartResponseDto {
   @ApiProperty({ example: 1 })
@@ -18,9 +17,6 @@ export class CartResponseDto {
 export class CartItemResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
-
-  @ApiProperty({ enum: CartItemType })
-  itemType: CartItemType;
 
   @ApiProperty({ example: 101 })
   itemId: number;

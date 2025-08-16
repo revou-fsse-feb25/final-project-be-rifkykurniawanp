@@ -1,43 +1,61 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  
+  try {
+    const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true,
-  });
+    // CORS Configuration
+    app.enableCors({
+      origin: process.env.CORS_ORIGIN || '*',
+      credentials: true,
+    });
 
-  app.useGlobalPipes(
-    new ValidationPipe({ 
-      whitelist: true, 
-      transform: true,
-      forbidNonWhitelisted: true,
-      transformOptions: { enableImplicitConversion: true },
-    })
-  );
+    // Global Validation
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+        transformOptions: { enableImplicitConversion: true },
+      })
+    );
 
-  app.setGlobalPrefix('api', {
-    exclude: [{ path: '', method: RequestMethod.GET }],
-  });
+    // API Prefix
+    app.setGlobalPrefix('api/v1', {
+      exclude: [{ path: '', method: RequestMethod.GET }],
+    });
 
-  const config = new DocumentBuilder()
-    .setTitle('EduCommerce API')
-    .setDescription('API documentation for Coffee, Tea, Herbal, and Courses platform')
-    .setVersion('1.0')
-    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'Authorization')
-    .build();
+    // Swagger Documentation (only in development)
+    if (process.env.NODE_ENV !== 'production') {
+      const config = new DocumentBuilder()
+        .setTitle('EduCommerce API')
+        .setDescription('API documentation for Coffee, Tea, Herbal, and Courses platform')
+        .setVersion('1.0')
+        .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'Authorization')
+        .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api/docs', app, document);
+    }
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-
-  console.log(`🚀 Server running at http://localhost:${port}`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
+    // Start Server
+    const port = process.env.PORT || 3002;
+    const host = process.env.HOST || 'localhost';
+    
+    await app.listen(port, host);
+    
+    logger.log(`🚀 Server running at http://${host}:${port}`);
+    logger.log(`📚 Swagger docs: http://${host}:${port}/api/docs`);
+    
+  } catch (error) {
+    logger.error('Failed to start application', error);
+    process.exit(1);
+  }
 }
+
 bootstrap();

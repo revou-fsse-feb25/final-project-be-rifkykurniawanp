@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddToCartDto } from './dto/request/add-to-cart.dto';
+import { AddToCartDto, CartItemType } from './dto/request/add-to-cart.dto';
 import { UpdateCartDto } from './dto/request/update-cart.dto';
 
 @Injectable()
@@ -10,12 +10,12 @@ export class CartsRepository {
   async addItem(dto: AddToCartDto) {
     // Find the cart by userId, or create a new one if not found
     let cart = await this.prisma.cart.findFirst({
-      where: { userId: dto.userId, status: 'ACTIVE' },
+      where: { userId: dto.userId },
     });
 
     if (!cart) {
       cart = await this.prisma.cart.create({
-        data: { userId: dto.userId, status: 'ACTIVE' },
+        data: { userId: dto.userId },
       });
     }
 

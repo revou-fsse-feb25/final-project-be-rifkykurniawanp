@@ -3,12 +3,16 @@ import { ApiTags } from '@nestjs/swagger';
 import { ProductReviewsService } from './product-reviews.service';
 import { CreateReviewDto } from './dto/request/create-review.dto';
 import { ReviewResponseDto } from './dto/response/review-response.dto';
+import { JwtGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { RolesGuard } from '../auth/guards/role.guard';
 
 @ApiTags('Product Reviews')
 @Controller('product-reviews')
 export class ProductReviewsController {
   constructor(private readonly service: ProductReviewsService) {}
 
+  @UseGuards(JwtGuard)
   @Post()
   async createReview(
     @Query('userId') userId: number,
@@ -32,6 +36,8 @@ export class ProductReviewsController {
     return this.service.getProductAverageRating(productId);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Patch(':reviewId')
   async updateReview(
     @Param('reviewId') reviewId: number,
@@ -40,6 +46,8 @@ export class ProductReviewsController {
     return this.service.updateReview(reviewId, dto);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Delete(':reviewId')
   async deleteReview(@Param('reviewId') reviewId: number): Promise<void> {
     return this.service.deleteReview(reviewId);

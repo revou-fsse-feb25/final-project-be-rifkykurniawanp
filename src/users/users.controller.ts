@@ -1,6 +1,6 @@
 // src/users/users.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe,
+  Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -8,6 +8,9 @@ import { CreateUserDto } from './dto/request/create-user.dto';
 import { UpdateUserDto } from './dto/request/update-user.dto';
 import { UserResponseDto } from './dto/response/user.response.dto';
 import { RoleName } from '@prisma/client';
+import { JwtGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { RolesGuard } from '../auth/guards/role.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -21,6 +24,8 @@ export class UsersController {
     return this.usersService.create(dto);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Get()
   @ApiOperation({ summary: 'Get all users with pagination' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
@@ -33,6 +38,8 @@ export class UsersController {
     return this.usersService.findAll(page, limit);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Get('role/:role')
   @ApiOperation({ summary: 'Get users by role' })
   @ApiParam({ name: 'role', enum: RoleName })
@@ -41,6 +48,8 @@ export class UsersController {
     return this.usersService.findByRole(role);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', example: 1 })
@@ -49,6 +58,8 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiParam({ name: 'id', example: 1 })
@@ -57,6 +68,8 @@ export class UsersController {
     return this.usersService.update(id, dto);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user' })
   @ApiParam({ name: 'id', example: 1 })

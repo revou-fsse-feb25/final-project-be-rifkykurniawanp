@@ -10,6 +10,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,12 +24,17 @@ import { CourseModulesService } from './course-modules.service';
 import { CreateModuleDto } from './dto/request/create-module.dto';
 import { UpdateModuleDto } from './dto/request/update-module.dto';
 import { ModuleResponseDto } from './dto/response/module.response.dto';
+import { JwtGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { RolesGuard } from '../auth/guards/role.guard';
 
 @ApiTags('Course Modules')
 @Controller('course-modules')
 export class CourseModulesController {
   constructor(private readonly courseModulesService: CourseModulesService) {}
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'INSTRUCTOR')
   @Post()
   @ApiOperation({ summary: 'Create a new course module' })
   @ApiBody({ type: CreateModuleDto })
@@ -101,6 +107,8 @@ export class CourseModulesController {
     return await this.courseModulesService.findByCourse(courseId);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'INSTRUCTOR')
   @Patch(':id')
   @ApiOperation({ summary: 'Update a course module' })
   @ApiParam({
@@ -129,6 +137,8 @@ export class CourseModulesController {
     return await this.courseModulesService.update(id, updateModuleDto);
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'INSTRUCTOR')
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a course module' })

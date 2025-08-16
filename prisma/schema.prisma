@@ -62,12 +62,6 @@ enum CartItemType {
   COURSE
 }
 
-enum CartStatus {
-  ACTIVE
-  CHECKOUT
-  ABANDONED
-}
-
 enum LessonType {
   VIDEO
   ARTICLE
@@ -139,6 +133,7 @@ model Product {
 
   supplier        User             @relation(fields: [supplierId], references: [id])
   reviews         ProductReview[]
+  cartItems       CartItem[]       // Added missing relation
   orderItems      ProductOrderItem[]
 }
 
@@ -173,6 +168,7 @@ model Course {
 
   instructor       User                 @relation(fields: [instructorId], references: [id])
   modules          CourseModule[]
+  cartItems        CartItem[]           // Added missing relation
   enrollments      CourseEnrollment[]
 }
 
@@ -196,7 +192,7 @@ model Lesson {
   type         LessonType @default(VIDEO)
   videoUrl     String?
   content      String?
-  quizQuestions String?
+  quizQuestions Json?     // Changed from String to Json for better data structure
   passingScore Decimal   @default(70) @db.Decimal(5,2)
   orderNumber  Int
   createdAt    DateTime  @default(now())
@@ -210,7 +206,7 @@ model LessonProgress {
   lessonId  Int
   userId    Int
   completed Boolean  @default(false)
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt // Added @updatedAt for automatic updates
 
   lesson   Lesson  @relation(fields: [lessonId], references: [id])
   user     User    @relation(fields: [userId], references: [id])
@@ -242,11 +238,12 @@ model AssignmentSubmission {
   user         User       @relation(fields: [userId], references: [id])
 }
 
+// ================= SIMPLIFIED CART & PAYMENT =================
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int
-  status    CartStatus @default(ACTIVE)
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt // Added for tracking cart updates
 
   user      User       @relation(fields: [userId], references: [id])
   items     CartItem[]
@@ -262,6 +259,11 @@ model CartItem {
   price     Decimal      @db.Decimal(12,2)
 
   cart      Cart         @relation(fields: [cartId], references: [id])
+  product   Product?     @relation(fields: [itemId], references: [id], map: "CartItem_itemId_product_fkey")
+  course    Course?      @relation(fields: [itemId], references: [id], map: "CartItem_itemId_course_fkey")
+  
+  // Note: Only one of product/course will be populated based on itemType
+  // This is handled at application level
 }
 
 model Payment {
@@ -270,7 +272,7 @@ model Payment {
   cartId         Int
   amount         Decimal      @db.Decimal(12,2)
   paymentMethod  String
-  status         PaymentStatus @default(PENDING)
+  status         PaymentStatus @default(PENDING) // Single source of truth for payment flow
   payableType    PayableType
   payableId      Int
   paidAt         DateTime?

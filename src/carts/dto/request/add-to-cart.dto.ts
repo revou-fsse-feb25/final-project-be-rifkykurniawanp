@@ -1,13 +1,17 @@
 import { IsInt, IsEnum, IsDecimal } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { CartItemType } from '@prisma/client';
+
+export enum CartItemType {
+  PRODUCT = 'PRODUCT',
+  COURSE = 'COURSE',
+}
 
 export class AddToCartDto {
   @ApiProperty({ example: 1 })
   @IsInt()
   userId: number;
 
-  @ApiProperty({ enum: CartItemType, example: CartItemType.PRODUCT })
+  @ApiProperty({ example: 'PRODUCT', enum: CartItemType })
   @IsEnum(CartItemType)
   itemType: CartItemType;
 
