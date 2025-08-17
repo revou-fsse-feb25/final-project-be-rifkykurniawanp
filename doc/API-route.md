@@ -13,7 +13,7 @@
 - [Assignments](#assignments)
 - [Cart Management](#cart-management)
 - [Payments](#payments)
-- [Orders Management](#orders-management)
+- [Product Orders Management](#product-orders-management)
 - [Course Enrollments](#course-enrollments)
 - [Certificates](#certificates)
 - [Dashboard & Analytics](#dashboard--analytics)
@@ -44,9 +44,10 @@
 | POST | `/api/users` | Create new user | Yes | ADMIN |
 | PUT | `/api/users/{id}` | Update user | Yes | ADMIN, Own User |
 | DELETE | `/api/users/{id}` | Delete user | Yes | ADMIN |
-| GET | `/api/users/{id}/orders` | Get user's product orders | Yes | ADMIN, Own User |
+| GET | `/api/users/{id}/product-orders` | Get user's product orders | Yes | ADMIN, Own User |
 | GET | `/api/users/{id}/enrollments` | Get user's course enrollments | Yes | ADMIN, Own User |
 | GET | `/api/users/{id}/certificates` | Get user's certificates | Yes | ADMIN, Own User |
+| GET | `/api/users/{id}/progress` | Get user's learning progress | Yes | ADMIN, Own User |
 
 ---
 
@@ -76,6 +77,7 @@
 - `maxPrice` (number) - Maximum price filter
 - `tags` (array) - Filter by tags: `ARABICA`, `ROBUSTA`, `GREEN_TEA`, `HERBAL`, `EQUIPMENT`
 - `search` (string) - Search by name or description
+- `weight` (string) - Filter by weight specification
 
 ---
 
@@ -117,6 +119,8 @@
 - `minPrice` (number) - Minimum price filter
 - `maxPrice` (number) - Maximum price filter
 - `certificate` (boolean) - Filter courses with certificates
+- `language` (string) - Filter by language (default: "id")
+- `duration` (string) - Filter by course duration
 - `search` (string) - Search by title or description
 
 ---
@@ -143,7 +147,6 @@
 |--------|-------|-------------|---------------|-------|
 | GET | `/api/lessons/{lessonId}/progress` | Get lesson progress | Yes | ADMIN, Own USER |
 | POST | `/api/lessons/{lessonId}/complete` | Mark lesson as completed | Yes | USER (Student) |
-| GET | `/api/users/{userId}/progress` | Get user's learning progress | Yes | ADMIN, Own USER |
 | GET | `/api/courses/{courseId}/progress` | Get course progress | Yes | ADMIN, Enrolled USER |
 
 ---
@@ -179,6 +182,10 @@
 | DELETE | `/api/carts/{cartId}/items/{itemId}` | Remove item from cart | Yes | Own USER |
 | POST | `/api/carts/{cartId}/checkout` | Proceed to checkout | Yes | Own USER |
 
+### Cart Item Types
+- `PRODUCT` - Physical products (coffee, tea, equipment)
+- `COURSE` - Online courses
+
 ---
 
 ## Payments
@@ -194,21 +201,24 @@
 | POST | `/api/payments/webhook` | Payment gateway webhook | No | System |
 | POST | `/api/payments/{id}/cancel` | Cancel payment | Yes | ADMIN, Own USER |
 
+### Payment Types
+- `PRODUCT` - Payment for physical products
+- `COURSE` - Payment for course enrollment
+
 ---
 
-## Orders Management
+## Product Orders Management
 
 | Method | Route | Description | Auth Required | Roles |
 |--------|-------|-------------|---------------|-------|
-| GET | `/api/orders` | Get all orders | Yes | ADMIN |
-| GET | `/api/orders/{id}` | Get order by ID | Yes | ADMIN, Own USER |
-| POST | `/api/orders` | Create new order | Yes | USER (Buyer) |
-| PUT | `/api/orders/{id}` | Update order status | Yes | ADMIN, SUPPLIER |
-| DELETE | `/api/orders/{id}` | Cancel order | Yes | ADMIN, Own USER |
-| GET | `/api/orders/{id}/items` | Get order items | Yes | ADMIN, Own USER |
-| GET | `/api/orders/user/{userId}` | Get orders by user | Yes | ADMIN, Own USER |
-| GET | `/api/orders/supplier/{supplierId}` | Get orders by supplier | Yes | ADMIN, Own SUPPLIER |
-| GET | `/api/orders/status/{status}` | Get orders by status | Yes | ADMIN |
+| GET | `/api/product-orders` | Get all product orders | Yes | ADMIN |
+| GET | `/api/product-orders/{id}` | Get product order by ID | Yes | ADMIN, Own USER |
+| POST | `/api/product-orders` | Create new product order | Yes | USER (Buyer) |
+| PUT | `/api/product-orders/{id}` | Update order status | Yes | ADMIN, SUPPLIER |
+| DELETE | `/api/product-orders/{id}` | Cancel product order | Yes | ADMIN, Own USER |
+| GET | `/api/product-orders/{id}/items` | Get product order items | Yes | ADMIN, Own USER |
+| GET | `/api/product-orders/user/{userId}` | Get orders by user | Yes | ADMIN, Own USER |
+| GET | `/api/product-orders/status/{status}` | Get orders by status | Yes | ADMIN |
 
 ---
 
@@ -238,6 +248,12 @@
 | GET | `/api/courses/{courseId}/certificates` | Get course certificates | Yes | ADMIN, Own INSTRUCTOR |
 | GET | `/api/certificates/{id}/download` | Download certificate PDF | Yes | ADMIN, Own USER |
 | PUT | `/api/certificates/{id}/verify` | Verify certificate eligibility | Yes | System |
+
+### Certificate Eligibility
+- `finalLessonsCompleted` - All lessons in course completed
+- `finalAssignmentsCompleted` - All assignments submitted and graded
+- `eligible` - Overall eligibility for certificate
+- `certificateAwarded` - Certificate has been issued
 
 ---
 
@@ -276,11 +292,13 @@
 - `{userId}` - User ID
 - `{courseId}` - Course ID  
 - `{productId}` - Product ID
-- `{orderId}` - Order ID
+- `{orderId}` - Product Order ID
 - `{lessonId}` - Lesson ID
+- `{moduleId}` - Course Module ID
 - `{assignmentId}` - Assignment ID
 - `{cartId}` - Cart ID
 - `{paymentId}` - Payment ID
+- `{enrollmentId}` - Course Enrollment ID
 
 ---
 
@@ -289,7 +307,7 @@
 - **ADMIN** - Full system access, can manage all resources
 - **SUPPLIER** - Can manage own products, view related orders and analytics
 - **INSTRUCTOR** - Can manage own courses, lessons, assignments, view enrollments
-- **USER** - Basic user with buyer/student capabilities
+- **USER** - Basic user with buyer/student capabilities (isBuyer/isStudent flags)
 - **Own USER/INSTRUCTOR/SUPPLIER** - Can only access their own resources
 - **Enrolled USER** - Can only access courses they are enrolled in
 - **System** - Internal system operations (automated processes)
@@ -313,6 +331,10 @@
 
 ## Data Models Reference
 
+### User Flags
+- `isBuyer` - Boolean flag indicating user can purchase products
+- `isStudent` - Boolean flag indicating user can enroll in courses
+
 ### Enums
 ```typescript
 RoleName: 'ADMIN' | 'SUPPLIER' | 'INSTRUCTOR' | 'USER'
@@ -328,6 +350,14 @@ PayableType: 'PRODUCT' | 'COURSE'
 PaymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
 OrderStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED'
 ```
+
+### Key Model Relationships
+- **Products** belong to **Users** (suppliers)
+- **Courses** belong to **Users** (instructors)
+- **Lessons** have `quizQuestions` stored as JSON
+- **Payments** are linked to **Carts** and can create **ProductOrders** or **CourseEnrollments**
+- **Certificates** are uniquely linked to **CourseEnrollments**
+- **LessonProgress** tracks individual lesson completion per user
 
 ---
 

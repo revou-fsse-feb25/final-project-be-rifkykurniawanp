@@ -1,16 +1,31 @@
-// src/users/users.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { RoleName } from '@prisma/client';
+
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/request/create-user.dto';
 import { UpdateUserDto } from './dto/request/update-user.dto';
 import { UserResponseDto } from './dto/response/user.response.dto';
-import { RoleName } from '@prisma/client';
 import { JwtGuard } from '../auth/guards/jwt-auth.guard';
-import { Roles } from '../auth/decorator/roles.decorator';
 import { RolesGuard } from '../auth/guards/role.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,10 +47,12 @@ export class UsersController {
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiResponse({ status: 200, type: [UserResponseDto] })
   findAll(
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.usersService.findAll(page, limit);
+    const pageNum = page ? parseInt(page) : 1;
+    const limitNum = limit ? parseInt(limit) : 10;
+    return this.usersService.findAll(pageNum, limitNum);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
@@ -49,7 +66,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'USER')
+  @Roles('ADMIN', 'SUPPLIER', 'INSTRUCTOR', 'USER')
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', example: 1 })
@@ -59,12 +76,15 @@ export class UsersController {
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'USER')
+  @Roles('ADMIN', 'SUPPLIER', 'INSTRUCTOR', 'USER')
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiParam({ name: 'id', example: 1 })
   @ApiResponse({ status: 200, type: UserResponseDto })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
     return this.usersService.update(id, dto);
   }
 

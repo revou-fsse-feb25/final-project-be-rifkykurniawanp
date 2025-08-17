@@ -1,5 +1,4 @@
-// src/users/users.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/request/create-user.dto';
 import { UpdateUserDto } from './dto/request/update-user.dto';
@@ -25,9 +24,15 @@ export class UsersService {
     return (await this.usersRepository.findAll(skip, limit)).map(this.toResponseDto);
   }
 
-  async findOne(id: number): Promise<UserResponseDto> {
+  async findOne(id: number, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto> {
     const user = await this.usersRepository.findById(id);
     if (!user) throw new NotFoundException('User not found');
+
+    // Check access permissions - only ADMIN or own user can access
+    if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+      throw new ForbiddenException('You can only access your own profile');
+    }
+
     return this.toResponseDto(user);
   }
 
@@ -35,10 +40,21 @@ export class UsersService {
     return (await this.usersRepository.findByRole(role)).map(this.toResponseDto);
   }
 
-  async update(id: number, dto: UpdateUserDto): Promise<UserResponseDto> {
+  async update(id: number, dto: UpdateUserDto, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto> {
     if (!(await this.usersRepository.findById(id))) {
       throw new NotFoundException('User not found');
     }
+
+    // Check access permissions - only ADMIN or own user can update
+    if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+
+    // Prevent non-admins from changing role
+    if (dto.role && currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can change user roles');
+    }
+
     return this.toResponseDto(await this.usersRepository.update(id, dto));
   }
 

@@ -1,21 +1,33 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { CreateProductDto } from './dto/request/create-product.dto';
 import { UpdateProductDto } from './dto/request/update-product.dto';
 import { ProductResponseDto } from './dto/response/product.response.dto';
 import { ProductFilter } from './interfaces/products.repository.interface';
+import { RoleName } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
   constructor(private productsRepository: ProductsRepository) {}
 
-  async create(createProductDto: CreateProductDto): Promise<ProductResponseDto> {
+  async create(createProductDto: CreateProductDto, currentUserId: number, currentUserRole: RoleName): Promise<ProductResponseDto> {
     const existingProduct = await this.productsRepository.findBySlug(createProductDto.slug);
     if (existingProduct) {
       throw new BadRequestException('Product slug already exists');
     }
 
-    const product = await this.productsRepository.create(createProductDto);
+    // Set supplierId based on role
+    let supplierId = createProductDto.supplierId;
+    if (currentUserRole === 'SUPPLIER') {
+      supplierId = currentUserId; // Suppliers can only create products for themselves
+    } else if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN and SUPPLIER can create products');
+    }
+
+    const product = await this.productsRepository.create({
+      ...createProductDto,
+      supplierId,
+    });
     return this.toResponseDto(product);
   }
 
@@ -50,10 +62,22 @@ export class ProductsService {
     return products.map(product => this.toResponseDto(product));
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<ProductResponseDto> {
+  async update(
+    id: number, 
+    updateProductDto: UpdateProductDto, 
+    currentUserId: number, 
+    currentUserRole: RoleName
+  ): Promise<ProductResponseDto> {
     const existingProduct = await this.productsRepository.findById(id);
     if (!existingProduct) {
       throw new NotFoundException('Product not found');
+    }
+
+    // Check ownership permissions
+    if (currentUserRole === 'SUPPLIER' && existingProduct.supplierId !== currentUserId) {
+      throw new ForbiddenException('You can only update your own products');
+    } else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'SUPPLIER') {
+      throw new ForbiddenException('Only ADMIN and SUPPLIER can update products');
     }
 
     if (updateProductDto.slug && updateProductDto.slug !== existingProduct.slug) {
@@ -67,10 +91,17 @@ export class ProductsService {
     return this.toResponseDto(product);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, currentUserId: number, currentUserRole: RoleName): Promise<void> {
     const existingProduct = await this.productsRepository.findById(id);
     if (!existingProduct) {
       throw new NotFoundException('Product not found');
+    }
+
+    // Check ownership permissions
+    if (currentUserRole === 'SUPPLIER' && existingProduct.supplierId !== currentUserId) {
+      throw new ForbiddenException('You can only delete your own products');
+    } else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'SUPPLIER') {
+      throw new ForbiddenException('Only ADMIN and SUPPLIER can delete products');
     }
 
     await this.productsRepository.delete(id);
