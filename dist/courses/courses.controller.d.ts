@@ -1,13 +1,13 @@
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/request/create-course.dto';
 import { UpdateCourseDto } from './dto/request/update-course.dto';
-import { CourseCategory, CourseLevel } from '@prisma/client';
+import { CourseResponseDto } from './dto/response/course.response.dto';
 export declare class CoursesController {
     private readonly coursesService;
     constructor(coursesService: CoursesService);
-    create(createCourseDto: CreateCourseDto): string;
-    findAll(page?: number, limit?: number, category?: CourseCategory, level?: CourseLevel): string;
-    findOne(id: number): string;
-    update(id: number, updateCourseDto: UpdateCourseDto): string;
-    remove(id: number): string;
+    create(createCourseDto: CreateCourseDto): Promise<CourseResponseDto>;
+    findAll(page?: number, limit?: number): Promise<CourseResponseDto[]>;
+    findOne(id: string): Promise<CourseResponseDto>;
+    update(id: string, updateCourseDto: UpdateCourseDto): Promise<CourseResponseDto>;
+    remove(id: string): Promise<void>;
 }

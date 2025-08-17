@@ -7,101 +7,101 @@ export declare class CourseModulesRepository implements ICourseModulesRepository
     constructor(prisma: PrismaService);
     create(data: CreateModuleDto): Promise<{
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     }>;
     findAll(): Promise<({
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     })[]>;
     findById(id: number): Promise<({
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     }) | null>;
     findByCourseId(courseId: number): Promise<({
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     })[]>;
     update(id: number, data: UpdateModuleDto): Promise<{
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     }>;

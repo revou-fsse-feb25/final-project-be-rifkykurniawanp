@@ -8,9 +8,9 @@ export declare class UsersService {
     constructor(usersRepository: UsersRepository);
     create(dto: CreateUserDto): Promise<UserResponseDto>;
     findAll(page?: number, limit?: number): Promise<UserResponseDto[]>;
-    findOne(id: number): Promise<UserResponseDto>;
+    findOne(id: number, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto>;
     findByRole(role: RoleName): Promise<UserResponseDto[]>;
-    update(id: number, dto: UpdateUserDto): Promise<UserResponseDto>;
+    update(id: number, dto: UpdateUserDto, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto>;
     remove(id: number): Promise<void>;
     private toResponseDto;
 }

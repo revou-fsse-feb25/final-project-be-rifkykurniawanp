@@ -17,12 +17,22 @@ let ProductsService = class ProductsService {
     constructor(productsRepository) {
         this.productsRepository = productsRepository;
     }
-    async create(createProductDto) {
+    async create(createProductDto, currentUserId, currentUserRole) {
         const existingProduct = await this.productsRepository.findBySlug(createProductDto.slug);
         if (existingProduct) {
             throw new common_1.BadRequestException('Product slug already exists');
         }
-        const product = await this.productsRepository.create(createProductDto);
+        let supplierId = createProductDto.supplierId;
+        if (currentUserRole === 'SUPPLIER') {
+            supplierId = currentUserId;
+        }
+        else if (currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only ADMIN and SUPPLIER can create products');
+        }
+        const product = await this.productsRepository.create({
+            ...createProductDto,
+            supplierId,
+        });
         return this.toResponseDto(product);
     }
     async findAll(page = 1, limit = 10, filter) {
@@ -48,10 +58,16 @@ let ProductsService = class ProductsService {
         const products = await this.productsRepository.findBySupplierId(supplierId);
         return products.map(product => this.toResponseDto(product));
     }
-    async update(id, updateProductDto) {
+    async update(id, updateProductDto, currentUserId, currentUserRole) {
         const existingProduct = await this.productsRepository.findById(id);
         if (!existingProduct) {
             throw new common_1.NotFoundException('Product not found');
+        }
+        if (currentUserRole === 'SUPPLIER' && existingProduct.supplierId !== currentUserId) {
+            throw new common_1.ForbiddenException('You can only update your own products');
+        }
+        else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'SUPPLIER') {
+            throw new common_1.ForbiddenException('Only ADMIN and SUPPLIER can update products');
         }
         if (updateProductDto.slug && updateProductDto.slug !== existingProduct.slug) {
             const slugExists = await this.productsRepository.findBySlug(updateProductDto.slug);
@@ -62,10 +78,16 @@ let ProductsService = class ProductsService {
         const product = await this.productsRepository.update(id, updateProductDto);
         return this.toResponseDto(product);
     }
-    async remove(id) {
+    async remove(id, currentUserId, currentUserRole) {
         const existingProduct = await this.productsRepository.findById(id);
         if (!existingProduct) {
             throw new common_1.NotFoundException('Product not found');
+        }
+        if (currentUserRole === 'SUPPLIER' && existingProduct.supplierId !== currentUserId) {
+            throw new common_1.ForbiddenException('You can only delete your own products');
+        }
+        else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'SUPPLIER') {
+            throw new common_1.ForbiddenException('Only ADMIN and SUPPLIER can delete products');
         }
         await this.productsRepository.delete(id);
     }

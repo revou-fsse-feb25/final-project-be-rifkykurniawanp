@@ -48,6 +48,7 @@ const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 const auth_error_enum_1 = require("./enum/auth-error.enum");
+const SALT_ROUNDS = 10;
 let AuthService = class AuthService {
     prisma;
     jwtService;
@@ -56,27 +57,193 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(dto) {
-        const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-        if (existing)
-            throw new common_1.ConflictException(auth_error_enum_1.AuthError.EMAIL_EXISTS);
-        const hashed = await bcrypt.hash(dto.password, 10);
-        const user = await this.prisma.user.create({
-            data: { ...dto, password: hashed, role: dto.role },
-        });
-        return this.generateToken(user.id, user.email, user.role);
+        try {
+            const existingUser = await this.prisma.user.findUnique({
+                where: { email: dto.email.toLowerCase().trim() }
+            });
+            if (existingUser) {
+                throw new common_1.ConflictException(auth_error_enum_1.AuthError.EMAIL_EXISTS);
+            }
+            const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
+            const userData = {
+                email: dto.email.toLowerCase().trim(),
+                password: hashedPassword,
+                role: dto.role,
+                ...(dto.firstName && dto.firstName.trim() && { firstName: dto.firstName.trim() }),
+                ...(dto.lastName && dto.lastName.trim() && { lastName: dto.lastName.trim() }),
+                ...(dto.phone && dto.phone.trim() && { phone: dto.phone.trim() }),
+                ...(dto.address && dto.address.trim() && { address: dto.address.trim() }),
+                ...(dto.isBuyer !== undefined && { isBuyer: dto.isBuyer }),
+                ...(dto.isStudent !== undefined && { isStudent: dto.isStudent }),
+            };
+            const user = await this.prisma.user.create({
+                data: userData,
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    firstName: true,
+                    lastName: true,
+                    phone: true,
+                    address: true,
+                    isBuyer: true,
+                    isStudent: true,
+                    createdAt: true,
+                },
+            });
+            return this.generateToken(user.id, user.email, user.role);
+        }
+        catch (error) {
+            if (error instanceof common_1.ConflictException) {
+                throw error;
+            }
+            console.error('Registration error:', error);
+            throw new Error('Registration failed. Please try again.');
+        }
     }
     async login(dto) {
-        const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-        if (!user)
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: { email: dto.email.toLowerCase().trim() },
+                select: {
+                    id: true,
+                    email: true,
+                    password: true,
+                    role: true,
+                },
+            });
+            if (!user) {
+                throw new common_1.UnauthorizedException(auth_error_enum_1.AuthError.INVALID_CREDENTIALS);
+            }
+            const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+            if (!isPasswordValid) {
+                throw new common_1.UnauthorizedException(auth_error_enum_1.AuthError.INVALID_CREDENTIALS);
+            }
+            return this.generateToken(user.id, user.email, user.role);
+        }
+        catch (error) {
+            if (error instanceof common_1.UnauthorizedException) {
+                throw error;
+            }
+            console.error('Login error:', error);
             throw new common_1.UnauthorizedException(auth_error_enum_1.AuthError.INVALID_CREDENTIALS);
-        const isValid = await bcrypt.compare(dto.password, user.password);
-        if (!isValid)
-            throw new common_1.UnauthorizedException(auth_error_enum_1.AuthError.INVALID_CREDENTIALS);
-        return this.generateToken(user.id, user.email, user.role);
+        }
     }
     generateToken(id, email, role) {
-        const accessToken = this.jwtService.sign({ sub: id, email, role });
-        return { accessToken, tokenType: 'Bearer' };
+        const payload = {
+            sub: id,
+            email: email.toLowerCase(),
+            role
+        };
+        const accessToken = this.jwtService.sign(payload);
+        const user = {
+            id,
+            email: email.toLowerCase(),
+            role
+        };
+        return { accessToken, user };
+    }
+    async getUserProfile(userId) {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    phone: true,
+                    address: true,
+                    role: true,
+                    isBuyer: true,
+                    isStudent: true,
+                    createdAt: true,
+                },
+            });
+            if (!user) {
+                throw new common_1.UnauthorizedException('User not found');
+            }
+            return user;
+        }
+        catch (error) {
+            console.error('Get user profile error:', error);
+            throw new common_1.UnauthorizedException('Failed to get user profile');
+        }
+    }
+    async updateProfile(userId, updateData) {
+        try {
+            const dataToUpdate = {};
+            if (updateData.firstName !== undefined) {
+                dataToUpdate.firstName = updateData.firstName.trim() || null;
+            }
+            if (updateData.lastName !== undefined) {
+                dataToUpdate.lastName = updateData.lastName.trim() || null;
+            }
+            if (updateData.phone !== undefined) {
+                dataToUpdate.phone = updateData.phone.trim() || null;
+            }
+            if (updateData.address !== undefined) {
+                dataToUpdate.address = updateData.address.trim() || null;
+            }
+            const updatedUser = await this.prisma.user.update({
+                where: { id: userId },
+                data: dataToUpdate,
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    phone: true,
+                    address: true,
+                    role: true,
+                    isBuyer: true,
+                    isStudent: true,
+                },
+            });
+            return updatedUser;
+        }
+        catch (error) {
+            console.error('Update profile error:', error);
+            throw new Error('Failed to update profile');
+        }
+    }
+    async changePassword(userId, currentPassword, newPassword) {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { id: true, password: true },
+            });
+            if (!user) {
+                throw new common_1.UnauthorizedException('User not found');
+            }
+            const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isCurrentPasswordValid) {
+                throw new common_1.UnauthorizedException('Current password is incorrect');
+            }
+            const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { password: hashedNewPassword },
+            });
+            return { message: 'Password changed successfully' };
+        }
+        catch (error) {
+            if (error instanceof common_1.UnauthorizedException) {
+                throw error;
+            }
+            console.error('Change password error:', error);
+            throw new Error('Failed to change password');
+        }
+    }
+    async verifyToken(token) {
+        try {
+            const payload = this.jwtService.verify(token);
+            const user = await this.getUserProfile(payload.sub);
+            return user;
+        }
+        catch (error) {
+            throw new common_1.UnauthorizedException('Invalid token');
+        }
     }
 };
 exports.AuthService = AuthService;

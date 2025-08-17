@@ -6,101 +6,101 @@ export declare class CourseModulesController {
     constructor(courseModulesService: CourseModulesService);
     create(createModuleDto: CreateModuleDto): Promise<{
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     }>;
     findAll(courseId?: number): Promise<({
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     })[]>;
     findOne(id: number): Promise<{
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     }>;
     findByCourse(courseId: number): Promise<({
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     })[]>;
     update(id: number, updateModuleDto: UpdateModuleDto): Promise<{
         course: {
-            id: number;
             title: string;
+            id: number;
             slug: string;
         };
         lessons: {
-            id: number;
             type: import(".prisma/client").$Enums.LessonType;
             title: string;
+            id: number;
             slug: string | null;
             duration: string | null;
             orderNumber: number;
         }[];
     } & {
-        id: number;
         title: string;
+        id: number;
         courseId: number;
         orderNumber: number;
     }>;

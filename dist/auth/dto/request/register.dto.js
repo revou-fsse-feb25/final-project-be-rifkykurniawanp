@@ -10,29 +10,102 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegisterDto = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
 class RegisterDto {
-    name;
     email;
     password;
+    firstName;
+    lastName;
+    phone;
+    address;
     role;
+    isBuyer;
+    isStudent;
 }
 exports.RegisterDto = RegisterDto;
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], RegisterDto.prototype, "name", void 0);
-__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'user@example.com', description: 'User email address' }),
     (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "email", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: 'password123', description: 'User password (minimum 6 characters)' }),
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.MinLength)(6),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "password", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 'John',
+        required: false,
+        description: 'User first name'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 'Doe',
+        required: false,
+        description: 'User last name'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '+6281234567890',
+        required: false,
+        description: 'User phone number'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 'Jl. Sudirman No.1',
+        required: false,
+        description: 'User address'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "address", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        enum: client_1.RoleName,
+        example: client_1.RoleName.USER,
+        description: 'User role in the system',
+        enumName: 'RoleName'
+    }),
     (0, class_validator_1.IsEnum)(client_1.RoleName),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "role", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: false,
+        required: false,
+        description: 'Whether user can purchase products',
+        default: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RegisterDto.prototype, "isBuyer", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: false,
+        required: false,
+        description: 'Whether user can enroll in courses',
+        default: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], RegisterDto.prototype, "isStudent", void 0);
 //# sourceMappingURL=register.dto.js.map

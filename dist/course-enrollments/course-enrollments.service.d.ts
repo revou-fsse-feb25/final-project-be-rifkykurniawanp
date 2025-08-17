@@ -17,25 +17,25 @@ export declare class CourseEnrollmentsService {
     findAll(): import(".prisma/client").Prisma.PrismaPromise<({
         course: {
             certificate: boolean;
-            id: number;
-            createdAt: Date;
             description: string | null;
             title: string;
+            id: number;
+            createdAt: Date;
             slug: string;
             price: import("@prisma/client/runtime/library").Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: import("@prisma/client/runtime/library").Decimal;
             syllabus: string | null;
             instructorId: number;
+            students: number;
             duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
-            students: number;
         };
         payment: {
             id: number;
-            createdAt: Date;
             status: import(".prisma/client").$Enums.PaymentStatus;
+            createdAt: Date;
             userId: number;
             cartId: number;
             amount: import("@prisma/client/runtime/library").Decimal;
@@ -56,14 +56,14 @@ export declare class CourseEnrollmentsService {
         student: {
             email: string;
             password: string;
-            role: import(".prisma/client").$Enums.RoleName;
-            id: number;
             firstName: string | null;
             lastName: string | null;
             phone: string | null;
             address: string | null;
+            role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
             createdAt: Date;
         };
     } & {
@@ -79,25 +79,25 @@ export declare class CourseEnrollmentsService {
     findOne(id: number): import(".prisma/client").Prisma.Prisma__CourseEnrollmentClient<({
         course: {
             certificate: boolean;
-            id: number;
-            createdAt: Date;
             description: string | null;
             title: string;
+            id: number;
+            createdAt: Date;
             slug: string;
             price: import("@prisma/client/runtime/library").Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: import("@prisma/client/runtime/library").Decimal;
             syllabus: string | null;
             instructorId: number;
+            students: number;
             duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
-            students: number;
         };
         payment: {
             id: number;
-            createdAt: Date;
             status: import(".prisma/client").$Enums.PaymentStatus;
+            createdAt: Date;
             userId: number;
             cartId: number;
             amount: import("@prisma/client/runtime/library").Decimal;
@@ -118,14 +118,14 @@ export declare class CourseEnrollmentsService {
         student: {
             email: string;
             password: string;
-            role: import(".prisma/client").$Enums.RoleName;
-            id: number;
             firstName: string | null;
             lastName: string | null;
             phone: string | null;
             address: string | null;
+            role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
             createdAt: Date;
         };
     } & {

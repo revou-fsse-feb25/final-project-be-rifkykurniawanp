@@ -9,19 +9,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthResponseDto = void 0;
+exports.AuthResponseDto = exports.UserPayloadDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const client_1 = require("@prisma/client");
+class UserPayloadDto {
+    id;
+    email;
+    role;
+}
+exports.UserPayloadDto = UserPayloadDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], UserPayloadDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'user@example.com' }),
+    __metadata("design:type", String)
+], UserPayloadDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'USER', enum: client_1.RoleName }),
+    __metadata("design:type", String)
+], UserPayloadDto.prototype, "role", void 0);
 class AuthResponseDto {
     accessToken;
-    tokenType = 'Bearer';
+    user;
 }
 exports.AuthResponseDto = AuthResponseDto;
 __decorate([
-    (0, swagger_1.ApiProperty)(),
+    (0, swagger_1.ApiProperty)({ example: 'jwt.token.here' }),
     __metadata("design:type", String)
 ], AuthResponseDto.prototype, "accessToken", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], AuthResponseDto.prototype, "tokenType", void 0);
+    (0, swagger_1.ApiProperty)({ type: UserPayloadDto }),
+    __metadata("design:type", UserPayloadDto)
+], AuthResponseDto.prototype, "user", void 0);
 //# sourceMappingURL=auth-response.dto.js.map

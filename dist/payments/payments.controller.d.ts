@@ -6,8 +6,8 @@ export declare class PaymentsController {
     constructor(service: PaymentsService);
     create(dto: CreatePaymentDto): import(".prisma/client").Prisma.Prisma__PaymentClient<{
         id: number;
-        createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        createdAt: Date;
         userId: number;
         cartId: number;
         amount: import("@prisma/client/runtime/library").Decimal;
@@ -18,8 +18,8 @@ export declare class PaymentsController {
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<{
         id: number;
-        createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        createdAt: Date;
         userId: number;
         cartId: number;
         amount: import("@prisma/client/runtime/library").Decimal;
@@ -30,8 +30,8 @@ export declare class PaymentsController {
     }[]>;
     findOne(id: number): import(".prisma/client").Prisma.Prisma__PaymentClient<{
         id: number;
-        createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        createdAt: Date;
         userId: number;
         cartId: number;
         amount: import("@prisma/client/runtime/library").Decimal;
@@ -42,8 +42,8 @@ export declare class PaymentsController {
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     update(id: number, dto: UpdatePaymentDto): import(".prisma/client").Prisma.Prisma__PaymentClient<{
         id: number;
-        createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        createdAt: Date;
         userId: number;
         cartId: number;
         amount: import("@prisma/client/runtime/library").Decimal;
@@ -54,8 +54,8 @@ export declare class PaymentsController {
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     remove(id: number): import(".prisma/client").Prisma.Prisma__PaymentClient<{
         id: number;
-        createdAt: Date;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        createdAt: Date;
         userId: number;
         cartId: number;
         amount: import("@prisma/client/runtime/library").Decimal;

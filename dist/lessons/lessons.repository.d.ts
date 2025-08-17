@@ -5,12 +5,12 @@ export declare class LessonsRepository {
     private readonly prisma;
     constructor(prisma: PrismaService);
     create(dto: CreateLessonDto): import(".prisma/client").Prisma.Prisma__LessonClient<{
-        id: number;
-        createdAt: Date;
         type: import(".prisma/client").$Enums.LessonType;
         description: string | null;
         title: string;
+        id: number;
         content: string | null;
+        createdAt: Date;
         slug: string | null;
         duration: string | null;
         orderNumber: number;
@@ -20,12 +20,12 @@ export declare class LessonsRepository {
         passingScore: import("@prisma/client/runtime/library").Decimal;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        id: number;
-        createdAt: Date;
         type: import(".prisma/client").$Enums.LessonType;
         description: string | null;
         title: string;
+        id: number;
         content: string | null;
+        createdAt: Date;
         slug: string | null;
         duration: string | null;
         orderNumber: number;
@@ -35,12 +35,12 @@ export declare class LessonsRepository {
         passingScore: import("@prisma/client/runtime/library").Decimal;
     }[]>;
     findOne(id: number): import(".prisma/client").Prisma.Prisma__LessonClient<{
-        id: number;
-        createdAt: Date;
         type: import(".prisma/client").$Enums.LessonType;
         description: string | null;
         title: string;
+        id: number;
         content: string | null;
+        createdAt: Date;
         slug: string | null;
         duration: string | null;
         orderNumber: number;
@@ -50,12 +50,12 @@ export declare class LessonsRepository {
         passingScore: import("@prisma/client/runtime/library").Decimal;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     update(id: number, dto: UpdateLessonDto): import(".prisma/client").Prisma.Prisma__LessonClient<{
-        id: number;
-        createdAt: Date;
         type: import(".prisma/client").$Enums.LessonType;
         description: string | null;
         title: string;
+        id: number;
         content: string | null;
+        createdAt: Date;
         slug: string | null;
         duration: string | null;
         orderNumber: number;
@@ -65,12 +65,12 @@ export declare class LessonsRepository {
         passingScore: import("@prisma/client/runtime/library").Decimal;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     remove(id: number): import(".prisma/client").Prisma.Prisma__LessonClient<{
-        id: number;
-        createdAt: Date;
         type: import(".prisma/client").$Enums.LessonType;
         description: string | null;
         title: string;
+        id: number;
         content: string | null;
+        createdAt: Date;
         slug: string | null;
         duration: string | null;
         orderNumber: number;

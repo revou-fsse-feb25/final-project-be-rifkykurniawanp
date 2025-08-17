@@ -63,18 +63,27 @@ let UsersService = class UsersService {
         const skip = (page - 1) * limit;
         return (await this.usersRepository.findAll(skip, limit)).map(this.toResponseDto);
     }
-    async findOne(id) {
+    async findOne(id, currentUserId, currentUserRole) {
         const user = await this.usersRepository.findById(id);
         if (!user)
             throw new common_1.NotFoundException('User not found');
+        if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+            throw new common_1.ForbiddenException('You can only access your own profile');
+        }
         return this.toResponseDto(user);
     }
     async findByRole(role) {
         return (await this.usersRepository.findByRole(role)).map(this.toResponseDto);
     }
-    async update(id, dto) {
+    async update(id, dto, currentUserId, currentUserRole) {
         if (!(await this.usersRepository.findById(id))) {
             throw new common_1.NotFoundException('User not found');
+        }
+        if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+            throw new common_1.ForbiddenException('You can only update your own profile');
+        }
+        if (dto.role && currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only admins can change user roles');
         }
         return this.toResponseDto(await this.usersRepository.update(id, dto));
     }
