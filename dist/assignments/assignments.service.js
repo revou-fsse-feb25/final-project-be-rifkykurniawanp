@@ -17,20 +17,81 @@ let AssignmentsService = class AssignmentsService {
     constructor(repository) {
         this.repository = repository;
     }
-    create(dto) {
-        return this.repository.create(dto);
+    async create(dto, user) {
+        this.validateAssignmentDates(dto);
+        const assignment = await this.repository.create(dto);
+        return {
+            success: true,
+            message: 'Assignment created successfully',
+            data: assignment,
+        };
     }
-    findAll() {
-        return this.repository.findAll();
+    async findAll() {
+        const assignments = await this.repository.findAll();
+        return {
+            success: true,
+            message: 'Assignments retrieved successfully',
+            data: assignments,
+            meta: { total: assignments.length },
+        };
     }
-    findOne(id) {
-        return this.repository.findOne(id);
+    async findOne(id) {
+        const assignment = await this.repository.findOne(id);
+        if (!assignment) {
+            throw new common_1.NotFoundException('Assignment not found');
+        }
+        return {
+            success: true,
+            message: 'Assignment retrieved successfully',
+            data: {
+                ...assignment,
+                isOverdue: this.isAssignmentOverdue(assignment.dueDate),
+            },
+        };
     }
-    update(id, dto) {
-        return this.repository.update(id, dto);
+    async update(id, dto, user) {
+        const assignment = await this.repository.findOne(id);
+        if (!assignment) {
+            throw new common_1.NotFoundException('Assignment not found');
+        }
+        this.validateAssignmentDates(dto);
+        const updatedAssignment = await this.repository.update(id, dto);
+        return {
+            success: true,
+            message: 'Assignment updated successfully',
+            data: updatedAssignment,
+        };
     }
-    remove(id) {
-        return this.repository.remove(id);
+    async remove(id, user) {
+        const assignment = await this.repository.findOne(id);
+        if (!assignment) {
+            throw new common_1.NotFoundException('Assignment not found');
+        }
+        await this.repository.remove(id);
+        return {
+            success: true,
+            message: 'Assignment deleted successfully',
+            data: null,
+        };
+    }
+    isAssignmentOverdue(dueDate) {
+        if (!dueDate)
+            return false;
+        return new Date() > new Date(dueDate);
+    }
+    validateAssignmentDates(dto) {
+        if (dto.dueDate) {
+            const dueDate = new Date(dto.dueDate);
+            const now = new Date();
+            if (dueDate <= now) {
+                throw new common_1.BadRequestException('Due date must be in the future');
+            }
+            const oneYearFromNow = new Date();
+            oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+            if (dueDate > oneYearFromNow) {
+                throw new common_1.BadRequestException('Due date cannot be more than 1 year in the future');
+            }
+        }
     }
 };
 exports.AssignmentsService = AssignmentsService;

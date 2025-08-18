@@ -25,7 +25,7 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateAssignmentDto.prototype, "lessonId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Intro Assignment' }),
+    (0, swagger_1.ApiProperty)({ example: 'Intro Assignment', description: 'Title of the assignment' }),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateAssignmentDto.prototype, "title", void 0);

@@ -10,7 +10,6 @@ exports.PaymentsModule = void 0;
 const common_1 = require("@nestjs/common");
 const payments_service_1 = require("./payments.service");
 const payments_controller_1 = require("./payments.controller");
-const payments_repository_1 = require("./payments.repository");
 const prisma_service_1 = require("../prisma/prisma.service");
 let PaymentsModule = class PaymentsModule {
 };

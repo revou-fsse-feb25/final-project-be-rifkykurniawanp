@@ -4,7 +4,7 @@ export declare class CreatePaymentDto {
     cartId: number;
     amount: number;
     paymentMethod: string;
-    status: PaymentStatus;
+    status?: PaymentStatus;
     payableType: PayableType;
     payableId: number;
     paidAt?: string;

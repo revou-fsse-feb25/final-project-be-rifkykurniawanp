@@ -1,3 +1,4 @@
+// assignment-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AssignmentResponseDto {
@@ -18,4 +19,7 @@ export class AssignmentResponseDto {
 
   @ApiProperty({ example: '2025-08-15T12:00:00Z' })
   createdAt: Date;
+
+  @ApiProperty({ example: '2025-08-16T12:00:00Z' })
+  updatedAt: Date;
 }

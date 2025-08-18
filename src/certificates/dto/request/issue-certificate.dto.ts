@@ -1,24 +1,11 @@
-import { IsInt, IsBoolean, IsOptional, IsString } from 'class-validator';
+// certificates/dto/request/issue-certificate.dto.ts
+
+import { IsInt, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class IssueCertificateDto {
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 101, description: 'The unique ID of the associated enrollment' })
+  @IsInt()
+  @IsNotEmpty()
   enrollmentId: number;
-
-  @ApiProperty({ example: true })
-  finalLessonsCompleted: boolean;
-
-  @ApiProperty({ example: true })
-  finalAssignmentsCompleted: boolean;
-
-  @ApiProperty({ example: true })
-  eligible: boolean;
-
-  @ApiProperty({ example: '2025-08-15T12:00:00Z', required: false })
-  @IsOptional()
-  issuedAt?: Date;
-
-  @ApiProperty({ example: 'https://example.com/certificate.pdf', required: false })
-  @IsOptional()
-  certificateUrl?: string;
 }

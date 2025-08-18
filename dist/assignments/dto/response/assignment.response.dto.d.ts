@@ -5,4 +5,5 @@ export declare class AssignmentResponseDto {
     instructions?: string;
     dueDate?: string;
     createdAt: Date;
+    updatedAt: Date;
 }

@@ -1,3 +1,4 @@
+// create-assignment.dto.ts
 import { IsInt, IsOptional, IsString, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -6,7 +7,7 @@ export class CreateAssignmentDto {
   @IsInt()
   lessonId: number;
 
-  @ApiProperty({ example: 'Intro Assignment' })
+  @ApiProperty({ example: 'Intro Assignment', description: 'Title of the assignment' })
   @IsString()
   title: string;
 

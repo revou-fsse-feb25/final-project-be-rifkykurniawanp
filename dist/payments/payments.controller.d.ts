@@ -1,67 +1,13 @@
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/request/create-payment.dto';
 import { UpdatePaymentDto } from './dto/request/update-payment.dto';
+import { PaymentResponseDto } from './dto/response/payment.response.dto';
 export declare class PaymentsController {
     private readonly service;
     constructor(service: PaymentsService);
-    create(dto: CreatePaymentDto): import(".prisma/client").Prisma.Prisma__PaymentClient<{
-        id: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        userId: number;
-        cartId: number;
-        amount: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        payableType: import(".prisma/client").$Enums.PayableType;
-        payableId: number;
-        paidAt: Date | null;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        id: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        userId: number;
-        cartId: number;
-        amount: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        payableType: import(".prisma/client").$Enums.PayableType;
-        payableId: number;
-        paidAt: Date | null;
-    }[]>;
-    findOne(id: number): import(".prisma/client").Prisma.Prisma__PaymentClient<{
-        id: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        userId: number;
-        cartId: number;
-        amount: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        payableType: import(".prisma/client").$Enums.PayableType;
-        payableId: number;
-        paidAt: Date | null;
-    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    update(id: number, dto: UpdatePaymentDto): import(".prisma/client").Prisma.Prisma__PaymentClient<{
-        id: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        userId: number;
-        cartId: number;
-        amount: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        payableType: import(".prisma/client").$Enums.PayableType;
-        payableId: number;
-        paidAt: Date | null;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): import(".prisma/client").Prisma.Prisma__PaymentClient<{
-        id: number;
-        status: import(".prisma/client").$Enums.PaymentStatus;
-        createdAt: Date;
-        userId: number;
-        cartId: number;
-        amount: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        payableType: import(".prisma/client").$Enums.PayableType;
-        payableId: number;
-        paidAt: Date | null;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    create(dto: CreatePaymentDto): Promise<PaymentResponseDto>;
+    findAll(): Promise<PaymentResponseDto[]>;
+    findOne(id: number): Promise<PaymentResponseDto | null>;
+    update(id: number, dto: UpdatePaymentDto): Promise<PaymentResponseDto>;
+    remove(id: number): Promise<void>;
 }

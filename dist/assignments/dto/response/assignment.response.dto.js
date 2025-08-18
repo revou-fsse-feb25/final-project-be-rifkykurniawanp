@@ -18,6 +18,7 @@ class AssignmentResponseDto {
     instructions;
     dueDate;
     createdAt;
+    updatedAt;
 }
 exports.AssignmentResponseDto = AssignmentResponseDto;
 __decorate([
@@ -44,4 +45,8 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: '2025-08-15T12:00:00Z' }),
     __metadata("design:type", Date)
 ], AssignmentResponseDto.prototype, "createdAt", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '2025-08-16T12:00:00Z' }),
+    __metadata("design:type", Date)
+], AssignmentResponseDto.prototype, "updatedAt", void 0);
 //# sourceMappingURL=assignment.response.dto.js.map
