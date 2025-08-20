@@ -11,32 +11,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EnrollCourseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
 class EnrollCourseDto {
     courseId;
     studentId;
+    paymentId;
     pricePaid;
-    progress;
-    certificateAwarded;
 }
 exports.EnrollCourseDto = EnrollCourseDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, swagger_1.ApiProperty)({ example: 1, description: 'ID of the course' }),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], EnrollCourseDto.prototype, "courseId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 2 }),
+    (0, swagger_1.ApiProperty)({ example: 10, description: 'ID of the student' }),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], EnrollCourseDto.prototype, "studentId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 200000.00 }),
+    (0, swagger_1.ApiProperty)({ example: 1001, description: 'ID of the payment record' }),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], EnrollCourseDto.prototype, "paymentId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 250000, description: 'Amount paid for the course' }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], EnrollCourseDto.prototype, "pricePaid", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 0 }),
-    __metadata("design:type", Number)
-], EnrollCourseDto.prototype, "progress", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: false }),
-    __metadata("design:type", Boolean)
-], EnrollCourseDto.prototype, "certificateAwarded", void 0);
 //# sourceMappingURL=enroll-course.dto.js.map

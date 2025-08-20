@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EnrollmentStatus } from '../request/update-enrollment.dto';
 
 export class EnrollmentResponseDto {
   @ApiProperty({ example: 1 })
@@ -7,21 +8,24 @@ export class EnrollmentResponseDto {
   @ApiProperty({ example: 1 })
   courseId: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({ example: 10 })
   studentId: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 1001 })
   paymentId: number;
 
-  @ApiProperty({ example: 200000.00 })
+  @ApiProperty({ example: 250000 })
   pricePaid: number;
 
-  @ApiProperty({ example: 0 })
+  @ApiProperty({ example: 0, description: 'Progress percentage from 0-100' })
   progress: number;
 
   @ApiProperty({ example: false })
   certificateAwarded: boolean;
 
-  @ApiProperty({ example: '2025-08-15T12:00:00Z' })
+  @ApiProperty({ enum: EnrollmentStatus, example: EnrollmentStatus.ACTIVE })
+  status: EnrollmentStatus;
+
+  @ApiProperty({ example: '2025-08-21T08:00:00Z' })
   enrolledAt: Date;
 }

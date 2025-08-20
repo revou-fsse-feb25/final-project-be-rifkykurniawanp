@@ -1,56 +1,100 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  Req,
+} from '@nestjs/common';
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto } from './dto/request/create-lesson.dto';
 import { UpdateLessonDto } from './dto/request/update-lesson.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { LessonResponseDto } from './dto/response/lesson.response.dto';
 import { JwtGuard } from '../auth/guards/jwt-auth.guard';
-import { Roles } from '../auth/decorator/roles.decorator';
 import { RolesGuard } from '../auth/guards/role.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { RoleName } from '@prisma/client';
 
-@ApiTags('Lessons')
-@Controller('lessons')
+@Controller()
 export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 
+  // ================= ADMIN / INSTRUCTOR =================
+
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTRUCTOR')
-  @Post()
-  @ApiOperation({ summary: 'Create a new lesson' })
-  @ApiResponse({ status: 201, description: 'Lesson created', type: LessonResponseDto })
-  create(@Body() dto: CreateLessonDto) {
-    return this.lessonsService.create(dto);
+  @Roles(RoleName.ADMIN, RoleName.INSTRUCTOR)
+  @Post('api/modules/:moduleId/lessons')
+  create(
+    @Param('moduleId', ParseIntPipe) moduleId: number,
+    @Body() dto: CreateLessonDto,
+  ) {
+    return this.lessonsService.create({ ...dto, moduleId });
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get all lessons' })
-  @ApiResponse({ status: 200, description: 'List of lessons', type: [LessonResponseDto] })
-  findAll() {
-    return this.lessonsService.findAll();
+  @Get('api/modules/:moduleId/lessons')
+  findAllByModule(@Param('moduleId', ParseIntPipe) moduleId: number) {
+    return this.lessonsService.findAllByModule(moduleId);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get lesson by id' })
-  @ApiResponse({ status: 200, description: 'Lesson details', type: LessonResponseDto })
-  findOne(@Param('id') id: number) {
+  @Get('api/lessons/:id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.lessonsService.findOne(id);
   }
 
+  @Get('api/lessons/slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.lessonsService.findBySlug(slug);
+  }
+
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTRUCTOR')
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a lesson' })
-  @ApiResponse({ status: 200, description: 'Updated lesson', type: LessonResponseDto })
-  update(@Param('id') id: number, @Body() dto: UpdateLessonDto) {
+  @Roles(RoleName.ADMIN, RoleName.INSTRUCTOR)
+  @Patch('api/lessons/:id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateLessonDto,
+  ) {
     return this.lessonsService.update(id, dto);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTRUCTOR')
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a lesson' })
-  @ApiResponse({ status: 200, description: 'Deleted lesson' })
-  remove(@Param('id') id: number) {
+  @Roles(RoleName.ADMIN, RoleName.INSTRUCTOR)
+  @Delete('api/lessons/:id')
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.lessonsService.remove(id);
+  }
+
+  // ================= USER PROGRESS =================
+
+  @UseGuards(JwtGuard)
+  @Get('api/lessons/:lessonId/progress')
+  getProgress(
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id;
+    return this.lessonsService.getProgress(lessonId, userId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('api/lessons/:lessonId/complete')
+  completeLesson(
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id;
+    return this.lessonsService.completeLesson(lessonId, userId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('api/courses/:courseId/progress')
+  getCourseProgress(
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id;
+    return this.lessonsService.getCourseProgress(courseId, userId);
   }
 }

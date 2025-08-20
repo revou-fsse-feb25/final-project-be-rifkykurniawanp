@@ -1,24 +1,9 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  ParseIntPipe,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
+  Controller, Get, Post, Body, Put, Param, Delete,
+  ParseIntPipe, HttpCode, HttpStatus, UseGuards, Request,
 } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-  ApiBody,
+  ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CourseModulesService } from './course-modules.service';
 import { CreateModuleDto } from './dto/request/create-module.dto';
@@ -28,134 +13,70 @@ import { JwtGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { RolesGuard } from '../auth/guards/role.guard';
 
-@ApiTags('Course Modules')
-@Controller('course-modules')
+@ApiTags('Course Modules & Lessons')
+@Controller('api')
+@ApiBearerAuth()
 export class CourseModulesController {
   constructor(private readonly courseModulesService: CourseModulesService) {}
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTRUCTOR')
-  @Post()
-  @ApiOperation({ summary: 'Create a new course module' })
-  @ApiBody({ type: CreateModuleDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Course module created successfully',
-    type: ModuleResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - Invalid input data or course not found',
-  })
-  async create(@Body() createModuleDto: CreateModuleDto) {
-    return await this.courseModulesService.create(createModuleDto);
+  @Roles('ADMIN', 'INSTRUCTOR', 'USER')
+  @Get('courses/:courseId/modules')
+  @ApiOperation({ summary: 'Get course modules' })
+  @ApiParam({ name: 'courseId', description: 'Course ID', type: Number })
+  @ApiResponse({ status: 200, description: 'Course modules retrieved successfully', type: [ModuleResponseDto] })
+  async getCourseModules(@Param('courseId', ParseIntPipe) courseId: number, @Request() req: any) {
+    return await this.courseModulesService.findByCourseWithAccess(courseId, req.user);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get all course modules' })
-  @ApiQuery({
-    name: 'courseId',
-    required: false,
-    description: 'Filter by course ID',
-    type: Number,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'List of course modules retrieved successfully',
-    type: [ModuleResponseDto],
-  })
-  async findAll(@Query('courseId', ParseIntPipe) courseId?: number) {
-    if (courseId) {
-      return await this.courseModulesService.findByCourse(courseId);
-    }
-    return await this.courseModulesService.findAll();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a course module by ID' })
-  @ApiParam({
-    name: 'id',
-    description: 'Course module ID',
-    type: Number,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Course module retrieved successfully',
-    type: ModuleResponseDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Course module not found',
-  })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.courseModulesService.findOne(id);
-  }
-
-  @Get('course/:courseId')
-  @ApiOperation({ summary: 'Get all modules for a specific course' })
-  @ApiParam({
-    name: 'courseId',
-    description: 'Course ID',
-    type: Number,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Course modules retrieved successfully',
-    type: [ModuleResponseDto],
-  })
-  async findByCourse(@Param('courseId', ParseIntPipe) courseId: number) {
-    return await this.courseModulesService.findByCourse(courseId);
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'INSTRUCTOR', 'USER')
+  @Get('modules/:id')
+  @ApiOperation({ summary: 'Get module by ID' })
+  @ApiParam({ name: 'id', description: 'Module ID', type: Number })
+  @ApiResponse({ status: 200, description: 'Module retrieved successfully', type: ModuleResponseDto })
+  async getModule(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return await this.courseModulesService.findOneWithAccess(id, req.user);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN', 'INSTRUCTOR')
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update a course module' })
-  @ApiParam({
-    name: 'id',
-    description: 'Course module ID',
-    type: Number,
-  })
+  @Post('courses/:courseId/modules')
+  @ApiOperation({ summary: 'Create new module' })
+  @ApiParam({ name: 'courseId', description: 'Course ID', type: Number })
+  @ApiBody({ type: CreateModuleDto })
+  @ApiResponse({ status: 201, description: 'Module created successfully', type: ModuleResponseDto })
+  async createModule(
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @Body() createModuleDto: CreateModuleDto,
+    @Request() req: any,
+  ) {
+    return await this.courseModulesService.createForCourse(courseId, createModuleDto, req.user);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN', 'INSTRUCTOR')
+  @Put('modules/:id')
+  @ApiOperation({ summary: 'Update module' })
+  @ApiParam({ name: 'id', description: 'Module ID', type: Number })
   @ApiBody({ type: UpdateModuleDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Course module updated successfully',
-    type: ModuleResponseDto,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Course module not found',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - Invalid input data or course not found',
-  })
-  async update(
+  @ApiResponse({ status: 200, description: 'Module updated successfully', type: ModuleResponseDto })
+  async updateModule(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateModuleDto: UpdateModuleDto,
+    @Request() req: any,
   ) {
-    return await this.courseModulesService.update(id, updateModuleDto);
+    return await this.courseModulesService.updateWithOwnership(id, updateModuleDto, req.user);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN', 'INSTRUCTOR')
-  @Delete(':id')
+  @Delete('modules/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a course module' })
-  @ApiParam({
-    name: 'id',
-    description: 'Course module ID',
-    type: Number,
-  })
-  @ApiResponse({
-    status: 204,
-    description: 'Course module deleted successfully',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Course module not found',
-  })
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    return await this.courseModulesService.remove(id);
+  @ApiOperation({ summary: 'Delete module' })
+  @ApiParam({ name: 'id', description: 'Module ID', type: Number })
+  @ApiResponse({ status: 204, description: 'Module deleted successfully' })
+  async deleteModule(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return await this.courseModulesService.removeWithOwnership(id, req.user);
   }
 }

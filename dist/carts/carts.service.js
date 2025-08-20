@@ -17,17 +17,33 @@ let CartsService = class CartsService {
     constructor(repository) {
         this.repository = repository;
     }
-    addItem(dto) {
+    async getCartByUser(userId) {
+        const cart = await this.repository.getCartByUser(userId);
+        if (!cart)
+            throw new common_1.NotFoundException('Cart not found');
+        return cart;
+    }
+    async getCartById(cartId) {
+        const cart = await this.repository.getCartById(cartId);
+        if (!cart)
+            throw new common_1.NotFoundException('Cart not found');
+        return cart;
+    }
+    async addItem(dto) {
         return this.repository.addItem(dto);
     }
-    updateItem(cartItemId, dto) {
+    async updateItem(cartItemId, dto) {
         return this.repository.updateItem(cartItemId, dto);
     }
-    getCartByUser(userId) {
-        return this.repository.getCartByUser(userId);
-    }
-    removeItem(cartItemId) {
+    async removeItem(cartItemId) {
         return this.repository.removeItem(cartItemId);
+    }
+    async checkout(cartId, userId) {
+        const cart = await this.repository.getCartById(cartId);
+        if (!cart || cart.userId !== userId) {
+            throw new common_1.NotFoundException('Cart not found for user');
+        }
+        return { message: `Cart ${cartId} checked out by user ${userId}` };
     }
 };
 exports.CartsService = CartsService;

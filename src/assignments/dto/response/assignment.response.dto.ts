@@ -1,25 +1,57 @@
-// assignment-response.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AssignmentResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 10 })
   lessonId: number;
 
-  @ApiProperty({ example: 'Intro Assignment' })
+  @ApiProperty({ example: 'Essay on Climate Change' })
   title: string;
 
-  @ApiProperty({ example: 'Complete the quiz and submit screenshots', required: false })
-  instructions?: string;
+  @ApiProperty({ example: 'Write a 2000-word essay...' })
+  instructions: string;
 
-  @ApiProperty({ example: '2025-08-20T23:59:00Z', required: false })
-  dueDate?: string;
+  @ApiPropertyOptional({ example: '2025-09-01T23:59:59Z' })
+  dueDate?: Date | null;
 
-  @ApiProperty({ example: '2025-08-15T12:00:00Z' })
+  @ApiProperty({ example: '2025-08-20T10:00:00Z' })
   createdAt: Date;
 
-  @ApiProperty({ example: '2025-08-16T12:00:00Z' })
-  updatedAt: Date;
+  @ApiPropertyOptional({
+    example: { submissions: 5 },
+    description: 'Optional relation counts',
+  })
+  _count?: { submissions: number };
+
+  @ApiPropertyOptional({
+    example: {
+      id: 101,
+      content: 'My essay content...',
+      grade: 90,
+      submittedAt: '2025-08-20T11:00:00Z',
+    },
+    description: 'Student’s submission if exists',
+  })
+  userSubmission?: {
+    id: number;
+    content?: string;
+    grade?: number;
+    submittedAt: Date;
+  } | null;
+}
+
+export class AssignmentListResponseDto {
+  @ApiProperty({ type: [AssignmentResponseDto] })
+  assignments: AssignmentResponseDto[];
+
+  @ApiPropertyOptional({ example: 50 })
+  total?: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  page?: number;
+
+  @ApiPropertyOptional({ example: 10 })
+  limit?: number;
 }

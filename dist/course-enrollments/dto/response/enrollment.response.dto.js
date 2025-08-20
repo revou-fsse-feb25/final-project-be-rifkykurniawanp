@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EnrollmentResponseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const update_enrollment_dto_1 = require("../request/update-enrollment.dto");
 class EnrollmentResponseDto {
     id;
     courseId;
@@ -19,6 +20,7 @@ class EnrollmentResponseDto {
     pricePaid;
     progress;
     certificateAwarded;
+    status;
     enrolledAt;
 }
 exports.EnrollmentResponseDto = EnrollmentResponseDto;
@@ -31,19 +33,19 @@ __decorate([
     __metadata("design:type", Number)
 ], EnrollmentResponseDto.prototype, "courseId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 2 }),
+    (0, swagger_1.ApiProperty)({ example: 10 }),
     __metadata("design:type", Number)
 ], EnrollmentResponseDto.prototype, "studentId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, swagger_1.ApiProperty)({ example: 1001 }),
     __metadata("design:type", Number)
 ], EnrollmentResponseDto.prototype, "paymentId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 200000.00 }),
+    (0, swagger_1.ApiProperty)({ example: 250000 }),
     __metadata("design:type", Number)
 ], EnrollmentResponseDto.prototype, "pricePaid", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 0 }),
+    (0, swagger_1.ApiProperty)({ example: 0, description: 'Progress percentage from 0-100' }),
     __metadata("design:type", Number)
 ], EnrollmentResponseDto.prototype, "progress", void 0);
 __decorate([
@@ -51,7 +53,11 @@ __decorate([
     __metadata("design:type", Boolean)
 ], EnrollmentResponseDto.prototype, "certificateAwarded", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '2025-08-15T12:00:00Z' }),
+    (0, swagger_1.ApiProperty)({ enum: update_enrollment_dto_1.EnrollmentStatus, example: update_enrollment_dto_1.EnrollmentStatus.ACTIVE }),
+    __metadata("design:type", String)
+], EnrollmentResponseDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '2025-08-21T08:00:00Z' }),
     __metadata("design:type", Date)
 ], EnrollmentResponseDto.prototype, "enrolledAt", void 0);
 //# sourceMappingURL=enrollment.response.dto.js.map

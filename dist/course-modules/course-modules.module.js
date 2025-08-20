@@ -8,8 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CourseModulesModule = void 0;
 const common_1 = require("@nestjs/common");
-const course_modules_service_1 = require("./course-modules.service");
 const course_modules_controller_1 = require("./course-modules.controller");
+const course_modules_service_1 = require("./course-modules.service");
 const course_modules_repository_1 = require("./course-modules.repository");
 const prisma_module_1 = require("../prisma/prisma.module");
 let CourseModulesModule = class CourseModulesModule {
@@ -19,8 +19,14 @@ exports.CourseModulesModule = CourseModulesModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
         controllers: [course_modules_controller_1.CourseModulesController],
-        providers: [course_modules_service_1.CourseModulesService, course_modules_repository_1.CourseModulesRepository],
-        exports: [course_modules_service_1.CourseModulesService, course_modules_repository_1.CourseModulesRepository],
+        providers: [
+            course_modules_service_1.CourseModulesService,
+            {
+                provide: 'ICourseModulesRepository',
+                useClass: course_modules_repository_1.CourseModulesRepository,
+            },
+        ],
+        exports: [course_modules_service_1.CourseModulesService],
     })
 ], CourseModulesModule);
 //# sourceMappingURL=course-modules.module.js.map

@@ -9,33 +9,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseEnrollmentsService = void 0;
+exports.EnrollmentsService = void 0;
 const common_1 = require("@nestjs/common");
 const course_enrollments_repository_1 = require("./course-enrollments.repository");
-let CourseEnrollmentsService = class CourseEnrollmentsService {
-    repository;
-    constructor(repository) {
-        this.repository = repository;
+let EnrollmentsService = class EnrollmentsService {
+    repo;
+    constructor(repo) {
+        this.repo = repo;
     }
-    enroll(dto, paymentId) {
-        return this.repository.enroll({ ...dto, paymentId });
+    create(dto) {
+        return this.repo.create(dto);
     }
     findAll() {
-        return this.repository.findAll();
+        return this.repo.findAll();
     }
-    findOne(id) {
-        return this.repository.findOne(id);
+    async findOne(id) {
+        const enrollment = await this.repo.findById(id);
+        if (!enrollment)
+            throw new common_1.NotFoundException('Enrollment not found');
+        return enrollment;
     }
     update(id, dto) {
-        return this.repository.update(id, dto);
+        return this.repo.update(id, dto);
     }
     remove(id) {
-        return this.repository.remove(id);
+        return this.repo.remove(id);
     }
 };
-exports.CourseEnrollmentsService = CourseEnrollmentsService;
-exports.CourseEnrollmentsService = CourseEnrollmentsService = __decorate([
+exports.EnrollmentsService = EnrollmentsService;
+exports.EnrollmentsService = EnrollmentsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [course_enrollments_repository_1.CourseEnrollmentsRepository])
-], CourseEnrollmentsService);
+    __metadata("design:paramtypes", [course_enrollments_repository_1.EnrollmentsRepository])
+], EnrollmentsService);
 //# sourceMappingURL=course-enrollments.service.js.map

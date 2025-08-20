@@ -7,4 +7,5 @@ export interface ILessonsRepository {
   findOne(id: number);
   update(id: number, dto: UpdateLessonDto);
   remove(id: number);
+  
 }

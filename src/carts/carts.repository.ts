@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddToCartDto, CartItemType } from './dto/request/add-to-cart.dto';
+import { AddToCartDto } from './dto/request/add-to-cart.dto';
 import { UpdateCartDto } from './dto/request/update-cart.dto';
 
 @Injectable()
@@ -28,13 +28,32 @@ export class CartsRepository {
       cart = await this.getCartById(dto.cartId);
       if (!cart) throw new NotFoundException('Cart not found');
     } else {
-      // Find cart by userId or create
       cart = await this.prisma.cart.findFirst({ where: { userId: dto.userId } });
       if (!cart) {
         cart = await this.prisma.cart.create({ data: { userId: dto.userId } });
       }
     }
 
+    // 🔑 Cek apakah item sudah ada di cart
+    const existingItem = await this.prisma.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        itemId: dto.itemId,
+        itemType: dto.itemType,
+      },
+    });
+
+    if (existingItem) {
+      return this.prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: existingItem.quantity + dto.quantity,
+          price: dto.price, // update harga terakhir
+        },
+      });
+    }
+
+    // kalau belum ada, create baru
     return this.prisma.cartItem.create({
       data: {
         cartId: cart.id,
@@ -47,7 +66,6 @@ export class CartsRepository {
   }
 
   async updateItem(cartItemId: number, dto: Partial<UpdateCartDto>) {
-    // Optionally, verify the cartItem exists
     const existing = await this.prisma.cartItem.findUnique({ where: { id: cartItemId } });
     if (!existing) throw new NotFoundException('Cart item not found');
 

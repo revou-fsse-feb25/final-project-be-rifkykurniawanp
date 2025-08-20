@@ -12,96 +12,118 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AssignmentSubmissionsController = void 0;
+exports.SubmissionController = void 0;
 const common_1 = require("@nestjs/common");
 const assignment_submissions_service_1 = require("./assignment-submissions.service");
-const submit_assignment_dto_1 = require("./dto/request/submit-assignment.dto");
+const create_submission_dto_1 = require("./dto/request/create-submission.dto");
 const update_submission_dto_1 = require("./dto/request/update-submission.dto");
-const swagger_1 = require("@nestjs/swagger");
-const submission_response_dto_1 = require("./dto/response/submission.response.dto");
+const grade_assignment_submission_dto_1 = require("./dto/request/grade-assignment-submission.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_decorator_1 = require("../auth/decorator/roles.decorator");
 const role_guard_1 = require("../auth/guards/role.guard");
-let AssignmentSubmissionsController = class AssignmentSubmissionsController {
-    service;
-    constructor(service) {
-        this.service = service;
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
+let SubmissionController = class SubmissionController {
+    submissionService;
+    constructor(submissionService) {
+        this.submissionService = submissionService;
     }
-    submit(dto) {
-        return this.service.submit(dto);
+    async getAssignmentSubmissions(assignmentId, req, page = 1, limit = 20, graded, userId) {
+        return this.submissionService.getAssignmentSubmissions(assignmentId, req.user.id, req.user.role, page, limit, graded, userId);
     }
-    findAll() {
-        return this.service.findAll();
+    async submitAssignment(assignmentId, createSubmissionDto, req) {
+        return this.submissionService.submitAssignment(assignmentId, createSubmissionDto, req.user.id);
     }
-    findOne(id) {
-        return this.service.findOne(id);
+    async getSubmissionById(id, req) {
+        return this.submissionService.getSubmissionById(id, req.user.id, req.user.role);
     }
-    update(id, dto) {
-        return this.service.update(id, dto);
+    async updateSubmission(id, updateSubmissionDto, req) {
+        return this.submissionService.updateSubmission(id, updateSubmissionDto, req.user.id, req.user.role);
     }
-    remove(id) {
-        return this.service.remove(id);
+    async deleteSubmission(id, req) {
+        return this.submissionService.deleteSubmission(id, req.user.id, req.user.role);
+    }
+    async gradeSubmission(id, gradeSubmissionDto, req) {
+        return this.submissionService.gradeSubmission(id, gradeSubmissionDto, req.user.id, req.user.role);
+    }
+    async getSubmissionStats(assignmentId, req) {
+        return this.submissionService.getSubmissionStats(assignmentId, req.user.id, req.user.role);
     }
 };
-exports.AssignmentSubmissionsController = AssignmentSubmissionsController;
+exports.SubmissionController = SubmissionController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, common_1.Get)('assignments/:id/submissions'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.Query)('page', common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Query)('limit', common_1.ParseIntPipe)),
+    __param(4, (0, common_1.Query)('graded', common_1.ParseBoolPipe)),
+    __param(5, (0, common_1.Query)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object, Object, Object, Boolean, Number]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "getAssignmentSubmissions", null);
+__decorate([
+    (0, common_1.Post)('assignments/:id/submit'),
     (0, roles_decorator_1.Roles)('USER'),
-    (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Submit an assignment' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Assignment submitted', type: submission_response_dto_1.SubmissionResponseDto }),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [submit_assignment_dto_1.SubmitAssignmentDto]),
-    __metadata("design:returntype", void 0)
-], AssignmentSubmissionsController.prototype, "submit", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
-    (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all submissions' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'List of submissions', type: [submission_response_dto_1.SubmissionResponseDto] }),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AssignmentSubmissionsController.prototype, "findAll", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR', 'USER'),
-    (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get submission by id' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Submission details', type: submission_response_dto_1.SubmissionResponseDto }),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], AssignmentSubmissionsController.prototype, "findOne", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
-    (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update a submission' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Updated submission', type: submission_response_dto_1.SubmissionResponseDto }),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_submission_dto_1.UpdateSubmissionDto]),
-    __metadata("design:returntype", void 0)
-], AssignmentSubmissionsController.prototype, "update", null);
+    __metadata("design:paramtypes", [Number, create_submission_dto_1.CreateAssignmentSubmissionDto, Object]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "submitAssignment", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, common_1.Get)('submissions/:id'),
     (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR', 'USER'),
-    (0, common_1.Delete)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete a submission' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Deleted submission' }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], AssignmentSubmissionsController.prototype, "remove", null);
-exports.AssignmentSubmissionsController = AssignmentSubmissionsController = __decorate([
-    (0, swagger_1.ApiTags)('Assignment Submissions'),
-    (0, common_1.Controller)('assignment-submissions'),
-    __metadata("design:paramtypes", [assignment_submissions_service_1.AssignmentSubmissionsService])
-], AssignmentSubmissionsController);
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "getSubmissionById", null);
+__decorate([
+    (0, common_1.Put)('submissions/:id'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'USER'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_submission_dto_1.UpdateAssignmentSubmissionDto, Object]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "updateSubmission", null);
+__decorate([
+    (0, common_1.Delete)('submissions/:id'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'USER'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "deleteSubmission", null);
+__decorate([
+    (0, common_1.Put)('submissions/:id/grade'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, grade_assignment_submission_dto_1.GradeAssignmentSubmissionDto, Object]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "gradeSubmission", null);
+__decorate([
+    (0, common_1.Get)('assignments/:id/submissions/stats'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], SubmissionController.prototype, "getSubmissionStats", null);
+exports.SubmissionController = SubmissionController = __decorate([
+    (0, common_1.Controller)('api'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    __metadata("design:paramtypes", [assignment_submissions_service_1.AssignmentSubmissionService])
+], SubmissionController);
 //# sourceMappingURL=assignment-submissions.controller.js.map

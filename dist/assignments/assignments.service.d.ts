@@ -8,11 +8,11 @@ export declare class AssignmentsService {
         success: boolean;
         message: string;
         data: {
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         };
     }>;
@@ -20,11 +20,11 @@ export declare class AssignmentsService {
         success: boolean;
         message: string;
         data: {
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         }[];
         meta: {
@@ -36,11 +36,11 @@ export declare class AssignmentsService {
         message: string;
         data: {
             isOverdue: boolean;
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         };
     }>;
@@ -48,11 +48,11 @@ export declare class AssignmentsService {
         success: boolean;
         message: string;
         data: {
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         };
     }>;

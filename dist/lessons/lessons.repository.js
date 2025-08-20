@@ -20,17 +20,54 @@ let LessonsRepository = class LessonsRepository {
     create(dto) {
         return this.prisma.lesson.create({ data: dto });
     }
-    findAll() {
-        return this.prisma.lesson.findMany();
+    findAllByModule(moduleId) {
+        return this.prisma.lesson.findMany({ where: { moduleId } });
     }
     findOne(id) {
         return this.prisma.lesson.findUnique({ where: { id } });
+    }
+    findBySlug(slug) {
+        return this.prisma.lesson.findUnique({ where: { slug } });
     }
     update(id, dto) {
         return this.prisma.lesson.update({ where: { id }, data: dto });
     }
     remove(id) {
         return this.prisma.lesson.delete({ where: { id } });
+    }
+    getProgress(lessonId, userId) {
+        return this.prisma.lessonProgress.findUnique({
+            where: { lessonId_userId: { lessonId, userId } },
+        });
+    }
+    completeLesson(lessonId, userId) {
+        return this.prisma.lessonProgress.upsert({
+            where: { lessonId_userId: { lessonId, userId } },
+            create: { lessonId, userId, completed: true },
+            update: { completed: true },
+        });
+    }
+    getCourseProgress(courseId, userId) {
+        return this.prisma.lessonProgress.findMany({
+            where: {
+                ...(userId ? { userId } : {}),
+                lesson: {
+                    module: { courseId },
+                },
+            },
+            include: {
+                lesson: {
+                    select: {
+                        id: true,
+                        title: true,
+                        moduleId: true,
+                        module: {
+                            select: { id: true, courseId: true, title: true, orderNumber: true },
+                        },
+                    },
+                },
+            },
+        });
     }
 };
 exports.LessonsRepository = LessonsRepository;

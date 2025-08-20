@@ -1,9 +1,17 @@
-import { CreatePaymentDto } from '../dto/request/create-payment.dto';
-import { UpdatePaymentDto } from '../dto/request/update-payment.dto';
+import { Payment, PaymentStatus, PayableType } from "@prisma/client";
 export interface IPaymentsRepository {
-    create(dto: CreatePaymentDto): any;
-    findAll(): any;
-    findOne(id: number): any;
-    update(id: number, dto: UpdatePaymentDto): any;
-    remove(id: number): any;
+    findAll(): Promise<Payment[]>;
+    findById(id: number): Promise<Payment | null>;
+    findByUser(userId: number): Promise<Payment[]>;
+    create(data: {
+        userId: number;
+        cartId: number;
+        amount: number;
+        paymentMethod: string;
+        payableType: PayableType;
+        payableId: number;
+    }): Promise<Payment>;
+    updateStatus(id: number, status: PaymentStatus): Promise<Payment>;
+    cancel(id: number): Promise<Payment>;
+    verify(id: number): Promise<Payment>;
 }

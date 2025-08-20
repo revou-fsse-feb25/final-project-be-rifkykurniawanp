@@ -18,150 +18,94 @@ let CourseModulesRepository = class CourseModulesRepository {
         this.prisma = prisma;
     }
     async create(data) {
-        return this.prisma.courseModule.create({
-            data,
+        return await this.prisma.courseModule.create({
+            data: {
+                title: data.title,
+                orderNumber: data.orderNumber,
+                courseId: data.courseId,
+            },
             include: {
-                course: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                    },
-                },
-                lessons: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                        type: true,
-                        duration: true,
-                        orderNumber: true,
-                    },
-                    orderBy: {
-                        orderNumber: 'asc',
-                    },
-                },
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: { orderBy: { orderNumber: 'asc' } },
             },
         });
     }
     async findAll() {
-        return this.prisma.courseModule.findMany({
+        return await this.prisma.courseModule.findMany({
             include: {
-                course: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                    },
-                },
-                lessons: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                        type: true,
-                        duration: true,
-                        orderNumber: true,
-                    },
-                    orderBy: {
-                        orderNumber: 'asc',
-                    },
-                },
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: { orderBy: { orderNumber: 'asc' } },
             },
-            orderBy: {
-                orderNumber: 'asc',
-            },
+            orderBy: [{ courseId: 'asc' }, { orderNumber: 'asc' }],
         });
     }
     async findById(id) {
-        return this.prisma.courseModule.findUnique({
+        return await this.prisma.courseModule.findUnique({
             where: { id },
             include: {
-                course: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                    },
-                },
-                lessons: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                        type: true,
-                        duration: true,
-                        orderNumber: true,
-                    },
-                    orderBy: {
-                        orderNumber: 'asc',
-                    },
-                },
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: { orderBy: { orderNumber: 'asc' } },
             },
         });
     }
     async findByCourseId(courseId) {
-        return this.prisma.courseModule.findMany({
+        return await this.prisma.courseModule.findMany({
             where: { courseId },
             include: {
-                course: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                    },
-                },
-                lessons: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                        type: true,
-                        duration: true,
-                        orderNumber: true,
-                    },
-                    orderBy: {
-                        orderNumber: 'asc',
-                    },
-                },
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: { orderBy: { orderNumber: 'asc' } },
             },
-            orderBy: {
-                orderNumber: 'asc',
-            },
+            orderBy: { orderNumber: 'asc' },
         });
     }
     async update(id, data) {
-        return this.prisma.courseModule.update({
+        return await this.prisma.courseModule.update({
             where: { id },
             data,
             include: {
-                course: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                    },
-                },
-                lessons: {
-                    select: {
-                        id: true,
-                        title: true,
-                        slug: true,
-                        type: true,
-                        duration: true,
-                        orderNumber: true,
-                    },
-                    orderBy: {
-                        orderNumber: 'asc',
-                    },
-                },
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: { orderBy: { orderNumber: 'asc' } },
             },
         });
     }
     async delete(id) {
-        await this.prisma.courseModule.delete({
+        await this.prisma.courseModule.delete({ where: { id } });
+    }
+    async findByIdWithLessons(id) {
+        return await this.prisma.courseModule.findUnique({
             where: { id },
+            include: {
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: {
+                    orderBy: { orderNumber: 'asc' },
+                    include: { progresses: true, assignments: true },
+                },
+            },
         });
+    }
+    async findByCourseIdWithLessons(courseId) {
+        return await this.prisma.courseModule.findMany({
+            where: { courseId },
+            include: {
+                course: { select: { id: true, title: true, instructorId: true } },
+                lessons: {
+                    orderBy: { orderNumber: 'asc' },
+                    include: { progresses: true, assignments: true },
+                },
+            },
+            orderBy: { orderNumber: 'asc' },
+        });
+    }
+    async checkCourseExists(courseId) {
+        const course = await this.prisma.course.findUnique({ where: { id: courseId }, select: { id: true } });
+        return !!course;
+    }
+    async checkModuleOwnership(moduleId, instructorId) {
+        const module = await this.prisma.courseModule.findUnique({
+            where: { id: moduleId },
+            include: { course: { select: { instructorId: true } } },
+        });
+        return module?.course.instructorId === instructorId;
     }
 };
 exports.CourseModulesRepository = CourseModulesRepository;

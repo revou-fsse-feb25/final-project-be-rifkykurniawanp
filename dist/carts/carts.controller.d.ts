@@ -4,43 +4,61 @@ import { UpdateCartDto } from './dto/request/update-cart.dto';
 export declare class CartsController {
     private readonly service;
     constructor(service: CartsService);
-    addItem(dto: AddToCartDto): Promise<{
-        id: number;
-        price: import("@prisma/client/runtime/library").Decimal;
-        itemType: import(".prisma/client").$Enums.CartItemType;
-        itemId: number;
-        quantity: number;
-        cartId: number;
-    }>;
-    updateItem(cartItemId: number, dto: UpdateCartDto): import(".prisma/client").Prisma.Prisma__CartItemClient<{
-        id: number;
-        price: import("@prisma/client/runtime/library").Decimal;
-        itemType: import(".prisma/client").$Enums.CartItemType;
-        itemId: number;
-        quantity: number;
-        cartId: number;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    getCartByUser(userId: number): import(".prisma/client").Prisma.Prisma__CartClient<({
+    getCart(req: any): Promise<{
         items: {
             id: number;
-            price: import("@prisma/client/runtime/library").Decimal;
+            cartId: number;
             itemType: import(".prisma/client").$Enums.CartItemType;
             itemId: number;
             quantity: number;
-            cartId: number;
+            price: import("@prisma/client/runtime/library").Decimal;
         }[];
     } & {
         id: number;
-        createdAt: Date;
         userId: number;
+        createdAt: Date;
         updatedAt: Date;
-    }) | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    removeItem(cartItemId: number): import(".prisma/client").Prisma.Prisma__CartItemClient<{
+    }>;
+    getCartById(cartId: number): Promise<{
+        items: {
+            id: number;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+            price: import("@prisma/client/runtime/library").Decimal;
+        }[];
+    } & {
         id: number;
-        price: import("@prisma/client/runtime/library").Decimal;
+        userId: number;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    addItem(cartId: number, dto: AddToCartDto, req: any): Promise<{
+        id: number;
+        cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+    }>;
+    updateItem(cartId: number, itemId: number, dto: UpdateCartDto): Promise<{
+        id: number;
         cartId: number;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+        itemType: import(".prisma/client").$Enums.CartItemType;
+        itemId: number;
+        quantity: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+    }>;
+    removeItem(cartId: number, itemId: number): Promise<{
+        id: number;
+        cartId: number;
+        itemType: import(".prisma/client").$Enums.CartItemType;
+        itemId: number;
+        quantity: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+    }>;
+    checkout(cartId: number, req: any): Promise<{
+        message: string;
+    }>;
 }

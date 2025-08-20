@@ -13,32 +13,33 @@ exports.CreateAssignmentDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class CreateAssignmentDto {
-    lessonId;
     title;
     instructions;
     dueDate;
+    lessonId;
 }
 exports.CreateAssignmentDto = CreateAssignmentDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1, description: 'ID of the related lesson' }),
-    (0, class_validator_1.IsInt)(),
-    __metadata("design:type", Number)
-], CreateAssignmentDto.prototype, "lessonId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Intro Assignment', description: 'Title of the assignment' }),
+    (0, swagger_1.ApiProperty)({ example: 'Essay on Climate Change', maxLength: 200 }),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(1, 200),
     __metadata("design:type", String)
 ], CreateAssignmentDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Complete the quiz and submit screenshots', required: false }),
-    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({ example: 'Write a 2000-word essay about global warming', maxLength: 2000 }),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(1, 2000),
     __metadata("design:type", String)
 ], CreateAssignmentDto.prototype, "instructions", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '2025-08-20T23:59:00Z', required: false }),
+    (0, swagger_1.ApiPropertyOptional)({ example: '2025-09-01T23:59:59Z', description: 'Due date in ISO format' }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], CreateAssignmentDto.prototype, "dueDate", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], CreateAssignmentDto.prototype, "lessonId", void 0);
 //# sourceMappingURL=create-assignment.dto.js.map

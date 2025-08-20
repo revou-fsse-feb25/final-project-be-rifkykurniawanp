@@ -1,173 +1,55 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  ConflictException,
-} from '@nestjs/common';
-import { PaymentsRepository } from './payments.repository';
-import { CreatePaymentDto } from './dto/request/create-payment.dto';
-import { UpdatePaymentDto } from './dto/request/update-payment.dto';
-import {
-  PaymentResponseDto,
-  PaymentQueryDto,
-  PaymentStatsDto,
-  PaginatedPaymentResponseDto,
-} from './dto/response/payment.response.dto';
-import { PaymentStatus, PayableType } from '@prisma/client';
+import { Injectable, Inject, NotFoundException } from "@nestjs/common";
+import { IPaymentsRepository } from "./interfaces/payments.repository.interface";
+import { PaymentStatus, PayableType } from "@prisma/client";
+import { PaymentResponseDto } from "./dto/response/payment.response.dto"
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly repository: PaymentsRepository) {}
+  constructor(@Inject("IPaymentsRepository") private readonly paymentsRepo: IPaymentsRepository) {}
 
-  async create(dto: CreatePaymentDto): Promise<PaymentResponseDto> {
-    if (dto.amount <= 0) {
-      throw new BadRequestException('Payment amount must be greater than zero');
-    }
-    await this.validateCartOwnership(dto.cartId, dto.userId);
-    await this.validatePayableItem(dto.payableType, dto.payableId);
-
-    return this.repository.create({
-      ...dto,
-      status: PaymentStatus.PENDING,
-    });
+  async getAll(): Promise<PaymentResponseDto[]> {
+    const payments = await this.paymentsRepo.findAll();
+    return payments.map((p) => new PaymentResponseDto(p));
   }
 
-  async findAll(query: PaymentQueryDto): Promise<PaginatedPaymentResponseDto> {
-    const { page = 1, limit = 10, ...filters } = query;
-    const offset = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.repository.findAll(filters, offset, limit),
-      this.repository.count(filters),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNext: page * limit < total,
-      hasPrev: page > 1,
-    };
+  async getById(id: number): Promise<PaymentResponseDto> {
+    const payment = await this.paymentsRepo.findById(id);
+    if (!payment) throw new NotFoundException("Payment not found");
+    return new PaymentResponseDto(payment);
   }
 
-  async findOne(id: number): Promise<PaymentResponseDto> {
-    const payment = await this.repository.findOne(id);
-    if (!payment) {
-      throw new NotFoundException(`Payment with ID ${id} not found`);
-    }
-    return payment;
+  async getByUser(userId: number): Promise<PaymentResponseDto[]> {
+    const payments = await this.paymentsRepo.findByUser(userId);
+    return payments.map((p) => new PaymentResponseDto(p));
   }
 
-  async findByUser(userId: number): Promise<PaymentResponseDto[]> {
-    return this.repository.findByUser(userId);
-  }
-
-  async update(id: number, dto: UpdatePaymentDto): Promise<PaymentResponseDto> {
-    const existing = await this.findOne(id);
-
-    if (dto.status && dto.status !== existing.status) {
-      this.validateStatusTransition(existing.status, dto.status);
-    }
-
-    const updateData: Partial<UpdatePaymentDto & { paidAt?: string }> = {
-      ...dto,
-    };
-
-    if (
-      dto.status === PaymentStatus.COMPLETED &&
-      existing.status !== PaymentStatus.COMPLETED
-    ) {
-      updateData.paidAt = new Date().toISOString();
-    }
-
-    const updated = await this.repository.update(id, updateData);
-
-    if (
-      dto.status === PaymentStatus.COMPLETED &&
-      existing.status !== PaymentStatus.COMPLETED
-    ) {
-      this.handleCompletedPayment(updated.id).catch(console.error);
-    }
-
-    return updated;
+  async createPayment(dto: {
+    userId: number;
+    cartId: number;
+    amount: number;
+    paymentMethod: string;
+    payableType: PayableType;
+    payableId: number;
+  }): Promise<PaymentResponseDto> {
+    const payment = await this.paymentsRepo.create(dto);
+    return new PaymentResponseDto(payment);
   }
 
   async updateStatus(id: number, status: PaymentStatus): Promise<PaymentResponseDto> {
-    return this.update(id, { status });
+    await this.getById(id);
+    const updated = await this.paymentsRepo.updateStatus(id, status);
+    return new PaymentResponseDto(updated);
   }
 
-  async processPayment(id: number): Promise<PaymentResponseDto> {
-    const payment = await this.findOne(id);
-    if (payment.status !== PaymentStatus.PENDING) {
-      throw new BadRequestException('Only pending payments can be processed');
-    }
-
-    try {
-      return await this.update(id, {
-        status: PaymentStatus.COMPLETED,
-        paidAt: new Date().toISOString(),
-      });
-    } catch (error) {
-      await this.update(id, { status: PaymentStatus.FAILED });
-      throw new BadRequestException(`Payment processing failed: ${error.message}`);
-    }
+  async cancel(id: number): Promise<PaymentResponseDto> {
+    await this.getById(id);
+    const cancelled = await this.paymentsRepo.cancel(id);
+    return new PaymentResponseDto(cancelled);
   }
 
-  async handleWebhook(payload: any, req: any): Promise<void> {
-    // TODO: validate signature
-    // TODO: map payload to UpdatePaymentDto
-    console.log('Webhook received:', payload);
-  }
-
-  // --- Helpers ---
-
-  private validateStatusTransition(
-    current: PaymentStatus,
-    next: PaymentStatus,
-  ): void {
-    const allowed: Record<PaymentStatus, PaymentStatus[]> = {
-      [PaymentStatus.PENDING]: [
-        PaymentStatus.COMPLETED,
-        PaymentStatus.FAILED,
-        PaymentStatus.CANCELLED,
-      ],
-      [PaymentStatus.COMPLETED]: [],
-      [PaymentStatus.FAILED]: [PaymentStatus.PENDING, PaymentStatus.CANCELLED],
-      [PaymentStatus.CANCELLED]: [],
-    };
-
-    if (!allowed[current]?.includes(next)) {
-      throw new BadRequestException(
-        `Invalid transition from ${current} to ${next}`,
-      );
-    }
-  }
-
-  private async validateCartOwnership(cartId: number, userId: number) {
-    const cartOwner = await this.repository.getCartOwner(cartId);
-    if (!cartOwner) {
-      throw new NotFoundException(`Cart ${cartId} not found`);
-    }
-    if (cartOwner.userId !== userId) {
-      throw new BadRequestException('Cart does not belong to the user');
-    }
-  }
-
-  private async validatePayableItem(type: PayableType, id: number) {
-    const exists = await this.repository.checkPayableExists(type, id);
-    if (!exists) {
-      throw new NotFoundException(`${type.toLowerCase()} ${id} not found`);
-    }
-  }
-
-  private async handleCompletedPayment(paymentId: number): Promise<void> {
-    const payment = await this.findOne(paymentId);
-    if (payment.payableType === PayableType.PRODUCT) {
-      await this.repository.createProductOrderFromPayment(paymentId);
-    } else if (payment.payableType === PayableType.COURSE) {
-      await this.repository.createCourseEnrollmentFromPayment(paymentId);
-    }
+  async verify(id: number): Promise<PaymentResponseDto> {
+    await this.getById(id);
+    const verified = await this.paymentsRepo.verify(id);
+    return new PaymentResponseDto(verified);
   }
 }

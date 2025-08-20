@@ -1,12 +1,21 @@
-import { PaymentsRepository } from './payments.repository';
-import { CreatePaymentDto } from './dto/request/create-payment.dto';
-import { UpdatePaymentDto } from './dto/request/update-payment.dto';
+import { IPaymentsRepository } from "./interfaces/payments.repository.interface";
+import { PaymentStatus, PayableType } from "@prisma/client";
+import { PaymentResponseDto } from "./dto/response/payment.response.dto";
 export declare class PaymentsService {
-    private readonly repository;
-    constructor(repository: PaymentsRepository);
-    create(dto: CreatePaymentDto): Promise<import("./dto/response/payment.response.dto").PaymentResponseDto>;
-    findAll(): Promise<import("./dto/response/payment.response.dto").PaymentResponseDto[]>;
-    findOne(id: number): Promise<import("./dto/response/payment.response.dto").PaymentResponseDto | null>;
-    update(id: number, dto: UpdatePaymentDto): Promise<import("./dto/response/payment.response.dto").PaymentResponseDto>;
-    remove(id: number): Promise<void>;
+    private readonly paymentsRepo;
+    constructor(paymentsRepo: IPaymentsRepository);
+    getAll(): Promise<PaymentResponseDto[]>;
+    getById(id: number): Promise<PaymentResponseDto>;
+    getByUser(userId: number): Promise<PaymentResponseDto[]>;
+    createPayment(dto: {
+        userId: number;
+        cartId: number;
+        amount: number;
+        paymentMethod: string;
+        payableType: PayableType;
+        payableId: number;
+    }): Promise<PaymentResponseDto>;
+    updateStatus(id: number, status: PaymentStatus): Promise<PaymentResponseDto>;
+    cancel(id: number): Promise<PaymentResponseDto>;
+    verify(id: number): Promise<PaymentResponseDto>;
 }

@@ -6,20 +6,24 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AssignmentSubmissionsModule = void 0;
+exports.SubmissionModule = void 0;
 const common_1 = require("@nestjs/common");
-const assignment_submissions_service_1 = require("./assignment-submissions.service");
 const assignment_submissions_controller_1 = require("./assignment-submissions.controller");
+const assignment_submissions_service_1 = require("./assignment-submissions.service");
 const assignment_submissions_repository_1 = require("./assignment-submissions.repository");
 const prisma_service_1 = require("../prisma/prisma.service");
-let AssignmentSubmissionsModule = class AssignmentSubmissionsModule {
+let SubmissionModule = class SubmissionModule {
 };
-exports.AssignmentSubmissionsModule = AssignmentSubmissionsModule;
-exports.AssignmentSubmissionsModule = AssignmentSubmissionsModule = __decorate([
+exports.SubmissionModule = SubmissionModule;
+exports.SubmissionModule = SubmissionModule = __decorate([
     (0, common_1.Module)({
-        controllers: [assignment_submissions_controller_1.AssignmentSubmissionsController],
-        providers: [assignment_submissions_service_1.AssignmentSubmissionsService, assignment_submissions_repository_1.AssignmentSubmissionsRepository, prisma_service_1.PrismaService],
-        exports: [assignment_submissions_service_1.AssignmentSubmissionsService],
+        controllers: [assignment_submissions_controller_1.SubmissionController],
+        providers: [
+            assignment_submissions_service_1.AssignmentSubmissionService,
+            assignment_submissions_repository_1.AssignmentSubmissionRepository,
+            prisma_service_1.PrismaService,
+        ],
+        exports: [assignment_submissions_service_1.AssignmentSubmissionService, assignment_submissions_repository_1.AssignmentSubmissionRepository],
     })
-], AssignmentSubmissionsModule);
+], SubmissionModule);
 //# sourceMappingURL=assignment-submissions.module.js.map

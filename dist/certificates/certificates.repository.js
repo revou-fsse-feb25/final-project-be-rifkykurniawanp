@@ -17,17 +17,62 @@ let CertificatesRepository = class CertificatesRepository {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    issue(dto) {
-        return this.prisma.certificate.create({ data: dto });
+    includeEnrollment = {
+        enrollment: { select: { studentId: true, courseId: true } },
+    };
+    async findAll() {
+        return this.prisma.certificate.findMany({
+            include: this.includeEnrollment,
+        });
     }
-    findAll() {
-        return this.prisma.certificate.findMany({ include: { enrollment: true } });
+    async findOne(id) {
+        return this.prisma.certificate.findUnique({
+            where: { id },
+            include: this.includeEnrollment,
+        });
     }
-    findOne(id) {
-        return this.prisma.certificate.findUnique({ where: { id }, include: { enrollment: true } });
+    async findByEnrollmentId(enrollmentId) {
+        return this.prisma.certificate.findUnique({
+            where: { enrollmentId },
+            include: this.includeEnrollment,
+        });
     }
-    remove(id) {
-        return this.prisma.certificate.delete({ where: { id } });
+    async findByUser(studentId) {
+        return this.prisma.certificate.findMany({
+            where: { enrollment: { studentId } },
+            include: this.includeEnrollment,
+        });
+    }
+    async findByCourse(courseId) {
+        return this.prisma.certificate.findMany({
+            where: { enrollment: { courseId } },
+            include: this.includeEnrollment,
+        });
+    }
+    async create(data) {
+        return this.prisma.certificate.create({
+            data,
+            include: this.includeEnrollment,
+        });
+    }
+    async update(id, data) {
+        return this.prisma.certificate.update({
+            where: { id },
+            data,
+            include: this.includeEnrollment,
+        });
+    }
+    async remove(id) {
+        await this.prisma.certificate.delete({ where: { id } });
+    }
+    async isUserInstructorForCourse(userId, courseId) {
+        return true;
+    }
+    async getCourseProgress(enrollmentId) {
+        return {
+            finalLessonsCompleted: true,
+            finalAssignmentsCompleted: true,
+        };
     }
 };
 exports.CertificatesRepository = CertificatesRepository;

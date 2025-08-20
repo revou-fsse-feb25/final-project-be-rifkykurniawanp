@@ -1,21 +1,43 @@
-import { ApiProperty } from '@nestjs/swagger';
-
-export class SubmissionResponseDto {
-  @ApiProperty({ example: 1 })
+export class AssignmentSubmissionResponseDto {
   id: number;
-
-  @ApiProperty({ example: 1 })
   assignmentId: number;
-
-  @ApiProperty({ example: 1 })
   userId: number;
-
-  @ApiProperty({ example: 'My assignment content', required: false })
-  content?: string;
-
-  @ApiProperty({ example: 95.5, required: false })
-  grade?: number;
-
-  @ApiProperty({ example: '2025-08-15T12:00:00Z' })
+  content?: string | null;
+  grade?: number | null;
   submittedAt: Date;
+  
+  // Optional relations for detailed views
+  user?: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
+  
+  assignment?: {
+    id: number;
+    title: string;
+    dueDate?: Date | null;
+  };
+}
+
+export class AssignmentSubmissionListResponseDto {
+  submissions: AssignmentSubmissionResponseDto[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  stats?: {
+    totalSubmissions: number;
+    gradedSubmissions: number;
+    averageGrade?: number;
+  };
+}
+
+export class AssignmentSubmissionStatsDto {
+  totalSubmissions: number;
+  gradedSubmissions: number;
+  pendingGrading: number;
+  averageGrade?: number;
+  highestGrade?: number;
+  lowestGrade?: number;
 }

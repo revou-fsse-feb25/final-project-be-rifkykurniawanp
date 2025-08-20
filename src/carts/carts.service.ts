@@ -13,6 +13,12 @@ export class CartsService {
     return cart;
   }
 
+  async getCartById(cartId: number) {
+    const cart = await this.repository.getCartById(cartId);
+    if (!cart) throw new NotFoundException('Cart not found');
+    return cart;
+  }
+
   async addItem(dto: AddToCartDto & { cartId?: number }) {
     return this.repository.addItem(dto);
   }

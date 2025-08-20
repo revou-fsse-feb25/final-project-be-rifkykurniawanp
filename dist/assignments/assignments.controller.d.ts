@@ -4,59 +4,59 @@ import { UpdateAssignmentDto } from './dto/request/update-assignment.dto';
 export declare class AssignmentsController {
     private readonly assignmentsService;
     constructor(assignmentsService: AssignmentsService);
-    getAllAssignments(): Promise<{
+    findAll(): Promise<{
         success: boolean;
         message: string;
         data: {
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         }[];
         meta: {
             total: number;
         };
     }>;
-    getAssignment(id: string): Promise<{
+    findOne(id: number): Promise<{
         success: boolean;
         message: string;
         data: {
             isOverdue: boolean;
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         };
     }>;
-    createAssignment(dto: CreateAssignmentDto, req: any): Promise<{
+    create(dto: CreateAssignmentDto, req: any): Promise<{
         success: boolean;
         message: string;
         data: {
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         };
     }>;
-    updateAssignment(id: string, dto: UpdateAssignmentDto, req: any): Promise<{
+    update(id: number, dto: UpdateAssignmentDto, req: any): Promise<{
         success: boolean;
         message: string;
         data: {
-            title: string;
+            id: number;
             lessonId: number;
+            title: string;
             instructions: string;
             dueDate: Date | null;
-            id: number;
             createdAt: Date;
         };
     }>;
-    deleteAssignment(id: string, req: any): Promise<{
+    remove(id: number, req: any): Promise<{
         success: boolean;
         message: string;
         data: null;

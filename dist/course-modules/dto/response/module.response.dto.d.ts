@@ -1,10 +1,24 @@
-import { CourseResponseDto } from './course.response.dto';
-import { ModuleLessonResponseDto } from './lesson.response.dto';
+declare class CourseInfoDto {
+    id: number;
+    title: string;
+    instructorId: number;
+}
+declare class LessonDto {
+    id: number;
+    slug: string;
+    title: string;
+    description: string;
+    duration: string;
+    type: string;
+    orderNumber: number;
+}
 export declare class ModuleResponseDto {
     id: number;
     courseId: number;
     title: string;
     orderNumber: number;
-    course?: CourseResponseDto;
-    lessons?: ModuleLessonResponseDto[];
+    course: CourseInfoDto;
+    lessons: LessonDto[];
+    createdAt: Date;
 }
+export {};

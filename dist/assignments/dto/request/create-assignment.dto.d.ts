@@ -1,6 +1,6 @@
 export declare class CreateAssignmentDto {
-    lessonId: number;
     title: string;
-    instructions?: string;
+    instructions: string;
     dueDate?: string;
+    lessonId: number;
 }

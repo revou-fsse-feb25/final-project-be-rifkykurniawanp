@@ -1,29 +1,32 @@
-import { Injectable } from '@nestjs/common';
-import { CourseEnrollmentsRepository } from './course-enrollments.repository';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { EnrollmentsRepository } from './course-enrollments.repository';
 import { EnrollCourseDto } from './dto/request/enroll-course.dto';
 import { UpdateEnrollmentDto } from './dto/request/update-enrollment.dto';
+import { EnrollmentResponseDto } from './dto/response/enrollment.response.dto';
 
 @Injectable()
-export class CourseEnrollmentsService {
-  constructor(private readonly repository: CourseEnrollmentsRepository) {}
+export class EnrollmentsService {
+  constructor(private readonly repo: EnrollmentsRepository) {}
 
-  enroll(dto: EnrollCourseDto, paymentId: number) {
-    return this.repository.enroll({ ...dto, paymentId });
+  create(dto: EnrollCourseDto): Promise<EnrollmentResponseDto> {
+    return this.repo.create(dto);
   }
 
-  findAll() {
-    return this.repository.findAll();
+  findAll(): Promise<EnrollmentResponseDto[]> {
+    return this.repo.findAll();
   }
 
-  findOne(id: number) {
-    return this.repository.findOne(id);
+  async findOne(id: number): Promise<EnrollmentResponseDto> {
+    const enrollment = await this.repo.findById(id);
+    if (!enrollment) throw new NotFoundException('Enrollment not found');
+    return enrollment;
   }
 
-  update(id: number, dto: UpdateEnrollmentDto) {
-    return this.repository.update(id, dto);
+  update(id: number, dto: UpdateEnrollmentDto): Promise<EnrollmentResponseDto> {
+    return this.repo.update(id, dto);
   }
 
-  remove(id: number) {
-    return this.repository.remove(id);
+  remove(id: number): Promise<void> {
+    return this.repo.remove(id);
   }
 }

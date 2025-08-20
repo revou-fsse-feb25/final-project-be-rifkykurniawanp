@@ -12,23 +12,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseEnrollmentsController = void 0;
+exports.EnrollmentsController = void 0;
 const common_1 = require("@nestjs/common");
 const course_enrollments_service_1 = require("./course-enrollments.service");
 const enroll_course_dto_1 = require("./dto/request/enroll-course.dto");
 const update_enrollment_dto_1 = require("./dto/request/update-enrollment.dto");
-const swagger_1 = require("@nestjs/swagger");
 const enrollment_response_dto_1 = require("./dto/response/enrollment.response.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_decorator_1 = require("../auth/decorator/roles.decorator");
-const role_guard_1 = require("../auth/guards/role.guard");
-let CourseEnrollmentsController = class CourseEnrollmentsController {
+const swagger_1 = require("@nestjs/swagger");
+let EnrollmentsController = class EnrollmentsController {
     service;
     constructor(service) {
         this.service = service;
     }
-    enroll(paymentId, dto) {
-        return this.service.enroll(dto, paymentId);
+    create(dto) {
+        return this.service.create(dto);
     }
     findAll() {
         return this.service.findAll();
@@ -43,64 +40,59 @@ let CourseEnrollmentsController = class CourseEnrollmentsController {
         return this.service.remove(id);
     }
 };
-exports.CourseEnrollmentsController = CourseEnrollmentsController;
+exports.EnrollmentsController = EnrollmentsController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Post)(':paymentId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Enroll student to course' }),
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Enroll a student in a course' }),
     (0, swagger_1.ApiResponse)({ status: 201, type: enrollment_response_dto_1.EnrollmentResponseDto }),
-    __param(0, (0, common_1.Param)('paymentId')),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, enroll_course_dto_1.EnrollCourseDto]),
-    __metadata("design:returntype", void 0)
-], CourseEnrollmentsController.prototype, "enroll", null);
+    __metadata("design:paramtypes", [enroll_course_dto_1.EnrollCourseDto]),
+    __metadata("design:returntype", Promise)
+], EnrollmentsController.prototype, "create", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all course enrollments' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all enrollments (ADMIN only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, type: [enrollment_response_dto_1.EnrollmentResponseDto] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], CourseEnrollmentsController.prototype, "findAll", null);
+    __metadata("design:returntype", Promise)
+], EnrollmentsController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'USER'),
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get enrollment by id' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get enrollment by ID' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, type: enrollment_response_dto_1.EnrollmentResponseDto }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], CourseEnrollmentsController.prototype, "findOne", null);
+    __metadata("design:returntype", Promise)
+], EnrollmentsController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update enrollment' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Update enrollment status' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, type: enrollment_response_dto_1.EnrollmentResponseDto }),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, update_enrollment_dto_1.UpdateEnrollmentDto]),
-    __metadata("design:returntype", void 0)
-], CourseEnrollmentsController.prototype, "update", null);
+    __metadata("design:returntype", Promise)
+], EnrollmentsController.prototype, "update", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, common_1.Delete)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete enrollment' }),
-    __param(0, (0, common_1.Param)('id')),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete enrollment (ADMIN only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Enrollment deleted successfully' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], CourseEnrollmentsController.prototype, "remove", null);
-exports.CourseEnrollmentsController = CourseEnrollmentsController = __decorate([
-    (0, swagger_1.ApiTags)('Course Enrollments'),
-    (0, common_1.Controller)('course-enrollments'),
-    __metadata("design:paramtypes", [course_enrollments_service_1.CourseEnrollmentsService])
-], CourseEnrollmentsController);
+    __metadata("design:returntype", Promise)
+], EnrollmentsController.prototype, "remove", null);
+exports.EnrollmentsController = EnrollmentsController = __decorate([
+    (0, swagger_1.ApiTags)('Enrollments'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Controller)('enrollments'),
+    __metadata("design:paramtypes", [course_enrollments_service_1.EnrollmentsService])
+], EnrollmentsController);
 //# sourceMappingURL=course-enrollments.controller.js.map

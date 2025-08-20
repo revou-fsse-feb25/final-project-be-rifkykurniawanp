@@ -9,33 +9,62 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseEnrollmentsRepository = void 0;
+exports.EnrollmentsRepository = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-let CourseEnrollmentsRepository = class CourseEnrollmentsRepository {
+const update_enrollment_dto_1 = require("./dto/request/update-enrollment.dto");
+let EnrollmentsRepository = class EnrollmentsRepository {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    enroll(dto) {
-        return this.prisma.courseEnrollment.create({ data: { ...dto, paymentId: dto.paymentId } });
+    toResponse(entity) {
+        return {
+            id: entity.id,
+            courseId: entity.courseId,
+            studentId: entity.studentId,
+            paymentId: entity.paymentId,
+            pricePaid: entity.pricePaid.toNumber(),
+            progress: entity.progress,
+            certificateAwarded: entity.certificateAwarded,
+            status: update_enrollment_dto_1.EnrollmentStatus.ACTIVE,
+            enrolledAt: entity.enrolledAt,
+        };
     }
-    findAll() {
-        return this.prisma.courseEnrollment.findMany({ include: { course: true, student: true, payment: true, certificate: true } });
+    async create(dto) {
+        const created = await this.prisma.courseEnrollment.create({
+            data: {
+                ...dto,
+                pricePaid: dto.pricePaid,
+            },
+        });
+        return this.toResponse(created);
     }
-    findOne(id) {
-        return this.prisma.courseEnrollment.findUnique({ where: { id }, include: { course: true, student: true, payment: true, certificate: true } });
+    async findAll() {
+        const records = await this.prisma.courseEnrollment.findMany();
+        return records.map((r) => this.toResponse(r));
     }
-    update(id, dto) {
-        return this.prisma.courseEnrollment.update({ where: { id }, data: dto });
+    async findById(id) {
+        const record = await this.prisma.courseEnrollment.findUnique({ where: { id } });
+        return record ? this.toResponse(record) : null;
     }
-    remove(id) {
-        return this.prisma.courseEnrollment.delete({ where: { id } });
+    async update(id, dto) {
+        const updated = await this.prisma.courseEnrollment.update({
+            where: { id },
+            data: {
+                ...(dto.progress !== undefined && { progress: dto.progress }),
+                ...(dto.certificateAwarded !== undefined && { certificateAwarded: dto.certificateAwarded }),
+            },
+        });
+        return this.toResponse(updated);
+    }
+    async remove(id) {
+        await this.prisma.courseEnrollment.delete({ where: { id } });
     }
 };
-exports.CourseEnrollmentsRepository = CourseEnrollmentsRepository;
-exports.CourseEnrollmentsRepository = CourseEnrollmentsRepository = __decorate([
+exports.EnrollmentsRepository = EnrollmentsRepository;
+exports.EnrollmentsRepository = EnrollmentsRepository = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
-], CourseEnrollmentsRepository);
+], EnrollmentsRepository);
 //# sourceMappingURL=course-enrollments.repository.js.map

@@ -1,110 +1,14 @@
-import { CourseModulesRepository } from './course-modules.repository';
+import { ICourseModulesRepository } from './interfaces/course-modules.repository.interface';
 import { CreateModuleDto } from './dto/request/create-module.dto';
 import { UpdateModuleDto } from './dto/request/update-module.dto';
+import { ModuleResponseDto } from './dto/response/module.response.dto';
 export declare class CourseModulesService {
     private readonly courseModulesRepository;
-    constructor(courseModulesRepository: CourseModulesRepository);
-    create(createModuleDto: CreateModuleDto): Promise<{
-        course: {
-            title: string;
-            id: number;
-            slug: string;
-        };
-        lessons: {
-            type: import(".prisma/client").$Enums.LessonType;
-            title: string;
-            id: number;
-            slug: string | null;
-            duration: string | null;
-            orderNumber: number;
-        }[];
-    } & {
-        title: string;
-        id: number;
-        courseId: number;
-        orderNumber: number;
-    }>;
-    findAll(): Promise<({
-        course: {
-            title: string;
-            id: number;
-            slug: string;
-        };
-        lessons: {
-            type: import(".prisma/client").$Enums.LessonType;
-            title: string;
-            id: number;
-            slug: string | null;
-            duration: string | null;
-            orderNumber: number;
-        }[];
-    } & {
-        title: string;
-        id: number;
-        courseId: number;
-        orderNumber: number;
-    })[]>;
-    findOne(id: number): Promise<{
-        course: {
-            title: string;
-            id: number;
-            slug: string;
-        };
-        lessons: {
-            type: import(".prisma/client").$Enums.LessonType;
-            title: string;
-            id: number;
-            slug: string | null;
-            duration: string | null;
-            orderNumber: number;
-        }[];
-    } & {
-        title: string;
-        id: number;
-        courseId: number;
-        orderNumber: number;
-    }>;
-    findByCourse(courseId: number): Promise<({
-        course: {
-            title: string;
-            id: number;
-            slug: string;
-        };
-        lessons: {
-            type: import(".prisma/client").$Enums.LessonType;
-            title: string;
-            id: number;
-            slug: string | null;
-            duration: string | null;
-            orderNumber: number;
-        }[];
-    } & {
-        title: string;
-        id: number;
-        courseId: number;
-        orderNumber: number;
-    })[]>;
-    update(id: number, updateModuleDto: UpdateModuleDto): Promise<{
-        course: {
-            title: string;
-            id: number;
-            slug: string;
-        };
-        lessons: {
-            type: import(".prisma/client").$Enums.LessonType;
-            title: string;
-            id: number;
-            slug: string | null;
-            duration: string | null;
-            orderNumber: number;
-        }[];
-    } & {
-        title: string;
-        id: number;
-        courseId: number;
-        orderNumber: number;
-    }>;
-    remove(id: number): Promise<{
-        message: string;
-    }>;
+    constructor(courseModulesRepository: ICourseModulesRepository);
+    findByCourseWithAccess(courseId: number, user: any): Promise<ModuleResponseDto[]>;
+    findOneWithAccess(id: number, user: any): Promise<ModuleResponseDto>;
+    createForCourse(courseId: number, createModuleDto: CreateModuleDto, user: any): Promise<ModuleResponseDto>;
+    updateWithOwnership(id: number, updateModuleDto: UpdateModuleDto, user: any): Promise<ModuleResponseDto>;
+    removeWithOwnership(id: number, user: any): Promise<void>;
+    private mapToResponseDto;
 }

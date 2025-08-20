@@ -1,23 +1,23 @@
-// create-assignment.dto.ts
-import { IsInt, IsOptional, IsString, IsDateString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional, IsDateString, Length, IsInt, IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateAssignmentDto {
-  @ApiProperty({ example: 1, description: 'ID of the related lesson' })
-  @IsInt()
-  lessonId: number;
-
-  @ApiProperty({ example: 'Intro Assignment', description: 'Title of the assignment' })
+  @ApiProperty({ example: 'Essay on Climate Change', maxLength: 200 })
   @IsString()
+  @Length(1, 200)
   title: string;
 
-  @ApiProperty({ example: 'Complete the quiz and submit screenshots', required: false })
-  @IsOptional()
+  @ApiProperty({ example: 'Write a 2000-word essay about global warming', maxLength: 2000 })
   @IsString()
-  instructions?: string;
+  @Length(1, 2000)
+  instructions: string;
 
-  @ApiProperty({ example: '2025-08-20T23:59:00Z', required: false })
+  @ApiPropertyOptional({ example: '2025-09-01T23:59:59Z', description: 'Due date in ISO format' })
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  lessonId: number;
 }

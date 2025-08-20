@@ -1,46 +1,61 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { IssueCertificateDto } from './dto/request/issue-certificate.dto';
-import { Certificate } from '@prisma/client';
+import { Certificate, Prisma } from '@prisma/client';
 
 @Injectable()
 export class CertificatesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<Certificate[]> {
-    return this.prisma.certificate.findMany({ include: { enrollment: true } });
-  }
+  private readonly includeEnrollment = {
+    enrollment: { select: { studentId: true, courseId: true } },
+  };
 
-  async findOne(id: number): Promise<Certificate | null> {
-    return this.prisma.certificate.findUnique({ where: { id }, include: { enrollment: { include: { user: true } } } });
-  }
-
-  async findByEnrollmentId(enrollmentId: number): Promise<Certificate | null> {
-    return this.prisma.certificate.findUnique({ where: { enrollmentId } });
-  }
-
-  async findByUser(userId: number): Promise<Certificate[]> {
-    return this.prisma.certificate.findMany({ 
-      where: { enrollment: { userId } }, 
-      include: { enrollment: true } 
+  async findAll() {
+    return this.prisma.certificate.findMany({
+      include: this.includeEnrollment,
     });
   }
 
-  async findByCourse(courseId: number): Promise<Certificate[]> {
-    return this.prisma.certificate.findMany({ 
-      where: { enrollment: { courseId } }, 
-      include: { enrollment: true } 
+  async findOne(id: number) {
+    return this.prisma.certificate.findUnique({
+      where: { id },
+      include: this.includeEnrollment,
     });
   }
 
-  async create(data: any): Promise<Certificate> {
-    return this.prisma.certificate.create({ data });
+  async findByEnrollmentId(enrollmentId: number) {
+    return this.prisma.certificate.findUnique({
+      where: { enrollmentId },
+      include: this.includeEnrollment,
+    });
   }
 
-  async update(id: number, data: any): Promise<Certificate> {
+  async findByUser(studentId: number) {
+    return this.prisma.certificate.findMany({
+      where: { enrollment: { studentId } },
+      include: this.includeEnrollment,
+    });
+  }
+
+  async findByCourse(courseId: number) {
+    return this.prisma.certificate.findMany({
+      where: { enrollment: { courseId } },
+      include: this.includeEnrollment,
+    });
+  }
+
+  async create(data: Prisma.CertificateCreateInput) {
+    return this.prisma.certificate.create({
+      data,
+      include: this.includeEnrollment,
+    });
+  }
+
+  async update(id: number, data: Prisma.CertificateUpdateInput) {
     return this.prisma.certificate.update({
       where: { id },
       data,
+      include: this.includeEnrollment,
     });
   }
 
@@ -49,15 +64,11 @@ export class CertificatesRepository {
   }
 
   async isUserInstructorForCourse(userId: number, courseId: number): Promise<boolean> {
-    // Implement logic to check if the user is an instructor for the course
-    // e.g., check against a Course-Instructor join table.
-    return true; // Placeholder
+    // TODO: implementasi nyata
+    return true;
   }
 
-  async getCourseProgress(enrollmentId: number): Promise<any> {
-    // This method would query for lessons completed and assignments graded
-    // for the given enrollmentId to determine eligibility.
-    // Placeholder
+  async getCourseProgress(enrollmentId: number) {
     return {
       finalLessonsCompleted: true,
       finalAssignmentsCompleted: true,

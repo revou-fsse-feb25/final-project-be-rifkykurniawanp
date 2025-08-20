@@ -1,30 +1,15 @@
+import { IsString, IsNotEmpty, IsInt, Min, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber, Min } from 'class-validator';
 
 export class CreateModuleDto {
-  @ApiProperty({
-    description: 'Course ID that this module belongs to',
-    example: 1,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  courseId: number;
-
-  @ApiProperty({
-    description: 'Title of the course module',
-    example: 'Introduction to Coffee Brewing',
-  })
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Module title', example: 'Introduction to Coffee Brewing', maxLength: 255 })
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   title: string;
 
-  @ApiProperty({
-    description: 'Order number of the module in the course',
-    example: 1,
-    minimum: 1,
-  })
-  @IsNotEmpty()
-  @IsNumber()
+  @ApiProperty({ description: 'Order number of the module within the course', example: 1, minimum: 1 })
+  @IsInt()
   @Min(1)
   orderNumber: number;
 }

@@ -1,47 +1,20 @@
-import { AssignmentSubmissionsRepository } from './assignment-submissions.repository';
-import { SubmitAssignmentDto } from './dto/request/submit-assignment.dto';
-import { UpdateSubmissionDto } from './dto/request/update-submission.dto';
-export declare class AssignmentSubmissionsService {
-    private readonly repository;
-    constructor(repository: AssignmentSubmissionsRepository);
-    submit(dto: SubmitAssignmentDto): import(".prisma/client").Prisma.Prisma__AssignmentSubmissionClient<{
-        id: number;
-        content: string | null;
-        userId: number;
-        assignmentId: number;
-        grade: import("@prisma/client/runtime/library").Decimal | null;
-        submittedAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        id: number;
-        content: string | null;
-        userId: number;
-        assignmentId: number;
-        grade: import("@prisma/client/runtime/library").Decimal | null;
-        submittedAt: Date;
-    }[]>;
-    findOne(id: number): import(".prisma/client").Prisma.Prisma__AssignmentSubmissionClient<{
-        id: number;
-        content: string | null;
-        userId: number;
-        assignmentId: number;
-        grade: import("@prisma/client/runtime/library").Decimal | null;
-        submittedAt: Date;
-    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    update(id: number, dto: UpdateSubmissionDto): import(".prisma/client").Prisma.Prisma__AssignmentSubmissionClient<{
-        id: number;
-        content: string | null;
-        userId: number;
-        assignmentId: number;
-        grade: import("@prisma/client/runtime/library").Decimal | null;
-        submittedAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): import(".prisma/client").Prisma.Prisma__AssignmentSubmissionClient<{
-        id: number;
-        content: string | null;
-        userId: number;
-        assignmentId: number;
-        grade: import("@prisma/client/runtime/library").Decimal | null;
-        submittedAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+import { PrismaService } from '../prisma/prisma.service';
+import { AssignmentSubmissionRepository } from './assignment-submissions.repository';
+import { CreateAssignmentSubmissionDto } from './dto/request/create-submission.dto';
+import { UpdateAssignmentSubmissionDto } from './dto/request/update-submission.dto';
+import { GradeAssignmentSubmissionDto } from './dto/request/grade-assignment-submission.dto';
+import { AssignmentSubmissionListResponseDto, AssignmentSubmissionResponseDto, AssignmentSubmissionStatsDto } from './dto/response/submission.response.dto';
+import { RoleName } from '@prisma/client';
+export declare class AssignmentSubmissionService {
+    private readonly submissionRepository;
+    private readonly prisma;
+    constructor(submissionRepository: AssignmentSubmissionRepository, prisma: PrismaService);
+    submitAssignment(assignmentId: number, createSubmissionDto: CreateAssignmentSubmissionDto, userId: number): Promise<AssignmentSubmissionResponseDto>;
+    getAssignmentSubmissions(assignmentId: number, userId: number, userRole: RoleName, page?: number, limit?: number, graded?: boolean, filterUserId?: number): Promise<AssignmentSubmissionListResponseDto>;
+    getSubmissionById(submissionId: number, userId: number, userRole: RoleName): Promise<AssignmentSubmissionResponseDto>;
+    updateSubmission(submissionId: number, updateSubmissionDto: UpdateAssignmentSubmissionDto, userId: number, userRole: RoleName): Promise<AssignmentSubmissionResponseDto>;
+    deleteSubmission(submissionId: number, userId: number, userRole: RoleName): Promise<void>;
+    gradeSubmission(submissionId: number, gradeSubmissionDto: GradeAssignmentSubmissionDto, userId: number, userRole: RoleName): Promise<AssignmentSubmissionResponseDto>;
+    getSubmissionStats(assignmentId: number, userId: number, userRole: RoleName): Promise<AssignmentSubmissionStatsDto>;
+    private mapSubmissionToResponse;
 }

@@ -14,37 +14,15 @@ const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class IssueCertificateDto {
     enrollmentId;
-    finalLessonsCompleted;
-    finalAssignmentsCompleted;
-    eligible;
-    issuedAt;
-    certificateUrl;
 }
 exports.IssueCertificateDto = IssueCertificateDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, swagger_1.ApiProperty)({
+        example: 101,
+        description: 'Unique ID of the associated enrollment',
+    }),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], IssueCertificateDto.prototype, "enrollmentId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: true }),
-    __metadata("design:type", Boolean)
-], IssueCertificateDto.prototype, "finalLessonsCompleted", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: true }),
-    __metadata("design:type", Boolean)
-], IssueCertificateDto.prototype, "finalAssignmentsCompleted", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: true }),
-    __metadata("design:type", Boolean)
-], IssueCertificateDto.prototype, "eligible", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: '2025-08-15T12:00:00Z', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Date)
-], IssueCertificateDto.prototype, "issuedAt", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'https://example.com/certificate.pdf', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], IssueCertificateDto.prototype, "certificateUrl", void 0);
 //# sourceMappingURL=issue-certificate.dto.js.map

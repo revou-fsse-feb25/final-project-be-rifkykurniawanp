@@ -1,58 +1,69 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
-import { CourseEnrollmentsService } from './course-enrollments.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { EnrollmentsService } from './course-enrollments.service';
 import { EnrollCourseDto } from './dto/request/enroll-course.dto';
 import { UpdateEnrollmentDto } from './dto/request/update-enrollment.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EnrollmentResponseDto } from './dto/response/enrollment.response.dto';
-import { JwtGuard } from '../auth/guards/jwt-auth.guard';
-import { Roles } from '../auth/decorator/roles.decorator';
-import { RolesGuard } from '../auth/guards/role.guard';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
-@ApiTags('Course Enrollments')
-@Controller('course-enrollments')
-export class CourseEnrollmentsController {
-  constructor(private readonly service: CourseEnrollmentsService) {}
+@ApiTags('Enrollments')
+@ApiBearerAuth()
+@Controller('enrollments')
+export class EnrollmentsController {
+  constructor(private readonly service: EnrollmentsService) {}
 
-  @UseGuards(JwtGuard)
-  @Post(':paymentId')
-  @ApiOperation({ summary: 'Enroll student to course' })
+  @Post()
+  @ApiOperation({ summary: 'Enroll a student in a course' })
   @ApiResponse({ status: 201, type: EnrollmentResponseDto })
-  enroll(@Param('paymentId') paymentId: number, @Body() dto: EnrollCourseDto) {
-    return this.service.enroll(dto, paymentId);
+  create(@Body() dto: EnrollCourseDto): Promise<EnrollmentResponseDto> {
+    return this.service.create(dto);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN')
   @Get()
-  @ApiOperation({ summary: 'Get all course enrollments' })
+  @ApiOperation({ summary: 'Get all enrollments (ADMIN only)' })
   @ApiResponse({ status: 200, type: [EnrollmentResponseDto] })
-  findAll() {
+  findAll(): Promise<EnrollmentResponseDto[]> {
     return this.service.findAll();
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'USER')
   @Get(':id')
-  @ApiOperation({ summary: 'Get enrollment by id' })
+  @ApiOperation({ summary: 'Get enrollment by ID' })
+  @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, type: EnrollmentResponseDto })
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<EnrollmentResponseDto> {
     return this.service.findOne(id);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN')
   @Put(':id')
-  @ApiOperation({ summary: 'Update enrollment' })
+  @ApiOperation({ summary: 'Update enrollment status' })
+  @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, type: EnrollmentResponseDto })
-  update(@Param('id') id: number, @Body() dto: UpdateEnrollmentDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateEnrollmentDto,
+  ): Promise<EnrollmentResponseDto> {
     return this.service.update(id, dto);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN')
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete enrollment' })
-  remove(@Param('id') id: number) {
+  @ApiOperation({ summary: 'Delete enrollment (ADMIN only)' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 204, description: 'Enrollment deleted successfully' })
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.service.remove(id);
   }
 }

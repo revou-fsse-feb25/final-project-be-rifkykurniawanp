@@ -1,2 +1,2 @@
-export declare class AssignmentSubmissionsModule {
+export declare class SubmissionModule {
 }

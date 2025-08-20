@@ -1,4 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { SubmitAssignmentDto } from './submit-assignment.dto';
+import { IsString, IsOptional, Length } from 'class-validator';
 
-export class UpdateSubmissionDto extends PartialType(SubmitAssignmentDto) {}
+export class UpdateAssignmentSubmissionDto {
+  @IsOptional()
+  @IsString()
+  @Length(1, 5000, { message: 'Submission content must be between 1 and 5000 characters' })
+  content?: string;
+}

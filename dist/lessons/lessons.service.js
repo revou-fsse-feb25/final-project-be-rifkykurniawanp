@@ -20,17 +20,29 @@ let LessonsService = class LessonsService {
     create(dto) {
         return this.lessonsRepository.create(dto);
     }
-    findAll() {
-        return this.lessonsRepository.findAll();
+    findAllByModule(moduleId) {
+        return this.lessonsRepository.findAllByModule(moduleId);
     }
     findOne(id) {
         return this.lessonsRepository.findOne(id);
+    }
+    findBySlug(slug) {
+        return this.lessonsRepository.findBySlug(slug);
     }
     update(id, dto) {
         return this.lessonsRepository.update(id, dto);
     }
     remove(id) {
         return this.lessonsRepository.remove(id);
+    }
+    getProgress(lessonId, userId) {
+        return this.lessonsRepository.getProgress(lessonId, userId);
+    }
+    completeLesson(lessonId, userId) {
+        return this.lessonsRepository.completeLesson(lessonId, userId);
+    }
+    getCourseProgress(courseId, userId) {
+        return this.lessonsRepository.getCourseProgress(courseId, userId);
     }
 };
 exports.LessonsService = LessonsService;

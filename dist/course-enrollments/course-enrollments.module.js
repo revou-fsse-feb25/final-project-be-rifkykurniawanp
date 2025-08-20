@@ -6,20 +6,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CourseEnrollmentsModule = void 0;
+exports.EnrollmentsModule = void 0;
 const common_1 = require("@nestjs/common");
-const course_enrollments_service_1 = require("./course-enrollments.service");
 const course_enrollments_controller_1 = require("./course-enrollments.controller");
+const course_enrollments_service_1 = require("./course-enrollments.service");
 const course_enrollments_repository_1 = require("./course-enrollments.repository");
 const prisma_service_1 = require("../prisma/prisma.service");
-let CourseEnrollmentsModule = class CourseEnrollmentsModule {
+let EnrollmentsModule = class EnrollmentsModule {
 };
-exports.CourseEnrollmentsModule = CourseEnrollmentsModule;
-exports.CourseEnrollmentsModule = CourseEnrollmentsModule = __decorate([
+exports.EnrollmentsModule = EnrollmentsModule;
+exports.EnrollmentsModule = EnrollmentsModule = __decorate([
     (0, common_1.Module)({
-        controllers: [course_enrollments_controller_1.CourseEnrollmentsController],
-        providers: [course_enrollments_service_1.CourseEnrollmentsService, course_enrollments_repository_1.CourseEnrollmentsRepository, prisma_service_1.PrismaService],
-        exports: [course_enrollments_service_1.CourseEnrollmentsService],
+        controllers: [course_enrollments_controller_1.EnrollmentsController],
+        providers: [course_enrollments_service_1.EnrollmentsService, course_enrollments_repository_1.EnrollmentsRepository, prisma_service_1.PrismaService],
+        exports: [course_enrollments_service_1.EnrollmentsService],
     })
-], CourseEnrollmentsModule);
+], EnrollmentsModule);
 //# sourceMappingURL=course-enrollments.module.js.map
