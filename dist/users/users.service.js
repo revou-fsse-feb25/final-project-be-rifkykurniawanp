@@ -67,7 +67,7 @@ let UsersService = class UsersService {
         const user = await this.usersRepository.findById(id);
         if (!user)
             throw new common_1.NotFoundException('User not found');
-        if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+        if (currentUserRole !== 'ADMIN' || currentUserId !== id) {
             throw new common_1.ForbiddenException('You can only access your own profile');
         }
         return this.toResponseDto(user);

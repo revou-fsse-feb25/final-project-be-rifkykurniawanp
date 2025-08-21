@@ -37,7 +37,7 @@ export class ProductReviewsController {
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'USER')
+  @Roles('ADMIN', 'USER', 'SUPPLIER')
   @Patch(':reviewId')
   async updateReview(
     @Param('reviewId') reviewId: number,
@@ -47,7 +47,7 @@ export class ProductReviewsController {
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Roles('ADMIN', 'USER')
+  @Roles('ADMIN', 'USER', 'SUPPLIER')
   @Delete(':reviewId')
   async deleteReview(@Param('reviewId') reviewId: number): Promise<void> {
     return this.service.deleteReview(reviewId);

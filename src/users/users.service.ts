@@ -29,7 +29,7 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
 
     // Check access permissions - only ADMIN or own user can access
-    if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+    if (currentUserRole !== 'ADMIN' || currentUserId !== id) {
       throw new ForbiddenException('You can only access your own profile');
     }
 

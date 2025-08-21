@@ -77,7 +77,7 @@ __decorate([
 ], ProductReviewsController.prototype, "getAverage", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'USER'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'USER', 'SUPPLIER'),
     (0, common_1.Patch)(':reviewId'),
     __param(0, (0, common_1.Param)('reviewId')),
     __param(1, (0, common_1.Body)()),
@@ -87,7 +87,7 @@ __decorate([
 ], ProductReviewsController.prototype, "updateReview", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'USER'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'USER', 'SUPPLIER'),
     (0, common_1.Delete)(':reviewId'),
     __param(0, (0, common_1.Param)('reviewId')),
     __metadata("design:type", Function),
