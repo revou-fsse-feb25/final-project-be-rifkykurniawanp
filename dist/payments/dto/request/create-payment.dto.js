@@ -10,51 +10,64 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreatePaymentDto = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
-const swagger_1 = require("@nestjs/swagger");
 class CreatePaymentDto {
     userId;
     cartId;
     amount;
     paymentMethod;
+    status;
     payableType;
     payableId;
+    paidAt;
 }
 exports.CreatePaymentDto = CreatePaymentDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1, description: "User ID who makes the payment" }),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, swagger_1.ApiProperty)({ example: 1, description: 'User ID making the payment' }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], CreatePaymentDto.prototype, "userId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 12, description: "Cart ID associated with the payment" }),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, swagger_1.ApiProperty)({ example: 1, description: 'Cart ID being paid for' }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], CreatePaymentDto.prototype, "cartId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 50000, description: "Total amount to pay" }),
+    (0, swagger_1.ApiProperty)({ example: 75000, description: 'Payment amount' }),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], CreatePaymentDto.prototype, "amount", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "CREDIT_CARD", description: "Payment method used" }),
+    (0, swagger_1.ApiProperty)({ example: 'credit_card', description: 'Payment method used' }),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "paymentMethod", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ enum: client_1.PayableType, description: "Type of payable entity" }),
+    (0, swagger_1.ApiProperty)({ enum: client_1.PaymentStatus, example: 'PENDING', required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.PaymentStatus),
+    __metadata("design:type", String)
+], CreatePaymentDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: client_1.PayableType, example: 'PRODUCT' }),
     (0, class_validator_1.IsEnum)(client_1.PayableType),
     __metadata("design:type", String)
 ], CreatePaymentDto.prototype, "payableType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 45, description: "ID of payable entity" }),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, swagger_1.ApiProperty)({ example: 1, description: 'ID of the payable item (product or course)' }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], CreatePaymentDto.prototype, "payableId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '2024-01-01T00:00:00Z', required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", Date)
+], CreatePaymentDto.prototype, "paidAt", void 0);
 //# sourceMappingURL=create-payment.dto.js.map

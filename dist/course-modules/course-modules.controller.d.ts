@@ -1,13 +1,15 @@
 import { CourseModulesService } from './course-modules.service';
-import { CreateModuleDto } from './dto/request/create-module.dto';
-import { UpdateModuleDto } from './dto/request/update-module.dto';
-import { ModuleResponseDto } from './dto/response/module.response.dto';
+import { CreateCourseModuleDto } from './dto/request/create-course-module.dto';
+import { UpdateCourseModuleDto } from './dto/request/update-course-module.dto';
+import { CourseModuleResponseDto } from './dto/response/course-module.response.dto';
 export declare class CourseModulesController {
-    private readonly courseModulesService;
-    constructor(courseModulesService: CourseModulesService);
-    getCourseModules(courseId: number, req: any): Promise<ModuleResponseDto[]>;
-    getModule(id: number, req: any): Promise<ModuleResponseDto>;
-    createModule(courseId: number, createModuleDto: CreateModuleDto, req: any): Promise<ModuleResponseDto>;
-    updateModule(id: number, updateModuleDto: UpdateModuleDto, req: any): Promise<ModuleResponseDto>;
-    deleteModule(id: number, req: any): Promise<void>;
+    private readonly service;
+    constructor(service: CourseModulesService);
+    create(createDto: CreateCourseModuleDto, courseId: number): Promise<CourseModuleResponseDto>;
+    findAll(courseId: number): Promise<CourseModuleResponseDto[]>;
+    findOne(id: number): Promise<CourseModuleResponseDto>;
+    update(id: number, updateDto: UpdateCourseModuleDto): Promise<CourseModuleResponseDto>;
+    remove(id: number): Promise<void>;
+    forceDelete(id: number): Promise<void>;
+    restore(id: number): Promise<CourseModuleResponseDto>;
 }

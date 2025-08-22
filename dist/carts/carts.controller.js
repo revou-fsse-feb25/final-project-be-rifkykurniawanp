@@ -15,104 +15,122 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CartsController = void 0;
 const common_1 = require("@nestjs/common");
 const carts_service_1 = require("./carts.service");
-const add_to_cart_dto_1 = require("./dto/request/add-to-cart.dto");
+const create_cart_dto_1 = require("./dto/request/create-cart.dto");
 const update_cart_dto_1 = require("./dto/request/update-cart.dto");
-const swagger_1 = require("@nestjs/swagger");
-const cart_response_dto_1 = require("./dto/response/cart.response.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const role_guard_1 = require("../auth/guards/role.guard");
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
 let CartsController = class CartsController {
-    service;
-    constructor(service) {
-        this.service = service;
+    cartsService;
+    constructor(cartsService) {
+        this.cartsService = cartsService;
     }
-    getCart(req) {
-        return this.service.getCartByUser(req.user.id);
+    async create(req, dto) {
+        const { user } = req;
+        return this.cartsService.create(user.id, dto, user.role);
     }
-    getCartById(cartId) {
-        return this.service.getCartById(cartId);
+    async findAll(req, page = '1', limit = '10') {
+        const { user } = req;
+        return this.cartsService.findAll(user.id, user.role);
     }
-    addItem(cartId, dto, req) {
-        return this.service.addItem({ ...dto, userId: req.user.id, cartId });
+    async findOne(id, req) {
+        const { user } = req;
+        return this.cartsService.findOne(id, user.id, user.role);
     }
-    updateItem(cartId, itemId, dto) {
-        return this.service.updateItem(itemId, dto);
+    async update(id, dto, req) {
+        const { user } = req;
+        return this.cartsService.update(id, dto, user.id, user.role);
     }
-    removeItem(cartId, itemId) {
-        return this.service.removeItem(itemId);
+    async remove(id, req) {
+        const { user } = req;
+        return this.cartsService.remove(id, user.id, user.role);
     }
-    checkout(cartId, req) {
-        return this.service.checkout(cartId, req.user.id);
+    async addItem(cartId, body, req) {
+        const { user } = req;
+        return this.cartsService.addItem(cartId, user.id, body.itemType, body.itemId, body.quantity, user.role);
+    }
+    async removeItem(cartId, itemId, req) {
+        const { user } = req;
+        return this.cartsService.removeItem(cartId, user.id, itemId, user.role);
     }
 };
 exports.CartsController = CartsController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get current user cart' }),
-    (0, swagger_1.ApiResponse)({ status: 200, type: cart_response_dto_1.CartResponseDto }),
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER'),
+    (0, common_1.Post)(),
     __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], CartsController.prototype, "getCart", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Get)(':cartId/items'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get cart by ID (with items)' }),
-    (0, swagger_1.ApiResponse)({ status: 200, type: cart_response_dto_1.CartResponseDto }),
-    __param(0, (0, common_1.Param)('cartId', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
-], CartsController.prototype, "getCartById", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Post)(':cartId/items'),
-    (0, swagger_1.ApiOperation)({ summary: 'Add item to cart' }),
-    (0, swagger_1.ApiResponse)({ status: 201, type: cart_response_dto_1.CartResponseDto }),
-    __param(0, (0, common_1.Param)('cartId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, add_to_cart_dto_1.AddToCartDto, Object]),
-    __metadata("design:returntype", void 0)
-], CartsController.prototype, "addItem", null);
+    __metadata("design:paramtypes", [Object, create_cart_dto_1.CreateCartDto]),
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "create", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Put)(':cartId/items/:itemId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update cart item' }),
-    (0, swagger_1.ApiResponse)({ status: 200, type: cart_response_dto_1.CartResponseDto }),
-    __param(0, (0, common_1.Param)('cartId', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Param)('itemId', common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Body)()),
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER', 'ADMIN'),
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, update_cart_dto_1.UpdateCartDto]),
-    __metadata("design:returntype", void 0)
-], CartsController.prototype, "updateItem", null);
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Delete)(':cartId/items/:itemId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Remove cart item' }),
-    (0, swagger_1.ApiResponse)({ status: 204 }),
-    __param(0, (0, common_1.Param)('cartId', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Param)('itemId', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
-    __metadata("design:returntype", void 0)
-], CartsController.prototype, "removeItem", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
-    (0, common_1.Post)(':cartId/checkout'),
-    (0, swagger_1.ApiOperation)({ summary: 'Checkout cart' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Checkout successful' }),
-    __param(0, (0, common_1.Param)('cartId', common_1.ParseIntPipe)),
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER', 'ADMIN'),
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Object]),
-    __metadata("design:returntype", void 0)
-], CartsController.prototype, "checkout", null);
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER', 'ADMIN'),
+    (0, common_1.Put)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_cart_dto_1.UpdateCartDto, Object]),
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "update", null);
+__decorate([
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER', 'ADMIN'),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER', 'ADMIN'),
+    (0, common_1.Post)(':id/items'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object, Object]),
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "addItem", null);
+__decorate([
+    (0, common_1.UseGuards)(role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('USER', 'ADMIN'),
+    (0, common_1.Delete)(':id/items/:itemId'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('itemId', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Object]),
+    __metadata("design:returntype", Promise)
+], CartsController.prototype, "removeItem", null);
 exports.CartsController = CartsController = __decorate([
-    (0, swagger_1.ApiTags)('Carts'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard),
     (0, common_1.Controller)('carts'),
     __metadata("design:paramtypes", [carts_service_1.CartsService])
 ], CartsController);

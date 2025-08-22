@@ -17,25 +17,439 @@ let AssignmentsRepository = class AssignmentsRepository {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(dto) {
+    async create(data) {
         return this.prisma.assignment.create({
-            data: {
-                ...dto,
-                instructions: dto.instructions ?? "",
-            },
+            data,
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
         });
     }
-    findAll() {
-        return this.prisma.assignment.findMany();
+    async findById(id, where) {
+        return this.prisma.assignment.findFirst({
+            where: { id, ...where },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
     }
-    findOne(id) {
-        return this.prisma.assignment.findUnique({ where: { id } });
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.assignment.findUnique({
+            where: { id },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
     }
-    update(id, dto) {
-        return this.prisma.assignment.update({ where: { id }, data: dto });
+    async findByLessonId(lessonId, where) {
+        return this.prisma.assignment.findMany({
+            where: { lessonId, ...where },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
     }
-    remove(id) {
-        return this.prisma.assignment.delete({ where: { id } });
+    async findByCourseId(courseId, where) {
+        return this.prisma.assignment.findMany({
+            where: {
+                lesson: {
+                    module: {
+                        courseId
+                    }
+                },
+                ...where
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async findAll(skip = 0, take = 10, where) {
+        return this.prisma.assignment.findMany({
+            where,
+            skip,
+            take,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async findDeleted(skip = 0, take = 10) {
+        return this.prisma.assignment.findMany({
+            where: { deletedAt: { not: null } },
+            skip,
+            take,
+            orderBy: { deletedAt: 'desc' },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async update(id, data) {
+        return this.prisma.assignment.update({
+            where: { id },
+            data,
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async softDelete(id) {
+        return this.prisma.assignment.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async hardDelete(id) {
+        return this.prisma.assignment.delete({
+            where: { id },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async restore(id) {
+        return this.prisma.assignment.update({
+            where: { id },
+            data: { deletedAt: null },
+            include: {
+                lesson: {
+                    include: {
+                        module: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    }
+                },
+                submissions: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+    }
+    async countByLesson(lessonId, where) {
+        return this.prisma.assignment.count({
+            where: { lessonId, ...where }
+        });
+    }
+    async countByCourse(courseId, where) {
+        return this.prisma.assignment.count({
+            where: {
+                lesson: {
+                    module: {
+                        courseId
+                    }
+                },
+                ...where
+            }
+        });
+    }
+    async createSubmission(data) {
+        return this.prisma.assignmentSubmission.create({
+            data,
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async findSubmissionById(id) {
+        return this.prisma.assignmentSubmission.findUnique({
+            where: { id },
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async findSubmissionByUserAndAssignment(userId, assignmentId) {
+        return this.prisma.assignmentSubmission.findFirst({
+            where: { userId, assignmentId },
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async findSubmissionsByAssignment(assignmentId) {
+        return this.prisma.assignmentSubmission.findMany({
+            where: { assignmentId },
+            orderBy: { submittedAt: 'desc' },
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async findSubmissionsByUser(userId) {
+        return this.prisma.assignmentSubmission.findMany({
+            where: { userId },
+            orderBy: { submittedAt: 'desc' },
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async updateSubmission(id, data) {
+        return this.prisma.assignmentSubmission.update({
+            where: { id },
+            data,
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async deleteSubmission(id) {
+        return this.prisma.assignmentSubmission.delete({
+            where: { id },
+            include: {
+                assignment: {
+                    include: {
+                        lesson: {
+                            include: {
+                                module: {
+                                    include: {
+                                        course: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                user: true
+            }
+        });
+    }
+    async countSubmissionsByAssignment(assignmentId) {
+        return this.prisma.assignmentSubmission.count({
+            where: { assignmentId }
+        });
+    }
+    async countSubmissionsByUser(userId) {
+        return this.prisma.assignmentSubmission.count({
+            where: { userId }
+        });
+    }
+    async countGradedSubmissionsByAssignment(assignmentId) {
+        return this.prisma.assignmentSubmission.count({
+            where: {
+                assignmentId,
+                grade: { not: null }
+            }
+        });
     }
 };
 exports.AssignmentsRepository = AssignmentsRepository;

@@ -1,14 +1,18 @@
-import { CreateModuleDto } from '../dto/request/create-module.dto';
-import { UpdateModuleDto } from '../dto/request/update-module.dto';
+import { CreateCourseModuleDto } from '../dto/request/create-course-module.dto';
+import { UpdateCourseModuleDto } from '../dto/request/update-course-module.dto';
+export interface CourseModuleFilter {
+    courseId?: number;
+    deletedAt?: Date | null;
+}
 export interface ICourseModulesRepository {
-    checkCourseExists(courseId: number): Promise<boolean>;
-    findByCourseIdWithLessons(courseId: number): Promise<any[]>;
-    findByIdWithLessons(id: number): Promise<any | null>;
-    create(data: CreateModuleDto & {
+    create(data: CreateCourseModuleDto & {
         courseId: number;
     }): Promise<any>;
-    findById(id: number): Promise<any | null>;
-    update(id: number, data: UpdateModuleDto): Promise<any>;
-    delete(id: number): Promise<void>;
-    checkModuleOwnership(id: number, userId: number): Promise<boolean>;
+    findAll(skip: number, take: number, filter?: CourseModuleFilter): Promise<any[]>;
+    findById(id: number, filter?: CourseModuleFilter): Promise<any>;
+    findByIdIncludingDeleted(id: number): Promise<any>;
+    update(id: number, data: UpdateCourseModuleDto): Promise<any>;
+    softDelete(id: number): Promise<any>;
+    hardDelete(id: number): Promise<any>;
+    restore(id: number): Promise<any>;
 }

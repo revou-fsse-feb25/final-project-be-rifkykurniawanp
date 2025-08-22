@@ -3,21 +3,24 @@ export declare class AssignmentResponseDto {
     lessonId: number;
     title: string;
     instructions: string;
-    dueDate?: Date | null;
+    dueDate?: Date;
     createdAt: Date;
-    _count?: {
-        submissions: number;
-    };
-    userSubmission?: {
+    lesson?: {
         id: number;
-        content?: string;
-        grade?: number;
-        submittedAt: Date;
-    } | null;
-}
-export declare class AssignmentListResponseDto {
-    assignments: AssignmentResponseDto[];
-    total?: number;
-    page?: number;
-    limit?: number;
+        title: string;
+        slug?: string;
+        type: string;
+        module: {
+            id: number;
+            title: string;
+            course: {
+                id: number;
+                title: string;
+                slug: string;
+                instructorId: number;
+            };
+        };
+    };
+    submissionCount: number;
+    gradedSubmissionCount: number;
 }

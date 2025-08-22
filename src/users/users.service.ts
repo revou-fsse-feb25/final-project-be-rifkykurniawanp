@@ -11,25 +11,34 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
-    if (await this.usersRepository.findByEmail(dto.email)) {
+    // Check for existing email (including soft deleted users)
+    const existingUser = await this.usersRepository.findByEmailIncludingDeleted(dto.email);
+    if (existingUser && !existingUser.deletedAt) {
       throw new BadRequestException('Email already exists');
     }
+    
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersRepository.create({ ...dto, password: hashedPassword });
+    const user = await this.usersRepository.create({
+  ...dto,
+  name: `${dto.firstName ?? ''} ${dto.lastName ?? ''}`.trim(),
+  password: hashedPassword,
+});
     return this.toResponseDto(user);
   }
 
   async findAll(page = 1, limit = 10): Promise<UserResponseDto[]> {
     const skip = (page - 1) * limit;
-    return (await this.usersRepository.findAll(skip, limit)).map(this.toResponseDto);
+    // Add deletedAt: null filter to exclude soft deleted users
+    const users = await this.usersRepository.findAll(skip, limit, { deletedAt: null });
+    return users.map(this.toResponseDto);
   }
 
   async findOne(id: number, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto> {
-    const user = await this.usersRepository.findById(id);
+    const user = await this.usersRepository.findById(id, { deletedAt: null });
     if (!user) throw new NotFoundException('User not found');
 
     // Check access permissions - only ADMIN or own user can access
-    if (currentUserRole !== 'ADMIN' || currentUserId !== id) {
+    if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
       throw new ForbiddenException('You can only access your own profile');
     }
 
@@ -37,11 +46,13 @@ export class UsersService {
   }
 
   async findByRole(role: RoleName): Promise<UserResponseDto[]> {
-    return (await this.usersRepository.findByRole(role)).map(this.toResponseDto);
+    const users = await this.usersRepository.findByRole(role, { deletedAt: null });
+    return users.map(this.toResponseDto);
   }
 
   async update(id: number, dto: UpdateUserDto, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto> {
-    if (!(await this.usersRepository.findById(id))) {
+    const user = await this.usersRepository.findById(id, { deletedAt: null });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
@@ -55,14 +66,86 @@ export class UsersService {
       throw new ForbiddenException('Only admins can change user roles');
     }
 
-    return this.toResponseDto(await this.usersRepository.update(id, dto));
+    // If updating email, check for conflicts
+    if (dto.email && dto.email !== user.email) {
+      const existingUser = await this.usersRepository.findByEmail(dto.email, { deletedAt: null });
+      if (existingUser) {
+        throw new BadRequestException('Email already exists');
+      }
+    }
+
+    const updatedUser = await this.usersRepository.update(id, dto);
+    return this.toResponseDto(updatedUser);
   }
 
-  async remove(id: number): Promise<void> {
-    if (!(await this.usersRepository.findById(id))) {
+  // Soft delete implementation
+  async remove(id: number, currentUserId?: number, currentUserRole?: RoleName): Promise<void> {
+    const user = await this.usersRepository.findById(id, { deletedAt: null });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.usersRepository.delete(id);
+
+    // Check permissions - only ADMIN or own user can delete
+    if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+      throw new ForbiddenException('You can only delete your own account');
+    }
+
+    // Prevent self-deletion for the last admin
+    if (user.role === 'ADMIN') {
+      const adminCount = await this.usersRepository.countByRole('ADMIN', { deletedAt: null });
+      if (adminCount <= 1) {
+        throw new BadRequestException('Cannot delete the last admin user');
+      }
+    }
+
+    // Perform soft delete by setting deletedAt timestamp
+    await this.usersRepository.softDelete(id);
+  }
+
+  // Hard delete for admin purposes (optional)
+  async forceDelete(id: number, currentUserRole: RoleName): Promise<void> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can permanently delete users');
+    }
+
+    const user = await this.usersRepository.findByIdIncludingDeleted(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.usersRepository.hardDelete(id);
+  }
+
+  // Restore soft deleted user
+  async restore(id: number, currentUserRole: RoleName): Promise<UserResponseDto> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can restore users');
+    }
+
+    const user = await this.usersRepository.findByIdIncludingDeleted(id);
+    if (!user || !user.deletedAt) {
+      throw new NotFoundException('Deleted user not found');
+    }
+
+    // Check if email is still available
+    const emailExists = await this.usersRepository.findByEmail(user.email, { deletedAt: null });
+    if (emailExists) {
+      throw new BadRequestException('Cannot restore user: email is already in use');
+    }
+
+    const restoredUser = await this.usersRepository.restore(id);
+    return this.toResponseDto(restoredUser);
+  }
+
+  // Get soft deleted users (admin only)
+  async getDeleted(page = 1, limit = 10, currentUserRole: RoleName): Promise<UserResponseDto[]> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can view deleted users');
+    }
+
+    const skip = (page - 1) * limit;
+    const users = await this.usersRepository.findDeleted(skip, limit);
+    return users.map(this.toResponseDto);
   }
 
   private toResponseDto = (user: any): UserResponseDto => {

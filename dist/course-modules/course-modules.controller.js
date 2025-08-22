@@ -14,110 +14,116 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CourseModulesController = void 0;
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const course_modules_service_1 = require("./course-modules.service");
-const create_module_dto_1 = require("./dto/request/create-module.dto");
-const update_module_dto_1 = require("./dto/request/update-module.dto");
-const module_response_dto_1 = require("./dto/response/module.response.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_decorator_1 = require("../auth/decorator/roles.decorator");
+const create_course_module_dto_1 = require("./dto/request/create-course-module.dto");
+const update_course_module_dto_1 = require("./dto/request/update-course-module.dto");
+const course_module_response_dto_1 = require("./dto/response/course-module.response.dto");
+const swagger_1 = require("@nestjs/swagger");
+const passport_1 = require("@nestjs/passport");
 const role_guard_1 = require("../auth/guards/role.guard");
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
 let CourseModulesController = class CourseModulesController {
-    courseModulesService;
-    constructor(courseModulesService) {
-        this.courseModulesService = courseModulesService;
+    service;
+    constructor(service) {
+        this.service = service;
     }
-    async getCourseModules(courseId, req) {
-        return await this.courseModulesService.findByCourseWithAccess(courseId, req.user);
+    create(createDto, courseId) {
+        return this.service.create(createDto, courseId);
     }
-    async getModule(id, req) {
-        return await this.courseModulesService.findOneWithAccess(id, req.user);
+    findAll(courseId) {
+        return this.service.findAll(courseId);
     }
-    async createModule(courseId, createModuleDto, req) {
-        return await this.courseModulesService.createForCourse(courseId, createModuleDto, req.user);
+    findOne(id) {
+        return this.service.findOne(id);
     }
-    async updateModule(id, updateModuleDto, req) {
-        return await this.courseModulesService.updateWithOwnership(id, updateModuleDto, req.user);
+    update(id, updateDto) {
+        return this.service.update(id, updateDto);
     }
-    async deleteModule(id, req) {
-        return await this.courseModulesService.removeWithOwnership(id, req.user);
+    remove(id) {
+        return this.service.remove(id);
+    }
+    forceDelete(id) {
+        return this.service.forceDelete(id);
+    }
+    restore(id) {
+        return this.service.restore(id);
     }
 };
 exports.CourseModulesController = CourseModulesController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR', 'USER'),
-    (0, common_1.Get)('courses/:courseId/modules'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get course modules' }),
-    (0, swagger_1.ApiParam)({ name: 'courseId', description: 'Course ID', type: Number }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Course modules retrieved successfully', type: [module_response_dto_1.ModuleResponseDto] }),
-    __param(0, (0, common_1.Param)('courseId', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Request)()),
+    (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a new course module' }),
+    (0, swagger_1.ApiCreatedResponse)({ type: course_module_response_dto_1.CourseModuleResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Body)('courseId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [create_course_module_dto_1.CreateCourseModuleDto, Number]),
     __metadata("design:returntype", Promise)
-], CourseModulesController.prototype, "getCourseModules", null);
+], CourseModulesController.prototype, "create", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, common_1.Get)('course/:courseId'),
     (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR', 'USER'),
-    (0, common_1.Get)('modules/:id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get module by ID' }),
-    (0, swagger_1.ApiParam)({ name: 'id', description: 'Module ID', type: Number }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Module retrieved successfully', type: module_response_dto_1.ModuleResponseDto }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all modules of a course' }),
+    (0, swagger_1.ApiOkResponse)({ type: [course_module_response_dto_1.CourseModuleResponseDto] }),
+    __param(0, (0, common_1.Param)('courseId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], CourseModulesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR', 'USER'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get course module by ID' }),
+    (0, swagger_1.ApiOkResponse)({ type: course_module_response_dto_1.CourseModuleResponseDto }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
-    __metadata("design:returntype", Promise)
-], CourseModulesController.prototype, "getModule", null);
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], CourseModulesController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, common_1.Patch)(':id'),
     (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
-    (0, common_1.Post)('courses/:courseId/modules'),
-    (0, swagger_1.ApiOperation)({ summary: 'Create new module' }),
-    (0, swagger_1.ApiParam)({ name: 'courseId', description: 'Course ID', type: Number }),
-    (0, swagger_1.ApiBody)({ type: create_module_dto_1.CreateModuleDto }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Module created successfully', type: module_response_dto_1.ModuleResponseDto }),
-    __param(0, (0, common_1.Param)('courseId', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Request)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, create_module_dto_1.CreateModuleDto, Object]),
-    __metadata("design:returntype", Promise)
-], CourseModulesController.prototype, "createModule", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
-    (0, common_1.Put)('modules/:id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update module' }),
-    (0, swagger_1.ApiParam)({ name: 'id', description: 'Module ID', type: Number }),
-    (0, swagger_1.ApiBody)({ type: update_module_dto_1.UpdateModuleDto }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Module updated successfully', type: module_response_dto_1.ModuleResponseDto }),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a course module by ID' }),
+    (0, swagger_1.ApiOkResponse)({ type: course_module_response_dto_1.CourseModuleResponseDto }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_module_dto_1.UpdateModuleDto, Object]),
-    __metadata("design:returntype", Promise)
-], CourseModulesController.prototype, "updateModule", null);
+    __metadata("design:paramtypes", [Number, update_course_module_dto_1.UpdateCourseModuleDto]),
+    __metadata("design:returntype", void 0)
+], CourseModulesController.prototype, "update", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
-    (0, common_1.Delete)('modules/:id'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete module' }),
-    (0, swagger_1.ApiParam)({ name: 'id', description: 'Module ID', type: Number }),
-    (0, swagger_1.ApiResponse)({ status: 204, description: 'Module deleted successfully' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Soft delete a course module by ID' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
-    __metadata("design:returntype", Promise)
-], CourseModulesController.prototype, "deleteModule", null);
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], CourseModulesController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Delete)(':id/force'),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Force delete a course module by ID' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], CourseModulesController.prototype, "forceDelete", null);
+__decorate([
+    (0, common_1.Patch)(':id/restore'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
+    (0, swagger_1.ApiOperation)({ summary: 'Restore a soft deleted course module by ID' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], CourseModulesController.prototype, "restore", null);
 exports.CourseModulesController = CourseModulesController = __decorate([
-    (0, swagger_1.ApiTags)('Course Modules & Lessons'),
-    (0, common_1.Controller)('api'),
+    (0, swagger_1.ApiTags)('Course Modules'),
     (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), role_guard_1.RolesGuard),
+    (0, common_1.Controller)('course-modules'),
     __metadata("design:paramtypes", [course_modules_service_1.CourseModulesService])
 ], CourseModulesController);
 //# sourceMappingURL=course-modules.controller.js.map

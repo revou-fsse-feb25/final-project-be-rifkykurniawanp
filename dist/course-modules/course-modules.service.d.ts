@@ -1,14 +1,16 @@
-import { ICourseModulesRepository } from './interfaces/course-modules.repository.interface';
-import { CreateModuleDto } from './dto/request/create-module.dto';
-import { UpdateModuleDto } from './dto/request/update-module.dto';
-import { ModuleResponseDto } from './dto/response/module.response.dto';
+import { CourseModulesRepository } from './course-modules.repository';
+import { CreateCourseModuleDto } from './dto/request/create-course-module.dto';
+import { UpdateCourseModuleDto } from './dto/request/update-course-module.dto';
+import { CourseModuleResponseDto } from './dto/response/course-module.response.dto';
 export declare class CourseModulesService {
-    private readonly courseModulesRepository;
-    constructor(courseModulesRepository: ICourseModulesRepository);
-    findByCourseWithAccess(courseId: number, user: any): Promise<ModuleResponseDto[]>;
-    findOneWithAccess(id: number, user: any): Promise<ModuleResponseDto>;
-    createForCourse(courseId: number, createModuleDto: CreateModuleDto, user: any): Promise<ModuleResponseDto>;
-    updateWithOwnership(id: number, updateModuleDto: UpdateModuleDto, user: any): Promise<ModuleResponseDto>;
-    removeWithOwnership(id: number, user: any): Promise<void>;
-    private mapToResponseDto;
+    private readonly repo;
+    constructor(repo: CourseModulesRepository);
+    create(createDto: CreateCourseModuleDto, courseId: number): Promise<CourseModuleResponseDto>;
+    findAll(courseId: number, page?: number, limit?: number): Promise<CourseModuleResponseDto[]>;
+    findOne(id: number): Promise<CourseModuleResponseDto>;
+    update(id: number, updateDto: UpdateCourseModuleDto): Promise<CourseModuleResponseDto>;
+    remove(id: number): Promise<void>;
+    forceDelete(id: number): Promise<void>;
+    restore(id: number): Promise<CourseModuleResponseDto>;
+    private toResponseDto;
 }

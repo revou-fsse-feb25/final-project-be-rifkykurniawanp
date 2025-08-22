@@ -44,22 +44,11 @@ let ProductsController = class ProductsController {
         };
         return this.productsService.findAll(pageNum, limitNum, filter);
     }
-    search(query, page, limit) {
-        const pageNum = page ? parseInt(page) : 1;
-        const limitNum = limit ? parseInt(limit) : 10;
-        return this.productsService.findAll(pageNum, limitNum, {});
-    }
-    findByCategory(category) {
-        return this.productsService.findAll(1, 100, { category });
-    }
-    findByOrigin(origin) {
-        return this.productsService.findAll(1, 100, { origin });
+    findBySlug(slug) {
+        return this.productsService.findBySlug(slug);
     }
     findBySupplierId(supplierId) {
         return this.productsService.findBySupplierId(supplierId);
-    }
-    findBySlug(slug) {
-        return this.productsService.findBySlug(slug);
     }
     findOne(id) {
         return this.productsService.findOne(id);
@@ -69,6 +58,12 @@ let ProductsController = class ProductsController {
     }
     remove(id, req) {
         return this.productsService.remove(id, req.user.id, req.user.role);
+    }
+    forceDelete(id, req) {
+        return this.productsService.forceDelete(id, req.user.role);
+    }
+    restore(id, req) {
+        return this.productsService.restore(id, req.user.role);
     }
 };
 exports.ProductsController = ProductsController;
@@ -94,69 +89,6 @@ __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get all products with optional filters' }),
     (0, swagger_1.ApiOkResponse)({ description: 'A list of products', type: [product_response_dto_1.ProductResponseDto] }),
-    (0, swagger_1.ApiQuery)({
-        name: 'page',
-        required: false,
-        description: 'Page number for pagination',
-        type: 'number',
-        example: 1
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'limit',
-        required: false,
-        description: 'Number of items per page',
-        type: 'number',
-        example: 10
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'category',
-        required: false,
-        enum: client_1.ProductCategory,
-        description: 'Filter by product category'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'origin',
-        required: false,
-        enum: client_1.ProductOrigin,
-        description: 'Filter by product origin'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'status',
-        required: false,
-        enum: client_1.ProductStatus,
-        description: 'Filter by product status'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'supplierId',
-        required: false,
-        description: 'Filter by supplier ID',
-        type: 'number'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'minPrice',
-        required: false,
-        description: 'Filter by minimum price',
-        type: 'number'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'maxPrice',
-        required: false,
-        description: 'Filter by maximum price',
-        type: 'number'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'tags',
-        required: false,
-        description: 'Filter by product tags (comma-separated)',
-        type: 'string',
-        example: 'ARABICA,ROBUSTA'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'search',
-        required: false,
-        description: 'Search by product name or description',
-        type: 'string'
-    }),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('category')),
@@ -172,89 +104,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)('search'),
-    (0, swagger_1.ApiOperation)({ summary: 'Search products by name or description' }),
-    (0, swagger_1.ApiQuery)({
-        name: 'q',
-        required: true,
-        description: 'Search query',
-        type: 'string'
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'page',
-        required: false,
-        description: 'Page number for pagination',
-        type: 'number',
-        example: 1
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'limit',
-        required: false,
-        description: 'Number of items per page',
-        type: 'number',
-        example: 10
-    }),
-    (0, swagger_1.ApiOkResponse)({ description: 'Search results', type: [product_response_dto_1.ProductResponseDto] }),
-    __param(0, (0, common_1.Query)('q')),
-    __param(1, (0, common_1.Query)('page')),
-    __param(2, (0, common_1.Query)('limit')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
-    __metadata("design:returntype", Promise)
-], ProductsController.prototype, "search", null);
-__decorate([
-    (0, common_1.Get)('category/:category'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get products by category' }),
-    (0, swagger_1.ApiParam)({
-        name: 'category',
-        enum: client_1.ProductCategory,
-        description: 'Product category'
-    }),
-    (0, swagger_1.ApiOkResponse)({ description: 'Products in the specified category', type: [product_response_dto_1.ProductResponseDto] }),
-    __param(0, (0, common_1.Param)('category')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], ProductsController.prototype, "findByCategory", null);
-__decorate([
-    (0, common_1.Get)('origin/:origin'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get products by origin' }),
-    (0, swagger_1.ApiParam)({
-        name: 'origin',
-        enum: client_1.ProductOrigin,
-        description: 'Product origin'
-    }),
-    (0, swagger_1.ApiOkResponse)({ description: 'Products from the specified origin', type: [product_response_dto_1.ProductResponseDto] }),
-    __param(0, (0, common_1.Param)('origin')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], ProductsController.prototype, "findByOrigin", null);
-__decorate([
-    (0, common_1.Get)('supplier/:supplierId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all products by a supplier ID' }),
-    (0, swagger_1.ApiParam)({
-        name: 'supplierId',
-        description: 'The unique ID of the supplier',
-        type: 'number'
-    }),
-    (0, swagger_1.ApiOkResponse)({
-        description: 'A list of products by the specified supplier',
-        type: [product_response_dto_1.ProductResponseDto]
-    }),
-    __param(0, (0, common_1.Param)('supplierId', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], ProductsController.prototype, "findBySupplierId", null);
-__decorate([
     (0, common_1.Get)('slug/:slug'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a product by its slug' }),
-    (0, swagger_1.ApiParam)({
-        name: 'slug',
-        description: 'The unique slug of the product',
-        type: 'string'
-    }),
+    (0, swagger_1.ApiParam)({ name: 'slug', description: 'The unique slug of the product', type: 'string' }),
     (0, swagger_1.ApiOkResponse)({ description: 'The product with the given slug', type: product_response_dto_1.ProductResponseDto }),
     (0, swagger_1.ApiNotFoundResponse)({ description: 'Product not found' }),
     __param(0, (0, common_1.Param)('slug')),
@@ -263,13 +115,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "findBySlug", null);
 __decorate([
+    (0, common_1.Get)('supplier/:supplierId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all products by a supplier ID' }),
+    (0, swagger_1.ApiParam)({ name: 'supplierId', description: 'The unique ID of the supplier', type: 'number' }),
+    (0, swagger_1.ApiOkResponse)({ description: 'A list of products by the specified supplier', type: [product_response_dto_1.ProductResponseDto] }),
+    __param(0, (0, common_1.Param)('supplierId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "findBySupplierId", null);
+__decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a single product by ID' }),
-    (0, swagger_1.ApiParam)({
-        name: 'id',
-        description: 'The unique ID of the product',
-        type: 'number'
-    }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the product', type: 'number' }),
     (0, swagger_1.ApiOkResponse)({ description: 'The product with the given ID', type: product_response_dto_1.ProductResponseDto }),
     (0, swagger_1.ApiNotFoundResponse)({ description: 'Product not found' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -283,11 +141,7 @@ __decorate([
     (0, common_1.Patch)(':id'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Update a product by ID' }),
-    (0, swagger_1.ApiParam)({
-        name: 'id',
-        description: 'The unique ID of the product',
-        type: 'number'
-    }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the product', type: 'number' }),
     (0, swagger_1.ApiOkResponse)({ description: 'The updated product', type: product_response_dto_1.ProductResponseDto }),
     (0, swagger_1.ApiBody)({ type: update_product_dto_1.UpdateProductDto }),
     (0, swagger_1.ApiNotFoundResponse)({ description: 'Product not found' }),
@@ -304,13 +158,9 @@ __decorate([
     (0, roles_decorator_1.Roles)('ADMIN', 'SUPPLIER'),
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete a product by ID' }),
-    (0, swagger_1.ApiParam)({
-        name: 'id',
-        description: 'The unique ID of the product',
-        type: 'number'
-    }),
-    (0, swagger_1.ApiOkResponse)({ description: 'Product successfully deleted' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Soft delete a product by ID' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the product', type: 'number' }),
+    (0, swagger_1.ApiOkResponse)({ description: 'Product successfully deleted (soft delete)' }),
     (0, swagger_1.ApiNotFoundResponse)({ description: 'Product not found' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Req)()),
@@ -318,6 +168,36 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, common_1.Delete)(':id/force'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Permanently delete a product by ID (Admin only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the product', type: 'number' }),
+    (0, swagger_1.ApiOkResponse)({ description: 'Product permanently deleted' }),
+    (0, swagger_1.ApiNotFoundResponse)({ description: 'Product not found' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "forceDelete", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, common_1.Patch)(':id/restore'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Restore a soft deleted product (Admin only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the product', type: 'number' }),
+    (0, swagger_1.ApiOkResponse)({ description: 'Product successfully restored', type: product_response_dto_1.ProductResponseDto }),
+    (0, swagger_1.ApiNotFoundResponse)({ description: 'Deleted product not found' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "restore", null);
 exports.ProductsController = ProductsController = __decorate([
     (0, swagger_1.ApiTags)('Products'),
     (0, common_1.Controller)('products'),

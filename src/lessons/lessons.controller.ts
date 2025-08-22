@@ -2,99 +2,85 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
-  Param,
   Delete,
-  UseGuards,
+  Body,
+  Param,
   ParseIntPipe,
-  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto } from './dto/request/create-lesson.dto';
 import { UpdateLessonDto } from './dto/request/update-lesson.dto';
-import { JwtGuard } from '../auth/guards/jwt-auth.guard';
+import { LessonResponseDto } from './dto/response/lesson.response.dto';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
-import { RoleName } from '@prisma/client';
 
-@Controller()
+@ApiTags('Lessons')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Controller('lessons')
 export class LessonsController {
-  constructor(private readonly lessonsService: LessonsService) {}
+  constructor(private readonly service: LessonsService) {}
 
-  // ================= ADMIN / INSTRUCTOR =================
-
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles(RoleName.ADMIN, RoleName.INSTRUCTOR)
-  @Post('api/modules/:moduleId/lessons')
+  @Post()
+  @Roles('ADMIN', 'INSTRUCTOR')
+  @ApiOperation({ summary: 'Create a new lesson' })
+  @ApiCreatedResponse({ type: LessonResponseDto })
   create(
-    @Param('moduleId', ParseIntPipe) moduleId: number,
-    @Body() dto: CreateLessonDto,
-  ) {
-    return this.lessonsService.create({ ...dto, moduleId });
+    @Body() createDto: CreateLessonDto,
+    @Body('moduleId', ParseIntPipe) moduleId: number,
+  ): Promise<LessonResponseDto> {
+    return this.service.create(createDto, moduleId);
   }
 
-  @Get('api/modules/:moduleId/lessons')
-  findAllByModule(@Param('moduleId', ParseIntPipe) moduleId: number) {
-    return this.lessonsService.findAllByModule(moduleId);
+  @Get('module/:moduleId')
+  @Roles('ADMIN', 'INSTRUCTOR', 'USER')
+  @ApiOperation({ summary: 'Get all lessons of a module' })
+  @ApiOkResponse({ type: [LessonResponseDto] })
+  findAll(@Param('moduleId', ParseIntPipe) moduleId: number) {
+    return this.service.findAll(moduleId);
   }
 
-  @Get('api/lessons/:id')
+  @Get(':id')
+  @Roles('ADMIN', 'INSTRUCTOR', 'USER')
+  @ApiOperation({ summary: 'Get lesson by ID' })
+  @ApiOkResponse({ type: LessonResponseDto })
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.lessonsService.findOne(id);
+    return this.service.findOne(id);
   }
 
-  @Get('api/lessons/slug/:slug')
-  findBySlug(@Param('slug') slug: string) {
-    return this.lessonsService.findBySlug(slug);
-  }
-
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles(RoleName.ADMIN, RoleName.INSTRUCTOR)
-  @Patch('api/lessons/:id')
+  @Patch(':id')
+  @Roles('ADMIN', 'INSTRUCTOR')
+  @ApiOperation({ summary: 'Update a lesson by ID' })
+  @ApiOkResponse({ type: LessonResponseDto })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateLessonDto,
+    @Body() updateDto: UpdateLessonDto,
   ) {
-    return this.lessonsService.update(id, dto);
+    return this.service.update(id, updateDto);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles(RoleName.ADMIN, RoleName.INSTRUCTOR)
-  @Delete('api/lessons/:id')
+  @Delete(':id')
+  @Roles('ADMIN', 'INSTRUCTOR')
+  @ApiOperation({ summary: 'Soft delete a lesson by ID' })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.lessonsService.remove(id);
+    return this.service.remove(id);
   }
 
-  // ================= USER PROGRESS =================
-
-  @UseGuards(JwtGuard)
-  @Get('api/lessons/:lessonId/progress')
-  getProgress(
-    @Param('lessonId', ParseIntPipe) lessonId: number,
-    @Req() req: any,
-  ) {
-    const userId = req.user.id;
-    return this.lessonsService.getProgress(lessonId, userId);
+  @Delete(':id/force')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Force delete a lesson by ID' })
+  forceDelete(@Param('id', ParseIntPipe) id: number) {
+    return this.service.forceDelete(id);
   }
 
-  @UseGuards(JwtGuard)
-  @Post('api/lessons/:lessonId/complete')
-  completeLesson(
-    @Param('lessonId', ParseIntPipe) lessonId: number,
-    @Req() req: any,
-  ) {
-    const userId = req.user.id;
-    return this.lessonsService.completeLesson(lessonId, userId);
-  }
-
-  @UseGuards(JwtGuard)
-  @Get('api/courses/:courseId/progress')
-  getCourseProgress(
-    @Param('courseId', ParseIntPipe) courseId: number,
-    @Req() req: any,
-  ) {
-    const userId = req.user.id;
-    return this.lessonsService.getCourseProgress(courseId, userId);
+  @Patch(':id/restore')
+  @Roles('ADMIN', 'INSTRUCTOR')
+  @ApiOperation({ summary: 'Restore a soft deleted lesson by ID' })
+  restore(@Param('id', ParseIntPipe) id: number) {
+    return this.service.restore(id);
   }
 }

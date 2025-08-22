@@ -1,23 +1,23 @@
-import { IsString, IsOptional, IsDateString, Length, IsInt, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsInt, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateAssignmentDto {
-  @ApiProperty({ example: 'Essay on Climate Change', maxLength: 200 })
+  @ApiProperty({ description: 'ID of the lesson this assignment belongs to' })
+  @IsInt()
+  lessonId: number;
+
+  @ApiProperty({ description: 'Title of the assignment' })
   @IsString()
-  @Length(1, 200)
+  @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'Write a 2000-word essay about global warming', maxLength: 2000 })
+  @ApiProperty({ description: 'Instructions for the assignment' })
   @IsString()
-  @Length(1, 2000)
+  @IsNotEmpty()
   instructions: string;
 
-  @ApiPropertyOptional({ example: '2025-09-01T23:59:59Z', description: 'Due date in ISO format' })
+  @ApiPropertyOptional({ description: 'Due date of the assignment', type: String, format: 'date-time' })
   @IsOptional()
   @IsDateString()
-  dueDate?: string;
-
-  @IsInt()
-  @IsNotEmpty()
-  lessonId: number;
+  dueDate?: Date;
 }

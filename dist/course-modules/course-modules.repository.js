@@ -18,94 +18,54 @@ let CourseModulesRepository = class CourseModulesRepository {
         this.prisma = prisma;
     }
     async create(data) {
-        return await this.prisma.courseModule.create({
-            data: {
-                title: data.title,
-                orderNumber: data.orderNumber,
-                courseId: data.courseId,
-            },
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: { orderBy: { orderNumber: 'asc' } },
-            },
-        });
+        return this.prisma.courseModule.create({ data });
     }
-    async findAll() {
-        return await this.prisma.courseModule.findMany({
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: { orderBy: { orderNumber: 'asc' } },
-            },
-            orderBy: [{ courseId: 'asc' }, { orderNumber: 'asc' }],
-        });
-    }
-    async findById(id) {
-        return await this.prisma.courseModule.findUnique({
-            where: { id },
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: { orderBy: { orderNumber: 'asc' } },
-            },
-        });
-    }
-    async findByCourseId(courseId) {
-        return await this.prisma.courseModule.findMany({
-            where: { courseId },
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: { orderBy: { orderNumber: 'asc' } },
+    async findAll(skip, take, filter = {}) {
+        return this.prisma.courseModule.findMany({
+            skip,
+            take,
+            where: {
+                courseId: filter.courseId,
+                deletedAt: filter.deletedAt ?? null,
             },
             orderBy: { orderNumber: 'asc' },
+            include: { lessons: true, course: true },
+        });
+    }
+    async findById(id, filter = {}) {
+        return this.prisma.courseModule.findFirst({
+            where: { id, deletedAt: filter.deletedAt ?? null },
+            include: { lessons: true, course: true },
+        });
+    }
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.courseModule.findUnique({
+            where: { id },
+            include: { lessons: true, course: true },
         });
     }
     async update(id, data) {
-        return await this.prisma.courseModule.update({
+        return this.prisma.courseModule.update({
             where: { id },
             data,
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: { orderBy: { orderNumber: 'asc' } },
-            },
+            include: { lessons: true, course: true },
         });
     }
-    async delete(id) {
-        await this.prisma.courseModule.delete({ where: { id } });
-    }
-    async findByIdWithLessons(id) {
-        return await this.prisma.courseModule.findUnique({
+    async softDelete(id) {
+        return this.prisma.courseModule.update({
             where: { id },
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: {
-                    orderBy: { orderNumber: 'asc' },
-                    include: { progresses: true, assignments: true },
-                },
-            },
+            data: { deletedAt: new Date() },
         });
     }
-    async findByCourseIdWithLessons(courseId) {
-        return await this.prisma.courseModule.findMany({
-            where: { courseId },
-            include: {
-                course: { select: { id: true, title: true, instructorId: true } },
-                lessons: {
-                    orderBy: { orderNumber: 'asc' },
-                    include: { progresses: true, assignments: true },
-                },
-            },
-            orderBy: { orderNumber: 'asc' },
-        });
+    async hardDelete(id) {
+        return this.prisma.courseModule.delete({ where: { id } });
     }
-    async checkCourseExists(courseId) {
-        const course = await this.prisma.course.findUnique({ where: { id: courseId }, select: { id: true } });
-        return !!course;
-    }
-    async checkModuleOwnership(moduleId, instructorId) {
-        const module = await this.prisma.courseModule.findUnique({
-            where: { id: moduleId },
-            include: { course: { select: { instructorId: true } } },
+    async restore(id) {
+        return this.prisma.courseModule.update({
+            where: { id },
+            data: { deletedAt: null },
+            include: { lessons: true, course: true },
         });
-        return module?.course.instructorId === instructorId;
     }
 };
 exports.CourseModulesRepository = CourseModulesRepository;

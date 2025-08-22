@@ -14,5 +14,7 @@ export declare class CoursesService {
     findByInstructorId(instructorId: number): Promise<CourseResponseDto[]>;
     update(id: number, updateCourseDto: UpdateCourseDto, currentUserId: number, currentUserRole: RoleName): Promise<CourseResponseDto>;
     remove(id: number, currentUserId: number, currentUserRole: RoleName): Promise<void>;
+    forceDelete(id: number, currentUserRole: RoleName): Promise<void>;
+    restore(id: number, currentUserRole: RoleName): Promise<CourseResponseDto>;
     private toResponseDto;
 }

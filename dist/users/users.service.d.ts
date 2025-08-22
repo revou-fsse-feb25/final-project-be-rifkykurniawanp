@@ -11,6 +11,9 @@ export declare class UsersService {
     findOne(id: number, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto>;
     findByRole(role: RoleName): Promise<UserResponseDto[]>;
     update(id: number, dto: UpdateUserDto, currentUserId?: number, currentUserRole?: RoleName): Promise<UserResponseDto>;
-    remove(id: number): Promise<void>;
+    remove(id: number, currentUserId?: number, currentUserRole?: RoleName): Promise<void>;
+    forceDelete(id: number, currentUserRole: RoleName): Promise<void>;
+    restore(id: number, currentUserRole: RoleName): Promise<UserResponseDto>;
+    getDeleted(page: number | undefined, limit: number | undefined, currentUserRole: RoleName): Promise<UserResponseDto[]>;
     private toResponseDto;
 }

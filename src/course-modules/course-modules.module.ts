@@ -8,13 +8,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 @Module({
   imports: [PrismaModule],
   controllers: [CourseModulesController],
-  providers: [
-    CourseModulesService,
-    {
-      provide: 'ICourseModulesRepository',
-      useClass: CourseModulesRepository,
-    },
-  ],
-  exports: [CourseModulesService],
+  providers: [CourseModulesService, CourseModulesRepository], // ✅ langsung pakai kelas
+  exports: [CourseModulesService, CourseModulesRepository],  // ✅ export juga kalau dipakai modul lain
 })
 export class CourseModulesModule {}

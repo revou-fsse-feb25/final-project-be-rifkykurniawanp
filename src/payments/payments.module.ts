@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { PaymentsService } from "./payments.service";
+import { PaymentService } from "./payments.service";
 import { PaymentsController } from "./payments.controller";
 import { PaymentsRepository } from "./payments.repository";
 import { IPaymentsRepository } from "./interfaces/payments.repository.interface";
@@ -8,10 +8,10 @@ import { PrismaService } from "../prisma/prisma.service";
 @Module({
   controllers: [PaymentsController],
   providers: [
-    PaymentsService,
+    PaymentService,
     PrismaService,
     { provide: "IPaymentsRepository", useClass: PaymentsRepository },
   ],
-  exports: [PaymentsService],
+  exports: [PaymentService],
 })
 export class PaymentsModule {}

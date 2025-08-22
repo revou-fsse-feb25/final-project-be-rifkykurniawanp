@@ -9,44 +9,116 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaymentResponseDto = void 0;
+exports.PaymentResponseDto = exports.CourseEnrollmentDto = exports.ProductOrderDto = exports.CartBasicDto = exports.UserBasicDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const client_1 = require("@prisma/client");
+class UserBasicDto {
+    id;
+    email;
+    firstName;
+    lastName;
+}
+exports.UserBasicDto = UserBasicDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], UserBasicDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'john@example.com' }),
+    __metadata("design:type", String)
+], UserBasicDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'John' }),
+    __metadata("design:type", String)
+], UserBasicDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Doe' }),
+    __metadata("design:type", String)
+], UserBasicDto.prototype, "lastName", void 0);
+class CartBasicDto {
+    id;
+    totalItems;
+    totalAmount;
+}
+exports.CartBasicDto = CartBasicDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], CartBasicDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 3 }),
+    __metadata("design:type", Number)
+], CartBasicDto.prototype, "totalItems", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 75000 }),
+    __metadata("design:type", Number)
+], CartBasicDto.prototype, "totalAmount", void 0);
+class ProductOrderDto {
+    id;
+    totalPrice;
+    status;
+    itemCount;
+}
+exports.ProductOrderDto = ProductOrderDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], ProductOrderDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 75000 }),
+    __metadata("design:type", Number)
+], ProductOrderDto.prototype, "totalPrice", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'COMPLETED' }),
+    __metadata("design:type", String)
+], ProductOrderDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 2 }),
+    __metadata("design:type", Number)
+], ProductOrderDto.prototype, "itemCount", void 0);
+class CourseEnrollmentDto {
+    id;
+    courseId;
+    courseName;
+    pricePaid;
+    progress;
+}
+exports.CourseEnrollmentDto = CourseEnrollmentDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], CourseEnrollmentDto.prototype, "id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], CourseEnrollmentDto.prototype, "courseId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Coffee Brewing Masterclass' }),
+    __metadata("design:type", String)
+], CourseEnrollmentDto.prototype, "courseName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 150000 }),
+    __metadata("design:type", Number)
+], CourseEnrollmentDto.prototype, "pricePaid", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 75 }),
+    __metadata("design:type", Number)
+], CourseEnrollmentDto.prototype, "progress", void 0);
 class PaymentResponseDto {
     id;
-    user;
-    cart;
+    userId;
+    cartId;
     amount;
-    status;
     paymentMethod;
+    status;
     payableType;
     payableId;
     paidAt;
     createdAt;
-    updatedAt;
-    constructor(payment) {
-        this.id = payment.id;
-        this.user = payment.user
-            ? {
-                id: payment.user.id,
-                name: payment.user.name,
-                email: payment.user.email,
-            }
-            : null;
-        this.cart = payment.cart
-            ? {
-                id: payment.cart.id,
-                totalAmount: payment.cart.totalAmount,
-            }
-            : null;
-        this.amount = payment.amount;
-        this.status = payment.status;
-        this.paymentMethod = payment.paymentMethod;
-        this.payableType = payment.payableType;
-        this.payableId = payment.payableId;
-        this.paidAt = payment.paidAt;
-        this.createdAt = payment.createdAt;
-        this.updatedAt = payment.updatedAt;
-    }
+    user;
+    cart;
+    productOrders;
+    courseEnrollments;
 }
 exports.PaymentResponseDto = PaymentResponseDto;
 __decorate([
@@ -54,49 +126,55 @@ __decorate([
     __metadata("design:type", Number)
 ], PaymentResponseDto.prototype, "id", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: { id: 1, name: "John Doe", email: "john@example.com" },
-        nullable: true,
-    }),
-    __metadata("design:type", Object)
-], PaymentResponseDto.prototype, "user", void 0);
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], PaymentResponseDto.prototype, "userId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: { id: 12, totalAmount: 50000 },
-        nullable: true,
-    }),
-    __metadata("design:type", Object)
-], PaymentResponseDto.prototype, "cart", void 0);
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    __metadata("design:type", Number)
+], PaymentResponseDto.prototype, "cartId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 50000 }),
+    (0, swagger_1.ApiProperty)({ example: 75000 }),
     __metadata("design:type", Number)
 ], PaymentResponseDto.prototype, "amount", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "PENDING" }),
-    __metadata("design:type", String)
-], PaymentResponseDto.prototype, "status", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: "CREDIT_CARD" }),
+    (0, swagger_1.ApiProperty)({ example: 'credit_card' }),
     __metadata("design:type", String)
 ], PaymentResponseDto.prototype, "paymentMethod", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "ORDER" }),
+    (0, swagger_1.ApiProperty)({ enum: client_1.PaymentStatus, example: 'COMPLETED' }),
+    __metadata("design:type", String)
+], PaymentResponseDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: client_1.PayableType, example: 'PRODUCT' }),
     __metadata("design:type", String)
 ], PaymentResponseDto.prototype, "payableType", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 45 }),
+    (0, swagger_1.ApiProperty)({ example: 1 }),
     __metadata("design:type", Number)
 ], PaymentResponseDto.prototype, "payableId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "2025-08-19T10:00:00.000Z", nullable: true }),
-    __metadata("design:type", Object)
+    (0, swagger_1.ApiProperty)({ example: '2024-01-01T00:00:00Z' }),
+    __metadata("design:type", Date)
 ], PaymentResponseDto.prototype, "paidAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "2025-08-19T09:00:00.000Z" }),
+    (0, swagger_1.ApiProperty)({ example: '2024-01-01T00:00:00Z' }),
     __metadata("design:type", Date)
 ], PaymentResponseDto.prototype, "createdAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: "2025-08-19T09:30:00.000Z" }),
-    __metadata("design:type", Date)
-], PaymentResponseDto.prototype, "updatedAt", void 0);
+    (0, swagger_1.ApiProperty)({ type: UserBasicDto }),
+    __metadata("design:type", UserBasicDto)
+], PaymentResponseDto.prototype, "user", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: CartBasicDto }),
+    __metadata("design:type", CartBasicDto)
+], PaymentResponseDto.prototype, "cart", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [ProductOrderDto] }),
+    __metadata("design:type", Array)
+], PaymentResponseDto.prototype, "productOrders", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [CourseEnrollmentDto] }),
+    __metadata("design:type", Array)
+], PaymentResponseDto.prototype, "courseEnrollments", void 0);
 //# sourceMappingURL=payment.response.dto.js.map

@@ -1,21 +1,41 @@
+import { PaymentStatus, PayableType } from '@prisma/client';
+export declare class UserBasicDto {
+    id: number;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+}
+export declare class CartBasicDto {
+    id: number;
+    totalItems: number;
+    totalAmount: number;
+}
+export declare class ProductOrderDto {
+    id: number;
+    totalPrice: number;
+    status: string;
+    itemCount: number;
+}
+export declare class CourseEnrollmentDto {
+    id: number;
+    courseId: number;
+    courseName?: string;
+    pricePaid: number;
+    progress: number;
+}
 export declare class PaymentResponseDto {
     id: number;
-    user: {
-        id: number;
-        name: string;
-        email: string;
-    } | null;
-    cart: {
-        id: number;
-        totalAmount: number;
-    } | null;
+    userId: number;
+    cartId: number;
     amount: number;
-    status: string;
     paymentMethod: string;
-    payableType: string;
+    status: PaymentStatus;
+    payableType: PayableType;
     payableId: number;
-    paidAt: Date | null;
+    paidAt?: Date;
     createdAt: Date;
-    updatedAt: Date;
-    constructor(payment: any);
+    user?: UserBasicDto;
+    cart?: CartBasicDto;
+    productOrders: ProductOrderDto[];
+    courseEnrollments: CourseEnrollmentDto[];
 }

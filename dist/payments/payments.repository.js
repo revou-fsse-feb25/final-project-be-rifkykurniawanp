@@ -12,59 +12,434 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentsRepository = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const client_1 = require("@prisma/client");
 let PaymentsRepository = class PaymentsRepository {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll() {
-        return this.prisma.payment.findMany({
-            include: { user: true, cart: true },
-        });
-    }
-    async findById(id) {
-        return this.prisma.payment.findUnique({
-            where: { id },
-            include: { user: true, cart: true },
-        });
-    }
-    async findByUser(userId) {
-        return this.prisma.payment.findMany({
-            where: { userId },
-            include: { cart: true },
-        });
-    }
     async create(data) {
         return this.prisma.payment.create({
-            data: {
-                userId: data.userId,
-                cartId: data.cartId,
-                amount: data.amount,
-                paymentMethod: data.paymentMethod,
-                payableType: data.payableType,
-                payableId: data.payableId,
-                status: client_1.PaymentStatus.PENDING,
-            },
+            data,
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
         });
     }
-    async updateStatus(id, status) {
-        return this.prisma.payment.update({
-            where: { id },
-            data: { status },
+    async findById(id, where) {
+        return this.prisma.payment.findFirst({
+            where: { id, ...where },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
         });
     }
-    async cancel(id) {
-        return this.prisma.payment.update({
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.payment.findUnique({
             where: { id },
-            data: { status: client_1.PaymentStatus.CANCELLED },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
         });
     }
-    async verify(id) {
+    async findByUserId(userId, where) {
+        return this.prisma.payment.findMany({
+            where: { userId, ...where },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async findByStatus(status, where) {
+        return this.prisma.payment.findMany({
+            where: { status, ...where },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async findByPayableType(payableType, where) {
+        return this.prisma.payment.findMany({
+            where: { payableType, ...where },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async findAll(skip = 0, take = 10, where) {
+        return this.prisma.payment.findMany({
+            where,
+            skip,
+            take,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async findDeleted(skip = 0, take = 10) {
+        return this.prisma.payment.findMany({
+            where: { deletedAt: { not: null } },
+            skip,
+            take,
+            orderBy: { deletedAt: 'desc' },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async update(id, data) {
         return this.prisma.payment.update({
             where: { id },
-            data: { status: client_1.PaymentStatus.COMPLETED },
+            data,
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
         });
+    }
+    async softDelete(id) {
+        return this.prisma.payment.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async hardDelete(id) {
+        return this.prisma.payment.delete({
+            where: { id },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async restore(id) {
+        return this.prisma.payment.update({
+            where: { id },
+            data: { deletedAt: null },
+            include: {
+                user: true,
+                cart: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                course: true
+                            }
+                        }
+                    }
+                },
+                productOrders: {
+                    include: {
+                        items: {
+                            include: {
+                                product: true
+                            }
+                        }
+                    }
+                },
+                courseEnrollments: {
+                    include: {
+                        course: true
+                    }
+                }
+            }
+        });
+    }
+    async countByUser(userId, where) {
+        return this.prisma.payment.count({
+            where: { userId, ...where }
+        });
+    }
+    async countByStatus(status, where) {
+        return this.prisma.payment.count({
+            where: { status, ...where }
+        });
+    }
+    async sumAmountByUser(userId, where) {
+        const result = await this.prisma.payment.aggregate({
+            where: { userId, ...where },
+            _sum: {
+                amount: true
+            }
+        });
+        return Number(result._sum.amount) || 0;
+    }
+    async sumAmountByStatus(status, where) {
+        const result = await this.prisma.payment.aggregate({
+            where: { status, ...where },
+            _sum: {
+                amount: true
+            }
+        });
+        return Number(result._sum.amount) || 0;
     }
 };
 exports.PaymentsRepository = PaymentsRepository;

@@ -1,55 +1,128 @@
-import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { IPaymentsRepository } from "./interfaces/payments.repository.interface";
-import { PaymentStatus, PayableType } from "@prisma/client";
-import { PaymentResponseDto } from "./dto/response/payment.response.dto"
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreatePaymentDto } from './dto/request/create-payment.dto';
+import { UpdatePaymentDto } from './dto/request/update-payment.dto.ts';
+import { Payment, PaymentStatus, PayableType } from '@prisma/client';
 
 @Injectable()
-export class PaymentsService {
-  constructor(@Inject("IPaymentsRepository") private readonly paymentsRepo: IPaymentsRepository) {}
+export class PaymentService {
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getAll(): Promise<PaymentResponseDto[]> {
-    const payments = await this.paymentsRepo.findAll();
-    return payments.map((p) => new PaymentResponseDto(p));
-  }
+  async create(dto: CreatePaymentDto, userId: number, role: string): Promise<Payment> {
+  // validasi role / user sesuai kebutuhan
+  const user = await this.prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+  });
+  if (!user) throw new NotFoundException('User not found');
 
-  async getById(id: number): Promise<PaymentResponseDto> {
-    const payment = await this.paymentsRepo.findById(id);
-    if (!payment) throw new NotFoundException("Payment not found");
-    return new PaymentResponseDto(payment);
-  }
+  return this.prisma.payment.create({
+    data: {
+      userId,
+      cartId: dto.cartId,
+      amount: dto.amount,
+      paymentMethod: dto.paymentMethod,
+      status: PaymentStatus.PENDING,
+      payableType: dto.payableType,
+      payableId: dto.payableId,
+    },
+  });
+}
 
-  async getByUser(userId: number): Promise<PaymentResponseDto[]> {
-    const payments = await this.paymentsRepo.findByUser(userId);
-    return payments.map((p) => new PaymentResponseDto(p));
-  }
+async findAll(page: number, limit: number, role: string) {
+  return this.prisma.payment.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    include: { user: true, cart: true },
+  });
+}
 
-  async createPayment(dto: {
-    userId: number;
-    cartId: number;
-    amount: number;
-    paymentMethod: string;
-    payableType: PayableType;
-    payableId: number;
-  }): Promise<PaymentResponseDto> {
-    const payment = await this.paymentsRepo.create(dto);
-    return new PaymentResponseDto(payment);
-  }
+async getDeleted(page: number, limit: number, role: string) {
+  return this.prisma.payment.findMany({
+    where: { deletedAt: { not: null } },
+    skip: (page - 1) * limit,
+    take: limit,
+  });
+}
 
-  async updateStatus(id: number, status: PaymentStatus): Promise<PaymentResponseDto> {
-    await this.getById(id);
-    const updated = await this.paymentsRepo.updateStatus(id, status);
-    return new PaymentResponseDto(updated);
-  }
+async getStats(role: string) {
+  return this.prisma.payment.groupBy({
+    by: ['status'],
+    _count: { status: true },
+    _sum: { amount: true },
+  });
+}
 
-  async cancel(id: number): Promise<PaymentResponseDto> {
-    await this.getById(id);
-    const cancelled = await this.paymentsRepo.cancel(id);
-    return new PaymentResponseDto(cancelled);
-  }
+async findByStatus(status: PaymentStatus, role: string) {
+  return this.prisma.payment.findMany({
+    where: { status },
+    include: { user: true },
+  });
+}
 
-  async verify(id: number): Promise<PaymentResponseDto> {
-    await this.getById(id);
-    const verified = await this.paymentsRepo.verify(id);
-    return new PaymentResponseDto(verified);
+async findByPayableType(payableType: PayableType, role: string) {
+  return this.prisma.payment.findMany({
+    where: { payableType },
+  });
+}
+
+async findByUser(userId: number, requestUserId: number, role: string) {
+  if (role !== 'ADMIN' && userId !== requestUserId) {
+    throw new BadRequestException('Not authorized to view this user’s payments');
   }
+  return this.prisma.payment.findMany({ where: { userId } });
+}
+
+async getUserPaymentStats(userId: number, requestUserId: number, role: string) {
+  if (role !== 'ADMIN' && userId !== requestUserId) {
+    throw new BadRequestException('Not authorized');
+  }
+  return this.prisma.payment.groupBy({
+    by: ['status'],
+    where: { userId },
+    _count: { status: true },
+    _sum: { amount: true },
+  });
+}
+
+async findOne(id: number, requestUserId: number, role: string) {
+  const payment = await this.prisma.payment.findUnique({
+    where: { id },
+    include: { user: true, cart: true },
+  });
+  if (!payment) throw new NotFoundException('Payment not found');
+
+  if (role !== 'ADMIN' && payment.userId !== requestUserId) {
+    throw new BadRequestException('Not authorized to view this payment');
+  }
+  return payment;
+}
+
+async update(id: number, dto: UpdatePaymentDto, requestUserId: number, role: string) {
+  const payment = await this.findOne(id, requestUserId, role);
+  return this.prisma.payment.update({
+    where: { id },
+    data: dto,
+  });
+}
+
+async remove(id: number, requestUserId: number, role: string) {
+  const payment = await this.findOne(id, requestUserId, role);
+  return this.prisma.payment.update({
+    where: { id },
+    data: { deletedAt: new Date() }, // soft delete
+  });
+}
+
+async forceDelete(id: number, role: string) {
+  if (role !== 'ADMIN') throw new BadRequestException('Only admin can delete permanently');
+  return this.prisma.payment.delete({ where: { id } });
+}
+
+async restore(id: number, role: string) {
+  if (role !== 'ADMIN') throw new BadRequestException('Only admin can restore');
+  return this.prisma.payment.update({
+    where: { id },
+    data: { deletedAt: null },
+  });
+}
 }

@@ -1,4 +1,4 @@
-import { PrismaClient, CartStatus, CartItemType } from '@prisma/client';
+import { PrismaClient, CartItemType } from '@prisma/client';
 const prisma = new PrismaClient();
 export async function seedCarts() {
     const user = await prisma.user.findFirst({ where: { role: 'USER' } });
@@ -8,7 +8,6 @@ export async function seedCarts() {
     await prisma.cart.create({
         data: {
             userId: user.id,
-            status: CartStatus.ACTIVE,
             items: {
                 create: [{ itemType: CartItemType.PRODUCT, itemId: product.id, quantity: 1, price: product.price }],
             },

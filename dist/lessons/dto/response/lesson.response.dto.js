@@ -14,42 +14,29 @@ const swagger_1 = require("@nestjs/swagger");
 const client_1 = require("@prisma/client");
 class LessonResponseDto {
     id;
-    moduleId;
-    slug;
     title;
     description;
     duration;
     type;
-    videoUrl;
-    content;
-    quizQuestions;
-    passingScore;
+    moduleId;
     orderNumber;
     createdAt;
 }
 exports.LessonResponseDto = LessonResponseDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Number)
 ], LessonResponseDto.prototype, "id", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
-    __metadata("design:type", Number)
-], LessonResponseDto.prototype, "moduleId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'intro-to-brewing', required: false }),
-    __metadata("design:type", String)
-], LessonResponseDto.prototype, "slug", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Introduction to Brewing' }),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
 ], LessonResponseDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Learn the basics of coffee brewing', required: false }),
+    (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
 ], LessonResponseDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '10m', required: false }),
+    (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
 ], LessonResponseDto.prototype, "duration", void 0);
 __decorate([
@@ -57,27 +44,15 @@ __decorate([
     __metadata("design:type", String)
 ], LessonResponseDto.prototype, "type", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'https://video.url/lesson.mp4', required: false }),
-    __metadata("design:type", String)
-], LessonResponseDto.prototype, "videoUrl", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Lesson content here', required: false }),
-    __metadata("design:type", String)
-], LessonResponseDto.prototype, "content", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: '[]', required: false }),
-    __metadata("design:type", String)
-], LessonResponseDto.prototype, "quizQuestions", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 70 }),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Number)
-], LessonResponseDto.prototype, "passingScore", void 0);
+], LessonResponseDto.prototype, "moduleId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Number)
 ], LessonResponseDto.prototype, "orderNumber", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '2025-08-15T12:00:00Z' }),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Date)
 ], LessonResponseDto.prototype, "createdAt", void 0);
 //# sourceMappingURL=lesson.response.dto.js.map

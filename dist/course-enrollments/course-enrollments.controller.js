@@ -19,6 +19,9 @@ const enroll_course_dto_1 = require("./dto/request/enroll-course.dto");
 const update_enrollment_dto_1 = require("./dto/request/update-enrollment.dto");
 const enrollment_response_dto_1 = require("./dto/response/enrollment.response.dto");
 const swagger_1 = require("@nestjs/swagger");
+const passport_1 = require("@nestjs/passport");
+const role_guard_1 = require("../auth/guards/role.guard");
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
 let EnrollmentsController = class EnrollmentsController {
     service;
     constructor(service) {
@@ -43,6 +46,7 @@ let EnrollmentsController = class EnrollmentsController {
 exports.EnrollmentsController = EnrollmentsController;
 __decorate([
     (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)('ADMIN', 'USER'),
     (0, swagger_1.ApiOperation)({ summary: 'Enroll a student in a course' }),
     (0, swagger_1.ApiResponse)({ status: 201, type: enrollment_response_dto_1.EnrollmentResponseDto }),
     __param(0, (0, common_1.Body)()),
@@ -52,6 +56,7 @@ __decorate([
 ], EnrollmentsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, swagger_1.ApiOperation)({ summary: 'Get all enrollments (ADMIN only)' }),
     (0, swagger_1.ApiResponse)({ status: 200, type: [enrollment_response_dto_1.EnrollmentResponseDto] }),
     __metadata("design:type", Function),
@@ -60,6 +65,7 @@ __decorate([
 ], EnrollmentsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'USER', 'INSTRUCTOR'),
     (0, swagger_1.ApiOperation)({ summary: 'Get enrollment by ID' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, type: enrollment_response_dto_1.EnrollmentResponseDto }),
@@ -70,6 +76,7 @@ __decorate([
 ], EnrollmentsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),
     (0, swagger_1.ApiOperation)({ summary: 'Update enrollment status' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, type: enrollment_response_dto_1.EnrollmentResponseDto }),
@@ -81,6 +88,7 @@ __decorate([
 ], EnrollmentsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, swagger_1.ApiOperation)({ summary: 'Delete enrollment (ADMIN only)' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 204, description: 'Enrollment deleted successfully' }),
@@ -92,6 +100,7 @@ __decorate([
 exports.EnrollmentsController = EnrollmentsController = __decorate([
     (0, swagger_1.ApiTags)('Enrollments'),
     (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), role_guard_1.RolesGuard),
     (0, common_1.Controller)('enrollments'),
     __metadata("design:paramtypes", [course_enrollments_service_1.EnrollmentsService])
 ], EnrollmentsController);

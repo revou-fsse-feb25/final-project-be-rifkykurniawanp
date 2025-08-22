@@ -1,71 +1,450 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { Payment, PaymentStatus, PayableType } from "@prisma/client";
-import { IPaymentsRepository } from "./interfaces/payments.repository.interface";
+// src/payments/payments.repository.ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { Payment, PaymentStatus, PayableType, Prisma } from '@prisma/client';
+import { IPaymentsRepository, CreatePaymentData, UpdatePaymentData } from './interfaces/payments.repository.interface';
 
 @Injectable()
 export class PaymentsRepository implements IPaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<Payment[]> {
-    return this.prisma.payment.findMany({
-      include: { user: true, cart: true },
+  async create(data: CreatePaymentData): Promise<Payment> {
+    return this.prisma.payment.create({
+      data,
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
   }
 
-  async findById(id: number): Promise<Payment | null> {
+  async findById(id: number, where?: Prisma.PaymentWhereInput): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({
+      where: { id, ...where },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
+    });
+  }
+
+  async findByIdIncludingDeleted(id: number): Promise<Payment | null> {
     return this.prisma.payment.findUnique({
       where: { id },
-      include: { user: true, cart: true },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
   }
 
-  async findByUser(userId: number): Promise<Payment[]> {
+  async findByUserId(userId: number, where?: Prisma.PaymentWhereInput): Promise<Payment[]> {
     return this.prisma.payment.findMany({
-      where: { userId },
-      include: { cart: true },
+      where: { userId, ...where },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
   }
 
-  async create(data: {
-    userId: number;
-    cartId: number;
-    amount: number;
-    paymentMethod: string;
-    payableType: PayableType;
-    payableId: number;
-  }): Promise<Payment> {
-    return this.prisma.payment.create({
-      data: {
-        userId: data.userId,
-        cartId: data.cartId,
-        amount: data.amount,
-        paymentMethod: data.paymentMethod,
-        payableType: data.payableType,
-        payableId: data.payableId,
-        status: PaymentStatus.PENDING,
-      },
+  async findByStatus(status: PaymentStatus, where?: Prisma.PaymentWhereInput): Promise<Payment[]> {
+    return this.prisma.payment.findMany({
+      where: { status, ...where },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
   }
 
-  async updateStatus(id: number, status: PaymentStatus): Promise<Payment> {
+  async findByPayableType(payableType: PayableType, where?: Prisma.PaymentWhereInput): Promise<Payment[]> {
+    return this.prisma.payment.findMany({
+      where: { payableType, ...where },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
+    });
+  }
+
+  async findAll(skip = 0, take = 10, where?: Prisma.PaymentWhereInput): Promise<Payment[]> {
+    return this.prisma.payment.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
+    });
+  }
+
+  async findDeleted(skip = 0, take = 10): Promise<Payment[]> {
+    return this.prisma.payment.findMany({
+      where: { deletedAt: { not: null } },
+      skip,
+      take,
+      orderBy: { deletedAt: 'desc' },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
+    });
+  }
+
+  async update(id: number, data: UpdatePaymentData): Promise<Payment> {
     return this.prisma.payment.update({
       where: { id },
-      data: { status },
+      data,
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
   }
 
-  async cancel(id: number): Promise<Payment> {
+  async softDelete(id: number): Promise<Payment> {
     return this.prisma.payment.update({
       where: { id },
-      data: { status: PaymentStatus.CANCELLED },
+      data: { deletedAt: new Date() },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
   }
 
-  async verify(id: number): Promise<Payment> {
+  async hardDelete(id: number): Promise<Payment> {
+    return this.prisma.payment.delete({
+      where: { id },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
+    });
+  }
+
+  async restore(id: number): Promise<Payment> {
     return this.prisma.payment.update({
       where: { id },
-      data: { status: PaymentStatus.COMPLETED },
+      data: { deletedAt: null },
+      include: {
+        user: true,
+        cart: {
+          include: {
+            items: {
+              include: {
+                product: true,
+                course: true
+              }
+            }
+          }
+        },
+        productOrders: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        courseEnrollments: {
+          include: {
+            course: true
+          }
+        }
+      }
     });
+  }
+
+  async countByUser(userId: number, where?: Prisma.PaymentWhereInput): Promise<number> {
+    return this.prisma.payment.count({
+      where: { userId, ...where }
+    });
+  }
+
+  async countByStatus(status: PaymentStatus, where?: Prisma.PaymentWhereInput): Promise<number> {
+    return this.prisma.payment.count({
+      where: { status, ...where }
+    });
+  }
+
+  async sumAmountByUser(userId: number, where?: Prisma.PaymentWhereInput): Promise<number> {
+    const result = await this.prisma.payment.aggregate({
+      where: { userId, ...where },
+      _sum: {
+        amount: true
+      }
+    });
+    return Number(result._sum.amount) || 0;
+  }
+
+  async sumAmountByStatus(status: PaymentStatus, where?: Prisma.PaymentWhereInput): Promise<number> {
+    const result = await this.prisma.payment.aggregate({
+      where: { status, ...where },
+      _sum: {
+        amount: true
+      }
+    });
+    return Number(result._sum.amount) || 0;
   }
 }

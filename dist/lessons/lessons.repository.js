@@ -17,56 +17,54 @@ let LessonsRepository = class LessonsRepository {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(dto) {
-        return this.prisma.lesson.create({ data: dto });
+    async create(data) {
+        return this.prisma.lesson.create({ data });
     }
-    findAllByModule(moduleId) {
-        return this.prisma.lesson.findMany({ where: { moduleId } });
+    async findAll(skip, take, filter = {}) {
+        return this.prisma.lesson.findMany({
+            skip,
+            take,
+            where: {
+                moduleId: filter.moduleId,
+                deletedAt: filter.deletedAt ?? null,
+            },
+            orderBy: { orderNumber: 'asc' },
+            include: { module: true, assignments: true, progresses: true },
+        });
     }
-    findOne(id) {
-        return this.prisma.lesson.findUnique({ where: { id } });
+    async findById(id, filter = {}) {
+        return this.prisma.lesson.findFirst({
+            where: { id, deletedAt: filter.deletedAt ?? null },
+            include: { module: true, assignments: true, progresses: true },
+        });
     }
-    findBySlug(slug) {
-        return this.prisma.lesson.findUnique({ where: { slug } });
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.lesson.findUnique({
+            where: { id },
+            include: { module: true, assignments: true, progresses: true },
+        });
     }
-    update(id, dto) {
-        return this.prisma.lesson.update({ where: { id }, data: dto });
+    async update(id, data) {
+        return this.prisma.lesson.update({
+            where: { id },
+            data,
+            include: { module: true, assignments: true, progresses: true },
+        });
     }
-    remove(id) {
+    async softDelete(id) {
+        return this.prisma.lesson.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
+    }
+    async hardDelete(id) {
         return this.prisma.lesson.delete({ where: { id } });
     }
-    getProgress(lessonId, userId) {
-        return this.prisma.lessonProgress.findUnique({
-            where: { lessonId_userId: { lessonId, userId } },
-        });
-    }
-    completeLesson(lessonId, userId) {
-        return this.prisma.lessonProgress.upsert({
-            where: { lessonId_userId: { lessonId, userId } },
-            create: { lessonId, userId, completed: true },
-            update: { completed: true },
-        });
-    }
-    getCourseProgress(courseId, userId) {
-        return this.prisma.lessonProgress.findMany({
-            where: {
-                ...(userId ? { userId } : {}),
-                lesson: {
-                    module: { courseId },
-                },
-            },
-            include: {
-                lesson: {
-                    select: {
-                        id: true,
-                        title: true,
-                        moduleId: true,
-                        module: {
-                            select: { id: true, courseId: true, title: true, orderNumber: true },
-                        },
-                    },
-                },
-            },
+    async restore(id) {
+        return this.prisma.lesson.update({
+            where: { id },
+            data: { deletedAt: null },
+            include: { module: true, assignments: true, progresses: true },
         });
     }
 };

@@ -18,31 +18,77 @@ let UsersRepository = class UsersRepository {
         this.prisma = prisma;
     }
     async create(data) {
-        return this.prisma.user.create({ data });
+        return this.prisma.user.create({
+            data: {
+                ...data,
+                role: data.role ?? 'USER',
+            },
+        });
     }
-    async findById(id) {
+    async findById(id, filters = { deletedAt: null }) {
+        return this.prisma.user.findFirst({
+            where: { id, ...filters },
+        });
+    }
+    async findByIdIncludingDeleted(id) {
         return this.prisma.user.findUnique({ where: { id } });
     }
-    async findByEmail(email) {
-        return this.prisma.user.findUnique({ where: { email } });
+    async findByEmail(email, filters = { deletedAt: null }) {
+        return this.prisma.user.findFirst({
+            where: { email, ...filters },
+        });
     }
-    async findAll(skip = 0, take = 10) {
+    async findByEmailIncludingDeleted(email) {
+        return this.prisma.user.findFirst({
+            where: { email },
+        });
+    }
+    async findAll(skip = 0, take = 10, filters = { deletedAt: null }) {
         return this.prisma.user.findMany({
+            where: { ...filters },
             skip,
             take,
-            orderBy: { createdAt: 'desc' },
+            orderBy: { id: 'asc' },
+        });
+    }
+    async findByRole(role, filters = { deletedAt: null }) {
+        return this.prisma.user.findMany({
+            where: { role, ...filters },
+        });
+    }
+    async countByRole(role, filters = { deletedAt: null }) {
+        return this.prisma.user.count({
+            where: { role, ...filters },
         });
     }
     async update(id, data) {
-        return this.prisma.user.update({ where: { id }, data });
+        return this.prisma.user.update({
+            where: { id },
+            data,
+        });
     }
-    async delete(id) {
-        return this.prisma.user.delete({ where: { id } });
+    async softDelete(id) {
+        return this.prisma.user.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
     }
-    async findByRole(role) {
+    async hardDelete(id) {
+        return this.prisma.user.delete({
+            where: { id },
+        });
+    }
+    async restore(id) {
+        return this.prisma.user.update({
+            where: { id },
+            data: { deletedAt: null },
+        });
+    }
+    async findDeleted(skip = 0, take = 10) {
         return this.prisma.user.findMany({
-            where: { role },
-            orderBy: { createdAt: 'desc' },
+            where: { NOT: { deletedAt: null } },
+            skip,
+            take,
         });
     }
 };

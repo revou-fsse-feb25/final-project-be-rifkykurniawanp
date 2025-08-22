@@ -8,35 +8,35 @@ export declare class ProductOrderItemsService {
         id: number;
         productId: number;
         quantity: number;
-        orderId: number;
         priceEach: import("@prisma/client/runtime/library").Decimal;
+        orderId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<{
         id: number;
         productId: number;
         quantity: number;
-        orderId: number;
         priceEach: import("@prisma/client/runtime/library").Decimal;
+        orderId: number;
     }[]>;
     findOne(id: number): import(".prisma/client").Prisma.Prisma__ProductOrderItemClient<{
         id: number;
         productId: number;
         quantity: number;
-        orderId: number;
         priceEach: import("@prisma/client/runtime/library").Decimal;
+        orderId: number;
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     update(id: number, dto: UpdateOrderItemDto): import(".prisma/client").Prisma.Prisma__ProductOrderItemClient<{
         id: number;
         productId: number;
         quantity: number;
-        orderId: number;
         priceEach: import("@prisma/client/runtime/library").Decimal;
+        orderId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     remove(id: number): import(".prisma/client").Prisma.Prisma__ProductOrderItemClient<{
         id: number;
         productId: number;
         quantity: number;
-        orderId: number;
         priceEach: import("@prisma/client/runtime/library").Decimal;
+        orderId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
 }

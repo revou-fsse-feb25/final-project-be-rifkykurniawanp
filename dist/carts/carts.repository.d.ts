@@ -1,63 +1,773 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { AddToCartDto } from './dto/request/add-to-cart.dto';
-import { UpdateCartDto } from './dto/request/update-cart.dto';
+import { Cart, CartItemType } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '@prisma/client';
+interface CreateCartData {
+    userId: number;
+}
+interface UpdateCartData {
+    updatedAt?: Date;
+}
+interface CreateCartItemData {
+    cartId: number;
+    itemType: CartItemType;
+    itemId: number;
+    quantity: number;
+    price: Decimal;
+}
+interface UpdateCartItemData {
+    quantity?: number;
+    price?: Decimal;
+}
 export declare class CartsRepository {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    getCartByUser(userId: number): Promise<({
-        items: {
+    create(data: CreateCartData): Promise<Cart & {
+        items: any[];
+        user: any;
+        payments: any[];
+    }>;
+    findByUserId(userId: number, args?: Prisma.CartFindFirstArgs): Promise<{
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    } | null>;
+    findById(id: number, options?: {
+        where?: any;
+        include?: any;
+    }): Promise<({
+        [x: string]: {
             id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        }[] | ({
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        } | {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        })[] | ({
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
             cartId: number;
             itemType: import(".prisma/client").$Enums.CartItemType;
             itemId: number;
             quantity: number;
-            price: import("@prisma/client/runtime/library").Decimal;
-        }[];
-    } & {
-        id: number;
-        userId: number;
-        createdAt: Date;
-        updatedAt: Date;
-    }) | null>;
-    getCartById(cartId: number): Promise<({
-        items: {
+        } | {
             id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
             cartId: number;
             itemType: import(".prisma/client").$Enums.CartItemType;
             itemId: number;
             quantity: number;
-            price: import("@prisma/client/runtime/library").Decimal;
+        })[] | {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        }[];
+        [x: number]: never;
+        [x: symbol]: never;
+    } & {
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    }) | null>;
+    findAll(skip?: number, take?: number, options?: {
+        where?: any;
+        include?: any;
+    }): Promise<({
+        [x: string]: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        }[] | ({
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        } | {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        })[] | ({
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        } | {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        })[] | {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        }[];
+        [x: number]: never;
+        [x: symbol]: never;
+    } & {
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    })[]>;
+    findDeleted(skip?: number, take?: number): Promise<({
+        user: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            email: string;
+            password: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            address: string | null;
+            role: import(".prisma/client").$Enums.RoleName;
+            isBuyer: boolean;
+            isStudent: boolean;
+        };
+        items: ({
+            product: {
+                name: string;
+                id: number;
+                slug: string;
+                description: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                tags: import(".prisma/client").$Enums.ProductTagName[];
+                status: import(".prisma/client").$Enums.ProductStatus;
+                price: Prisma.Decimal;
+                stock: number;
+                image: string | null;
+                category: import(".prisma/client").$Enums.ProductCategory;
+                supplierId: number;
+                origin: import(".prisma/client").$Enums.ProductOrigin;
+                weight: string | null;
+                rating: Prisma.Decimal;
+                reviewCount: number;
+            } | null;
+            course: {
+                id: number;
+                slug: string;
+                title: string;
+                description: string | null;
+                duration: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                certificate: boolean;
+                price: Prisma.Decimal;
+                category: import(".prisma/client").$Enums.CourseCategory;
+                rating: Prisma.Decimal;
+                syllabus: string | null;
+                instructorId: number;
+                level: import(".prisma/client").$Enums.CourseLevel;
+                language: string;
+                students: number;
+            } | null;
+        } & {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        })[];
+        payments: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
         }[];
     } & {
         id: number;
-        userId: number;
         createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    })[]>;
+    findByIdIncludingDeleted(id: number): Promise<({
+        user: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            email: string;
+            password: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            address: string | null;
+            role: import(".prisma/client").$Enums.RoleName;
+            isBuyer: boolean;
+            isStudent: boolean;
+        };
+        items: ({
+            product: {
+                name: string;
+                id: number;
+                slug: string;
+                description: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                tags: import(".prisma/client").$Enums.ProductTagName[];
+                status: import(".prisma/client").$Enums.ProductStatus;
+                price: Prisma.Decimal;
+                stock: number;
+                image: string | null;
+                category: import(".prisma/client").$Enums.ProductCategory;
+                supplierId: number;
+                origin: import(".prisma/client").$Enums.ProductOrigin;
+                weight: string | null;
+                rating: Prisma.Decimal;
+                reviewCount: number;
+            } | null;
+            course: {
+                id: number;
+                slug: string;
+                title: string;
+                description: string | null;
+                duration: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                certificate: boolean;
+                price: Prisma.Decimal;
+                category: import(".prisma/client").$Enums.CourseCategory;
+                rating: Prisma.Decimal;
+                syllabus: string | null;
+                instructorId: number;
+                level: import(".prisma/client").$Enums.CourseLevel;
+                language: string;
+                students: number;
+            } | null;
+        } & {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        })[];
+        payments: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        }[];
+    } & {
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
         updatedAt: Date;
     }) | null>;
-    addItem(dto: AddToCartDto & {
-        cartId?: number;
-    }): Promise<{
+    update(id: number, data: UpdateCartData): Promise<{
+        user: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            email: string;
+            password: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            address: string | null;
+            role: import(".prisma/client").$Enums.RoleName;
+            isBuyer: boolean;
+            isStudent: boolean;
+        };
+        items: ({
+            product: {
+                name: string;
+                id: number;
+                slug: string;
+                description: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                tags: import(".prisma/client").$Enums.ProductTagName[];
+                status: import(".prisma/client").$Enums.ProductStatus;
+                price: Prisma.Decimal;
+                stock: number;
+                image: string | null;
+                category: import(".prisma/client").$Enums.ProductCategory;
+                supplierId: number;
+                origin: import(".prisma/client").$Enums.ProductOrigin;
+                weight: string | null;
+                rating: Prisma.Decimal;
+                reviewCount: number;
+            } | null;
+            course: {
+                id: number;
+                slug: string;
+                title: string;
+                description: string | null;
+                duration: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                certificate: boolean;
+                price: Prisma.Decimal;
+                category: import(".prisma/client").$Enums.CourseCategory;
+                rating: Prisma.Decimal;
+                syllabus: string | null;
+                instructorId: number;
+                level: import(".prisma/client").$Enums.CourseLevel;
+                language: string;
+                students: number;
+            } | null;
+        } & {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        })[];
+        payments: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        }[];
+    } & {
         id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    }>;
+    softDelete(id: number): Promise<{
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    }>;
+    restore(id: number): Promise<{
+        user: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            email: string;
+            password: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            address: string | null;
+            role: import(".prisma/client").$Enums.RoleName;
+            isBuyer: boolean;
+            isStudent: boolean;
+        };
+        items: ({
+            product: {
+                name: string;
+                id: number;
+                slug: string;
+                description: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                tags: import(".prisma/client").$Enums.ProductTagName[];
+                status: import(".prisma/client").$Enums.ProductStatus;
+                price: Prisma.Decimal;
+                stock: number;
+                image: string | null;
+                category: import(".prisma/client").$Enums.ProductCategory;
+                supplierId: number;
+                origin: import(".prisma/client").$Enums.ProductOrigin;
+                weight: string | null;
+                rating: Prisma.Decimal;
+                reviewCount: number;
+            } | null;
+            course: {
+                id: number;
+                slug: string;
+                title: string;
+                description: string | null;
+                duration: string | null;
+                createdAt: Date;
+                deletedAt: Date | null;
+                certificate: boolean;
+                price: Prisma.Decimal;
+                category: import(".prisma/client").$Enums.CourseCategory;
+                rating: Prisma.Decimal;
+                syllabus: string | null;
+                instructorId: number;
+                level: import(".prisma/client").$Enums.CourseLevel;
+                language: string;
+                students: number;
+            } | null;
+        } & {
+            id: number;
+            deletedAt: Date | null;
+            price: Prisma.Decimal;
+            cartId: number;
+            itemType: import(".prisma/client").$Enums.CartItemType;
+            itemId: number;
+            quantity: number;
+        })[];
+        payments: {
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: number;
+            cartId: number;
+            amount: Prisma.Decimal;
+            paymentMethod: string;
+            payableType: import(".prisma/client").$Enums.PayableType;
+            payableId: number;
+            paidAt: Date | null;
+        }[];
+    } & {
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    }>;
+    hardDelete(id: number): Promise<{
+        id: number;
+        createdAt: Date;
+        deletedAt: Date | null;
+        userId: number;
+        updatedAt: Date;
+    }>;
+    createItem(data: CreateCartItemData): Promise<{
+        product: {
+            name: string;
+            id: number;
+            slug: string;
+            description: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            tags: import(".prisma/client").$Enums.ProductTagName[];
+            status: import(".prisma/client").$Enums.ProductStatus;
+            price: Prisma.Decimal;
+            stock: number;
+            image: string | null;
+            category: import(".prisma/client").$Enums.ProductCategory;
+            supplierId: number;
+            origin: import(".prisma/client").$Enums.ProductOrigin;
+            weight: string | null;
+            rating: Prisma.Decimal;
+            reviewCount: number;
+        } | null;
+        course: {
+            id: number;
+            slug: string;
+            title: string;
+            description: string | null;
+            duration: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            certificate: boolean;
+            price: Prisma.Decimal;
+            category: import(".prisma/client").$Enums.CourseCategory;
+            rating: Prisma.Decimal;
+            syllabus: string | null;
+            instructorId: number;
+            level: import(".prisma/client").$Enums.CourseLevel;
+            language: string;
+            students: number;
+        } | null;
+    } & {
+        id: number;
+        deletedAt: Date | null;
+        price: Prisma.Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
-        price: import("@prisma/client/runtime/library").Decimal;
     }>;
-    updateItem(cartItemId: number, dto: Partial<UpdateCartDto>): Promise<{
+    findItemByCartAndItem(cartId: number, itemType: CartItemType, itemId: number): Promise<({
+        product: {
+            name: string;
+            id: number;
+            slug: string;
+            description: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            tags: import(".prisma/client").$Enums.ProductTagName[];
+            status: import(".prisma/client").$Enums.ProductStatus;
+            price: Prisma.Decimal;
+            stock: number;
+            image: string | null;
+            category: import(".prisma/client").$Enums.ProductCategory;
+            supplierId: number;
+            origin: import(".prisma/client").$Enums.ProductOrigin;
+            weight: string | null;
+            rating: Prisma.Decimal;
+            reviewCount: number;
+        } | null;
+        course: {
+            id: number;
+            slug: string;
+            title: string;
+            description: string | null;
+            duration: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            certificate: boolean;
+            price: Prisma.Decimal;
+            category: import(".prisma/client").$Enums.CourseCategory;
+            rating: Prisma.Decimal;
+            syllabus: string | null;
+            instructorId: number;
+            level: import(".prisma/client").$Enums.CourseLevel;
+            language: string;
+            students: number;
+        } | null;
+    } & {
         id: number;
+        deletedAt: Date | null;
+        price: Prisma.Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
-        price: import("@prisma/client/runtime/library").Decimal;
-    }>;
-    removeItem(cartItemId: number): Promise<{
+    }) | null>;
+    findItemById(id: number): Promise<({
+        product: {
+            name: string;
+            id: number;
+            slug: string;
+            description: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            tags: import(".prisma/client").$Enums.ProductTagName[];
+            status: import(".prisma/client").$Enums.ProductStatus;
+            price: Prisma.Decimal;
+            stock: number;
+            image: string | null;
+            category: import(".prisma/client").$Enums.ProductCategory;
+            supplierId: number;
+            origin: import(".prisma/client").$Enums.ProductOrigin;
+            weight: string | null;
+            rating: Prisma.Decimal;
+            reviewCount: number;
+        } | null;
+        course: {
+            id: number;
+            slug: string;
+            title: string;
+            description: string | null;
+            duration: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            certificate: boolean;
+            price: Prisma.Decimal;
+            category: import(".prisma/client").$Enums.CourseCategory;
+            rating: Prisma.Decimal;
+            syllabus: string | null;
+            instructorId: number;
+            level: import(".prisma/client").$Enums.CourseLevel;
+            language: string;
+            students: number;
+        } | null;
+    } & {
         id: number;
+        deletedAt: Date | null;
+        price: Prisma.Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
-        price: import("@prisma/client/runtime/library").Decimal;
+    }) | null>;
+    findItemsByCart(cartId: number): Promise<({
+        product: {
+            name: string;
+            id: number;
+            slug: string;
+            description: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            tags: import(".prisma/client").$Enums.ProductTagName[];
+            status: import(".prisma/client").$Enums.ProductStatus;
+            price: Prisma.Decimal;
+            stock: number;
+            image: string | null;
+            category: import(".prisma/client").$Enums.ProductCategory;
+            supplierId: number;
+            origin: import(".prisma/client").$Enums.ProductOrigin;
+            weight: string | null;
+            rating: Prisma.Decimal;
+            reviewCount: number;
+        } | null;
+        course: {
+            id: number;
+            slug: string;
+            title: string;
+            description: string | null;
+            duration: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            certificate: boolean;
+            price: Prisma.Decimal;
+            category: import(".prisma/client").$Enums.CourseCategory;
+            rating: Prisma.Decimal;
+            syllabus: string | null;
+            instructorId: number;
+            level: import(".prisma/client").$Enums.CourseLevel;
+            language: string;
+            students: number;
+        } | null;
+    } & {
+        id: number;
+        deletedAt: Date | null;
+        price: Prisma.Decimal;
+        cartId: number;
+        itemType: import(".prisma/client").$Enums.CartItemType;
+        itemId: number;
+        quantity: number;
+    })[]>;
+    updateItem(id: number, data: UpdateCartItemData): Promise<{
+        product: {
+            name: string;
+            id: number;
+            slug: string;
+            description: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            tags: import(".prisma/client").$Enums.ProductTagName[];
+            status: import(".prisma/client").$Enums.ProductStatus;
+            price: Prisma.Decimal;
+            stock: number;
+            image: string | null;
+            category: import(".prisma/client").$Enums.ProductCategory;
+            supplierId: number;
+            origin: import(".prisma/client").$Enums.ProductOrigin;
+            weight: string | null;
+            rating: Prisma.Decimal;
+            reviewCount: number;
+        } | null;
+        course: {
+            id: number;
+            slug: string;
+            title: string;
+            description: string | null;
+            duration: string | null;
+            createdAt: Date;
+            deletedAt: Date | null;
+            certificate: boolean;
+            price: Prisma.Decimal;
+            category: import(".prisma/client").$Enums.CourseCategory;
+            rating: Prisma.Decimal;
+            syllabus: string | null;
+            instructorId: number;
+            level: import(".prisma/client").$Enums.CourseLevel;
+            language: string;
+            students: number;
+        } | null;
+    } & {
+        id: number;
+        deletedAt: Date | null;
+        price: Prisma.Decimal;
+        cartId: number;
+        itemType: import(".prisma/client").$Enums.CartItemType;
+        itemId: number;
+        quantity: number;
     }>;
+    deleteItem(id: number): Promise<{
+        id: number;
+        deletedAt: Date | null;
+        price: Prisma.Decimal;
+        cartId: number;
+        itemType: import(".prisma/client").$Enums.CartItemType;
+        itemId: number;
+        quantity: number;
+    }>;
+    deleteItemsByCart(cartId: number): Promise<Prisma.BatchPayload>;
 }
+export {};

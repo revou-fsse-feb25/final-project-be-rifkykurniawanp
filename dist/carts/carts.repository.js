@@ -12,76 +12,125 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CartsRepository = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const library_1 = require("@prisma/client/runtime/library");
 let CartsRepository = class CartsRepository {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async getCartByUser(userId) {
-        return this.prisma.cart.findFirst({
-            where: { userId },
-            include: { items: true },
-        });
-    }
-    async getCartById(cartId) {
-        return this.prisma.cart.findUnique({
-            where: { id: cartId },
-            include: { items: true },
-        });
-    }
-    async addItem(dto) {
-        let cart;
-        if (dto.cartId) {
-            cart = await this.getCartById(dto.cartId);
-            if (!cart)
-                throw new common_1.NotFoundException('Cart not found');
-        }
-        else {
-            cart = await this.prisma.cart.findFirst({ where: { userId: dto.userId } });
-            if (!cart) {
-                cart = await this.prisma.cart.create({ data: { userId: dto.userId } });
-            }
-        }
-        const existingItem = await this.prisma.cartItem.findFirst({
-            where: {
-                cartId: cart.id,
-                itemId: dto.itemId,
-                itemType: dto.itemType,
+    async create(data) {
+        return this.prisma.cart.create({
+            data,
+            include: {
+                payments: true,
+                items: { include: { product: true, course: true } },
+                user: true,
             },
         });
-        if (existingItem) {
-            return this.prisma.cartItem.update({
-                where: { id: existingItem.id },
-                data: {
-                    quantity: existingItem.quantity + dto.quantity,
-                    price: dto.price,
-                },
-            });
-        }
+    }
+    async findByUserId(userId, args) {
+        return this.prisma.cart.findFirst({
+            where: {
+                userId,
+                deletedAt: null,
+                ...(args?.where ?? {}),
+            },
+            include: args?.include,
+        });
+    }
+    async findById(id, options) {
+        return this.prisma.cart.findUnique({
+            where: { id },
+            include: options?.include ?? { payments: true, items: { include: { product: true, course: true } }, user: true },
+        });
+    }
+    async findAll(skip = 0, take = 10, options) {
+        return this.prisma.cart.findMany({
+            skip,
+            take,
+            where: options?.where ?? { deletedAt: null },
+            include: options?.include ?? { payments: true, items: { include: { product: true, course: true } }, user: true },
+        });
+    }
+    async findDeleted(skip = 0, take = 10) {
+        return this.prisma.cart.findMany({
+            skip,
+            take,
+            where: { NOT: { deletedAt: null } },
+            include: { payments: true, items: { include: { product: true, course: true } }, user: true },
+        });
+    }
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.cart.findUnique({
+            where: { id },
+            include: { payments: true, items: { include: { product: true, course: true } }, user: true },
+        });
+    }
+    async update(id, data) {
+        return this.prisma.cart.update({
+            where: { id },
+            data,
+            include: { payments: true, items: { include: { product: true, course: true } }, user: true },
+        });
+    }
+    async softDelete(id) {
+        return this.prisma.cart.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
+    }
+    async restore(id) {
+        return this.prisma.cart.update({
+            where: { id },
+            data: { deletedAt: null },
+            include: { payments: true, items: { include: { product: true, course: true } }, user: true },
+        });
+    }
+    async hardDelete(id) {
+        return this.prisma.cart.delete({ where: { id } });
+    }
+    async createItem(data) {
         return this.prisma.cartItem.create({
             data: {
-                cartId: cart.id,
-                itemType: dto.itemType,
-                itemId: dto.itemId,
-                quantity: dto.quantity,
-                price: dto.price,
+                ...data,
+                price: new library_1.Decimal(data.price),
             },
+            include: { product: true, course: true },
         });
     }
-    async updateItem(cartItemId, dto) {
-        const existing = await this.prisma.cartItem.findUnique({ where: { id: cartItemId } });
-        if (!existing)
-            throw new common_1.NotFoundException('Cart item not found');
+    async findItemByCartAndItem(cartId, itemType, itemId) {
+        return this.prisma.cartItem.findFirst({
+            where: { cartId, itemType, itemId },
+            include: { product: true, course: true },
+        });
+    }
+    async findItemById(id) {
+        return this.prisma.cartItem.findUnique({
+            where: { id },
+            include: { product: true, course: true },
+        });
+    }
+    async findItemsByCart(cartId) {
+        return this.prisma.cartItem.findMany({
+            where: { cartId },
+            include: { product: true, course: true },
+        });
+    }
+    async updateItem(id, data) {
         return this.prisma.cartItem.update({
-            where: { id: cartItemId },
-            data: dto,
+            where: { id },
+            data: {
+                ...data,
+                price: data.price ? new library_1.Decimal(data.price) : undefined,
+            },
+            include: { product: true, course: true },
         });
     }
-    async removeItem(cartItemId) {
-        const existing = await this.prisma.cartItem.findUnique({ where: { id: cartItemId } });
-        if (!existing)
-            throw new common_1.NotFoundException('Cart item not found');
-        return this.prisma.cartItem.delete({ where: { id: cartItemId } });
+    async deleteItem(id) {
+        return this.prisma.cartItem.delete({ where: { id } });
+    }
+    async deleteItemsByCart(cartId) {
+        return this.prisma.cartItem.deleteMany({ where: { cartId } });
     }
 };
 exports.CartsRepository = CartsRepository;

@@ -6,84 +6,81 @@ import {
   Delete,
   Param,
   Body,
-  UseGuards,
+  Query,
   Req,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { CartsService } from './carts.service';
-import { AddToCartDto } from './dto/request/add-to-cart.dto';
+import { CreateCartDto } from './dto/request/create-cart.dto';
 import { UpdateCartDto } from './dto/request/update-cart.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CartResponseDto } from './dto/response/cart.response.dto';
 import { JwtGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/role.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { RoleName } from '@prisma/client';
 
-@ApiTags('Carts')
+@UseGuards(JwtGuard)
 @Controller('carts')
 export class CartsController {
-  constructor(private readonly service: CartsService) {}
+  constructor(private readonly cartsService: CartsService) {}
 
-  // ✅ Get current user's cart
-  @UseGuards(JwtGuard)
+  @UseGuards(RolesGuard)
+  @Roles('USER')
+  @Post()
+  async create(@Req() req: any, @Body() dto: CreateCartDto) {
+    const { user } = req;
+    return this.cartsService.create(user.id, dto, user.role as RoleName);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('USER', 'ADMIN')
   @Get()
-  @ApiOperation({ summary: 'Get current user cart' })
-  @ApiResponse({ status: 200, type: CartResponseDto })
-  getCart(@Req() req) {
-    return this.service.getCartByUser(req.user.id);
+  async findAll(@Req() req: any, @Query('page') page: string = '1', @Query('limit') limit: string = '10') {
+    const { user } = req;
+    return this.cartsService.findAll(user.id, user.role as RoleName);
   }
 
-  // ✅ Get cart by ID (as in route docs)
-  @UseGuards(JwtGuard)
-  @Get(':cartId/items')
-  @ApiOperation({ summary: 'Get cart by ID (with items)' })
-  @ApiResponse({ status: 200, type: CartResponseDto })
-  getCartById(@Param('cartId', ParseIntPipe) cartId: number) {
-    return this.service.getCartById(cartId);
+  @UseGuards(RolesGuard)
+  @Roles('USER', 'ADMIN')
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const { user } = req;
+    return this.cartsService.findOne(id, user.id, user.role as RoleName);
   }
 
-  // ✅ Add item to cart
-  @UseGuards(JwtGuard)
-  @Post(':cartId/items')
-  @ApiOperation({ summary: 'Add item to cart' })
-  @ApiResponse({ status: 201, type: CartResponseDto })
-  addItem(
-    @Param('cartId', ParseIntPipe) cartId: number,
-    @Body() dto: AddToCartDto,
-    @Req() req,
+  @UseGuards(RolesGuard)
+  @Roles('USER', 'ADMIN')
+  @Put(':id')
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCartDto, @Req() req: any) {
+    const { user } = req;
+    return this.cartsService.update(id, dto, user.id, user.role as RoleName);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('USER', 'ADMIN')
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    const { user } = req;
+    return this.cartsService.remove(id, user.id, user.role as RoleName);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('USER', 'ADMIN')
+  @Post(':id/items')
+  async addItem(
+    @Param('id', ParseIntPipe) cartId: number,
+    @Body() body: { itemType: 'PRODUCT' | 'COURSE'; itemId: number; quantity: number },
+    @Req() req: any,
   ) {
-    return this.service.addItem({ ...dto, userId: req.user.id, cartId });
+    const { user } = req;
+    return this.cartsService.addItem(cartId, user.id, body.itemType, body.itemId, body.quantity, user.role as RoleName);
   }
 
-  // ✅ Update cart item
-  @UseGuards(JwtGuard)
-  @Put(':cartId/items/:itemId')
-  @ApiOperation({ summary: 'Update cart item' })
-  @ApiResponse({ status: 200, type: CartResponseDto })
-  updateItem(
-    @Param('cartId', ParseIntPipe) cartId: number,
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Body() dto: UpdateCartDto,
-  ) {
-    return this.service.updateItem(itemId, dto);
-  }
-
-  // ✅ Remove cart item
-  @UseGuards(JwtGuard)
-  @Delete(':cartId/items/:itemId')
-  @ApiOperation({ summary: 'Remove cart item' })
-  @ApiResponse({ status: 204 })
-  removeItem(
-    @Param('cartId', ParseIntPipe) cartId: number,
-    @Param('itemId', ParseIntPipe) itemId: number,
-  ) {
-    return this.service.removeItem(itemId);
-  }
-
-  // ✅ Checkout
-  @UseGuards(JwtGuard)
-  @Post(':cartId/checkout')
-  @ApiOperation({ summary: 'Checkout cart' })
-  @ApiResponse({ status: 200, description: 'Checkout successful' })
-  checkout(@Param('cartId', ParseIntPipe) cartId: number, @Req() req) {
-    return this.service.checkout(cartId, req.user.id);
+  @UseGuards(RolesGuard)
+  @Roles('USER', 'ADMIN')
+  @Delete(':id/items/:itemId')
+  async removeItem(@Param('id', ParseIntPipe) cartId: number, @Param('itemId', ParseIntPipe) itemId: number, @Req() req: any) {
+    const { user } = req;
+    return this.cartsService.removeItem(cartId, user.id, itemId, user.role as RoleName);
   }
 }

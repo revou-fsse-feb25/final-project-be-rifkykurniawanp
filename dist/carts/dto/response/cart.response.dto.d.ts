@@ -1,12 +1,17 @@
+import { CartItemResponseDto } from './cart-item.response.dto';
+export declare class UserBasicDto {
+    id: number;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+}
 export declare class CartResponseDto {
     id: number;
     userId: number;
-    status: string;
+    user?: UserBasicDto;
     items: CartItemResponseDto[];
-}
-export declare class CartItemResponseDto {
-    id: number;
-    itemId: number;
-    quantity: number;
-    price: number;
+    totalItems: number;
+    totalAmount: number;
+    createdAt: Date;
+    updatedAt: Date;
 }

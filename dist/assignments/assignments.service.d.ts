@@ -1,66 +1,35 @@
-import { AssignmentsRepository } from './assignments.repository';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssignmentDto } from './dto/request/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/request/update-assignment.dto';
+import { CreateSubmissionDto } from './dto/request/create-submission.dto';
+import { UpdateSubmissionDto } from './dto/request/update-submission.dto';
+import { AssignmentResponseDto } from './dto/response/assignment.response.dto';
+import { SubmissionResponseDto } from './dto/response/submission.response.dto';
+import { RoleName } from '@prisma/client';
 export declare class AssignmentsService {
-    private readonly repository;
-    constructor(repository: AssignmentsRepository);
-    create(dto: CreateAssignmentDto, user: any): Promise<{
-        success: boolean;
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    create(dto: CreateAssignmentDto, userId: number, role: RoleName): Promise<AssignmentResponseDto>;
+    findAll(page: number, limit: number, role: RoleName): Promise<AssignmentResponseDto[]>;
+    getDeleted(page: number, limit: number, role: RoleName): Promise<AssignmentResponseDto[]>;
+    findByLesson(lessonId: number, userId: number, role: RoleName): Promise<AssignmentResponseDto[]>;
+    findByCourse(courseId: number, userId: number, role: RoleName): Promise<AssignmentResponseDto[]>;
+    findOne(id: number, userId: number, role: RoleName): Promise<AssignmentResponseDto>;
+    update(id: number, dto: UpdateAssignmentDto, userId: number, role: RoleName): Promise<AssignmentResponseDto>;
+    remove(id: number, userId: number, role: RoleName): Promise<{
         message: string;
-        data: {
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        };
     }>;
-    findAll(): Promise<{
-        success: boolean;
+    forceDelete(id: number, role: RoleName): Promise<{
         message: string;
-        data: {
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        }[];
-        meta: {
-            total: number;
-        };
     }>;
-    findOne(id: number): Promise<{
-        success: boolean;
+    restore(id: number, role: RoleName): Promise<AssignmentResponseDto>;
+    createSubmission(dto: CreateSubmissionDto, userId: number, role: RoleName): Promise<SubmissionResponseDto>;
+    findSubmissionsByAssignment(assignmentId: number, userId: number, role: RoleName): Promise<SubmissionResponseDto[]>;
+    findSubmissionsByUser(targetUserId: number, userId: number, role: RoleName): Promise<SubmissionResponseDto[]>;
+    updateSubmission(id: number, dto: UpdateSubmissionDto, userId: number, role: RoleName): Promise<SubmissionResponseDto>;
+    removeSubmission(id: number, userId: number, role: RoleName): Promise<{
         message: string;
-        data: {
-            isOverdue: boolean;
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        };
     }>;
-    update(id: number, dto: UpdateAssignmentDto, user: any): Promise<{
-        success: boolean;
-        message: string;
-        data: {
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        };
-    }>;
-    remove(id: number, user: any): Promise<{
-        success: boolean;
-        message: string;
-        data: null;
-    }>;
-    private isAssignmentOverdue;
-    private validateAssignmentDates;
+    private mapAssignment;
+    private mapSubmission;
 }

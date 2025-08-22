@@ -11,8 +11,9 @@ export class ProductsService {
   constructor(private productsRepository: ProductsRepository) {}
 
   async create(createProductDto: CreateProductDto, currentUserId: number, currentUserRole: RoleName): Promise<ProductResponseDto> {
-    const existingProduct = await this.productsRepository.findBySlug(createProductDto.slug);
-    if (existingProduct) {
+    // Check for existing product with same slug (including soft deleted)
+    const existingProduct = await this.productsRepository.findBySlugIncludingDeleted(createProductDto.slug);
+    if (existingProduct && !existingProduct.deletedAt) {
       throw new BadRequestException('Product slug already exists');
     }
 
@@ -37,12 +38,16 @@ export class ProductsService {
     filter?: ProductFilter,
   ): Promise<ProductResponseDto[]> {
     const skip = (page - 1) * limit;
-    const products = await this.productsRepository.findAll(skip, limit, filter);
+    // Add deletedAt: null filter to exclude soft deleted products
+    const products = await this.productsRepository.findAll(skip, limit, {
+      ...filter,
+      deletedAt: null
+    });
     return products.map(product => this.toResponseDto(product));
   }
 
   async findOne(id: number): Promise<ProductResponseDto> {
-    const product = await this.productsRepository.findById(id);
+    const product = await this.productsRepository.findById(id, { deletedAt: null });
     if (!product) {
       throw new NotFoundException('Product not found');
     }
@@ -50,7 +55,7 @@ export class ProductsService {
   }
 
   async findBySlug(slug: string): Promise<ProductResponseDto> {
-    const product = await this.productsRepository.findBySlug(slug);
+    const product = await this.productsRepository.findBySlug(slug, { deletedAt: null });
     if (!product) {
       throw new NotFoundException('Product not found');
     }
@@ -58,7 +63,7 @@ export class ProductsService {
   }
 
   async findBySupplierId(supplierId: number): Promise<ProductResponseDto[]> {
-    const products = await this.productsRepository.findBySupplierId(supplierId);
+    const products = await this.productsRepository.findBySupplierId(supplierId, { deletedAt: null });
     return products.map(product => this.toResponseDto(product));
   }
 
@@ -68,7 +73,7 @@ export class ProductsService {
     currentUserId: number, 
     currentUserRole: RoleName
   ): Promise<ProductResponseDto> {
-    const existingProduct = await this.productsRepository.findById(id);
+    const existingProduct = await this.productsRepository.findById(id, { deletedAt: null });
     if (!existingProduct) {
       throw new NotFoundException('Product not found');
     }
@@ -81,7 +86,7 @@ export class ProductsService {
     }
 
     if (updateProductDto.slug && updateProductDto.slug !== existingProduct.slug) {
-      const slugExists = await this.productsRepository.findBySlug(updateProductDto.slug);
+      const slugExists = await this.productsRepository.findBySlug(updateProductDto.slug, { deletedAt: null });
       if (slugExists) {
         throw new BadRequestException('Product slug already exists');
       }
@@ -91,8 +96,9 @@ export class ProductsService {
     return this.toResponseDto(product);
   }
 
+  // Soft delete implementation
   async remove(id: number, currentUserId: number, currentUserRole: RoleName): Promise<void> {
-    const existingProduct = await this.productsRepository.findById(id);
+    const existingProduct = await this.productsRepository.findById(id, { deletedAt: null });
     if (!existingProduct) {
       throw new NotFoundException('Product not found');
     }
@@ -104,7 +110,37 @@ export class ProductsService {
       throw new ForbiddenException('Only ADMIN and SUPPLIER can delete products');
     }
 
-    await this.productsRepository.delete(id);
+    // Perform soft delete by setting deletedAt timestamp
+    await this.productsRepository.softDelete(id);
+  }
+
+  // Hard delete for admin purposes (optional)
+  async forceDelete(id: number, currentUserRole: RoleName): Promise<void> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can permanently delete products');
+    }
+
+    const existingProduct = await this.productsRepository.findByIdIncludingDeleted(id);
+    if (!existingProduct) {
+      throw new NotFoundException('Product not found');
+    }
+
+    await this.productsRepository.hardDelete(id);
+  }
+
+  // Restore soft deleted product
+  async restore(id: number, currentUserRole: RoleName): Promise<ProductResponseDto> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can restore products');
+    }
+
+    const product = await this.productsRepository.findByIdIncludingDeleted(id);
+    if (!product || !product.deletedAt) {
+      throw new NotFoundException('Deleted product not found');
+    }
+
+    const restoredProduct = await this.productsRepository.restore(id);
+    return this.toResponseDto(restoredProduct);
   }
 
   async updateRating(id: number, rating: number, reviewCount: number): Promise<ProductResponseDto> {

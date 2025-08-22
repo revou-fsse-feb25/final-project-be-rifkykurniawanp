@@ -16,13 +16,12 @@ export declare class ProductsController {
     constructor(productsService: ProductsService);
     create(createProductDto: CreateProductDto, req: AuthenticatedRequest): Promise<ProductResponseDto>;
     findAll(page?: string, limit?: string, category?: ProductCategory, origin?: ProductOrigin, status?: ProductStatus, supplierId?: string, minPrice?: string, maxPrice?: string, tags?: string, search?: string): Promise<ProductResponseDto[]>;
-    search(query: string, page?: string, limit?: string): Promise<ProductResponseDto[]>;
-    findByCategory(category: ProductCategory): Promise<ProductResponseDto[]>;
-    findByOrigin(origin: ProductOrigin): Promise<ProductResponseDto[]>;
-    findBySupplierId(supplierId: number): Promise<ProductResponseDto[]>;
     findBySlug(slug: string): Promise<ProductResponseDto>;
+    findBySupplierId(supplierId: number): Promise<ProductResponseDto[]>;
     findOne(id: number): Promise<ProductResponseDto>;
     update(id: number, updateProductDto: UpdateProductDto, req: AuthenticatedRequest): Promise<ProductResponseDto>;
     remove(id: number, req: AuthenticatedRequest): Promise<void>;
+    forceDelete(id: number, req: AuthenticatedRequest): Promise<void>;
+    restore(id: number, req: AuthenticatedRequest): Promise<ProductResponseDto>;
 }
 export {};

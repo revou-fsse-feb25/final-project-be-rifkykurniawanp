@@ -1,167 +1,107 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Product } from '@prisma/client';
-import { IProductsRepository, CreateProductData, UpdateProductData, ProductFilter } from './interfaces/products.repository.interface';
+import { IProductsRepository, ProductFilter } from './interfaces/products.repository.interface';
+import { CreateProductDto } from './dto/request/create-product.dto';
+import { UpdateProductDto } from './dto/request/update-product.dto';
 
 @Injectable()
 export class ProductsRepository implements IProductsRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateProductData): Promise<Product> {
-    return this.prisma.product.create({
-      data,
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
-    });
+  async create(data: CreateProductDto & { supplierId: number }) {
+    return this.prisma.product.create({ data });
   }
 
-  async findById(id: number): Promise<Product | null> {
-    return this.prisma.product.findUnique({
-      where: { id },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        reviews: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  async findBySlug(slug: string): Promise<Product | null> {
-    return this.prisma.product.findUnique({
-      where: { slug },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        reviews: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  async findAll(skip: number = 0, take: number = 10, filter?: ProductFilter): Promise<Product[]> {
-    const where: any = {};
-
-    if (filter) {
-      if (filter.category) where.category = filter.category;
-      if (filter.origin) where.origin = filter.origin;
-      if (filter.status) where.status = filter.status;
-      if (filter.supplierId) where.supplierId = filter.supplierId;
-      if (filter.tags && filter.tags.length > 0) {
-        where.tags = {
-          hasSome: filter.tags,
-        };
-      }
-      if (filter.minPrice || filter.maxPrice) {
-        where.price = {};
-        if (filter.minPrice) where.price.gte = filter.minPrice;
-        if (filter.maxPrice) where.price.lte = filter.maxPrice;
-      }
-    }
-
+  async findAll(skip: number, take: number, filter: ProductFilter = {}) {
     return this.prisma.product.findMany({
-      where,
       skip,
       take,
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
+      where: {
+        category: filter.category,
+        origin: filter.origin,
+        status: filter.status,
+        supplierId: filter.supplierId,
+        price: {
+          gte: filter.minPrice,
+          lte: filter.maxPrice,
         },
+        deletedAt: filter.deletedAt ?? null,
       },
       orderBy: { createdAt: 'desc' },
+      include: {
+        supplier: true,
+        reviews: true,
+      },
     });
   }
 
-  async update(id: number, data: UpdateProductData): Promise<Product> {
+  async findById(id: number, filter: ProductFilter = {}) {
+    return this.prisma.product.findFirst({
+      where: { id, deletedAt: filter.deletedAt ?? null },
+      include: { supplier: true, reviews: true },
+    });
+  }
+
+  async findBySlug(slug: string, filter: ProductFilter = {}) {
+    return this.prisma.product.findFirst({
+      where: { slug, deletedAt: filter.deletedAt ?? null },
+      include: { supplier: true, reviews: true },
+    });
+  }
+
+  async findBySlugIncludingDeleted(slug: string) {
+    return this.prisma.product.findUnique({
+      where: { slug },
+      include: { supplier: true, reviews: true },
+    });
+  }
+
+  async findBySupplierId(supplierId: number, filter: ProductFilter = {}) {
+    return this.prisma.product.findMany({
+      where: { supplierId, deletedAt: filter.deletedAt ?? null },
+      include: { supplier: true, reviews: true },
+    });
+  }
+
+  async findByIdIncludingDeleted(id: number) {
+    return this.prisma.product.findUnique({
+      where: { id },
+      include: { supplier: true, reviews: true },
+    });
+  }
+
+  async update(id: number, data: UpdateProductDto) {
     return this.prisma.product.update({
       where: { id },
       data,
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
+      include: { supplier: true, reviews: true },
     });
   }
 
-  async delete(id: number): Promise<Product> {
-    return this.prisma.product.delete({
-      where: { id },
-    });
-  }
-
-  async updateRating(id: number, rating: number, reviewCount: number): Promise<Product> {
+  async updateRating(id: number, rating: number, reviewCount: number) {
     return this.prisma.product.update({
       where: { id },
-      data: {
-        rating,
-        reviewCount,
-      },
+      data: { rating, reviewCount },
+      include: { supplier: true, reviews: true },
     });
   }
 
-  async findBySupplierId(supplierId: number): Promise<Product[]> {
-    return this.prisma.product.findMany({
-      where: { supplierId },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
+  async softDelete(id: number) {
+    await this.prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async hardDelete(id: number) {
+    await this.prisma.product.delete({ where: { id } });
+  }
+
+  async restore(id: number) {
+    return this.prisma.product.update({
+      where: { id },
+      data: { deletedAt: null },
+      include: { supplier: true, reviews: true },
     });
   }
 }

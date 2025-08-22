@@ -18,157 +18,88 @@ let ProductsRepository = class ProductsRepository {
         this.prisma = prisma;
     }
     async create(data) {
-        return this.prisma.product.create({
-            data,
-            include: {
-                supplier: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
-                },
-            },
-        });
+        return this.prisma.product.create({ data });
     }
-    async findById(id) {
-        return this.prisma.product.findUnique({
-            where: { id },
-            include: {
-                supplier: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
-                },
-                reviews: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-    }
-    async findBySlug(slug) {
-        return this.prisma.product.findUnique({
-            where: { slug },
-            include: {
-                supplier: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
-                },
-                reviews: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-    }
-    async findAll(skip = 0, take = 10, filter) {
-        const where = {};
-        if (filter) {
-            if (filter.category)
-                where.category = filter.category;
-            if (filter.origin)
-                where.origin = filter.origin;
-            if (filter.status)
-                where.status = filter.status;
-            if (filter.supplierId)
-                where.supplierId = filter.supplierId;
-            if (filter.tags && filter.tags.length > 0) {
-                where.tags = {
-                    hasSome: filter.tags,
-                };
-            }
-            if (filter.minPrice || filter.maxPrice) {
-                where.price = {};
-                if (filter.minPrice)
-                    where.price.gte = filter.minPrice;
-                if (filter.maxPrice)
-                    where.price.lte = filter.maxPrice;
-            }
-        }
+    async findAll(skip, take, filter = {}) {
         return this.prisma.product.findMany({
-            where,
             skip,
             take,
-            include: {
-                supplier: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
+            where: {
+                category: filter.category,
+                origin: filter.origin,
+                status: filter.status,
+                supplierId: filter.supplierId,
+                price: {
+                    gte: filter.minPrice,
+                    lte: filter.maxPrice,
                 },
+                deletedAt: filter.deletedAt ?? null,
             },
             orderBy: { createdAt: 'desc' },
+            include: {
+                supplier: true,
+                reviews: true,
+            },
+        });
+    }
+    async findById(id, filter = {}) {
+        return this.prisma.product.findFirst({
+            where: { id, deletedAt: filter.deletedAt ?? null },
+            include: { supplier: true, reviews: true },
+        });
+    }
+    async findBySlug(slug, filter = {}) {
+        return this.prisma.product.findFirst({
+            where: { slug, deletedAt: filter.deletedAt ?? null },
+            include: { supplier: true, reviews: true },
+        });
+    }
+    async findBySlugIncludingDeleted(slug) {
+        return this.prisma.product.findUnique({
+            where: { slug },
+            include: { supplier: true, reviews: true },
+        });
+    }
+    async findBySupplierId(supplierId, filter = {}) {
+        return this.prisma.product.findMany({
+            where: { supplierId, deletedAt: filter.deletedAt ?? null },
+            include: { supplier: true, reviews: true },
+        });
+    }
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.product.findUnique({
+            where: { id },
+            include: { supplier: true, reviews: true },
         });
     }
     async update(id, data) {
         return this.prisma.product.update({
             where: { id },
             data,
-            include: {
-                supplier: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
-                },
-            },
-        });
-    }
-    async delete(id) {
-        return this.prisma.product.delete({
-            where: { id },
+            include: { supplier: true, reviews: true },
         });
     }
     async updateRating(id, rating, reviewCount) {
         return this.prisma.product.update({
             where: { id },
-            data: {
-                rating,
-                reviewCount,
-            },
+            data: { rating, reviewCount },
+            include: { supplier: true, reviews: true },
         });
     }
-    async findBySupplierId(supplierId) {
-        return this.prisma.product.findMany({
-            where: { supplierId },
-            include: {
-                supplier: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                    },
-                },
-            },
-            orderBy: { createdAt: 'desc' },
+    async softDelete(id) {
+        await this.prisma.product.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
+    }
+    async hardDelete(id) {
+        await this.prisma.product.delete({ where: { id } });
+    }
+    async restore(id) {
+        return this.prisma.product.update({
+            where: { id },
+            data: { deletedAt: null },
+            include: { supplier: true, reviews: true },
         });
     }
 };

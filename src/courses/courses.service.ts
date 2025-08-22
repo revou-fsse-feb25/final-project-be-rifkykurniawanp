@@ -11,8 +11,9 @@ export class CoursesService {
   constructor(private coursesRepository: CoursesRepository) {}
 
   async create(createCourseDto: CreateCourseDto, currentUserId: number, currentUserRole: RoleName): Promise<CourseResponseDto> {
-    const existingCourse = await this.coursesRepository.findBySlug(createCourseDto.slug);
-    if (existingCourse) {
+    // Check for existing course with same slug (including soft deleted)
+    const existingCourse = await this.coursesRepository.findBySlugIncludingDeleted(createCourseDto.slug);
+    if (existingCourse && !existingCourse.deletedAt) {
       throw new BadRequestException('Course slug already exists');
     }
 
@@ -37,12 +38,16 @@ export class CoursesService {
     filter?: CourseFilter,
   ): Promise<CourseResponseDto[]> {
     const skip = (page - 1) * limit;
-    const courses = await this.coursesRepository.findAll(skip, limit, filter);
+    // Add deletedAt: null filter to exclude soft deleted courses
+    const courses = await this.coursesRepository.findAll(skip, limit, {
+      ...filter,
+      deletedAt: null
+    });
     return courses.map(course => this.toResponseDto(course));
   }
 
   async findOne(id: number): Promise<CourseResponseDto> {
-    const course = await this.coursesRepository.findById(id);
+    const course = await this.coursesRepository.findById(id, { deletedAt: null });
     if (!course) {
       throw new NotFoundException('Course not found');
     }
@@ -50,7 +55,7 @@ export class CoursesService {
   }
 
   async findBySlug(slug: string): Promise<CourseResponseDto> {
-    const course = await this.coursesRepository.findBySlug(slug);
+    const course = await this.coursesRepository.findBySlug(slug, { deletedAt: null });
     if (!course) {
       throw new NotFoundException('Course not found');
     }
@@ -58,7 +63,7 @@ export class CoursesService {
   }
 
   async findByInstructorId(instructorId: number): Promise<CourseResponseDto[]> {
-    const courses = await this.coursesRepository.findByInstructorId(instructorId);
+    const courses = await this.coursesRepository.findByInstructorId(instructorId, { deletedAt: null });
     return courses.map(course => this.toResponseDto(course));
   }
 
@@ -68,7 +73,7 @@ export class CoursesService {
     currentUserId: number, 
     currentUserRole: RoleName
   ): Promise<CourseResponseDto> {
-    const existingCourse = await this.coursesRepository.findById(id);
+    const existingCourse = await this.coursesRepository.findById(id, { deletedAt: null });
     if (!existingCourse) {
       throw new NotFoundException('Course not found');
     }
@@ -81,7 +86,7 @@ export class CoursesService {
     }
 
     if (updateCourseDto.slug && updateCourseDto.slug !== existingCourse.slug) {
-      const slugExists = await this.coursesRepository.findBySlug(updateCourseDto.slug);
+      const slugExists = await this.coursesRepository.findBySlug(updateCourseDto.slug, { deletedAt: null });
       if (slugExists) {
         throw new BadRequestException('Course slug already exists');
       }
@@ -91,8 +96,9 @@ export class CoursesService {
     return this.toResponseDto(course);
   }
 
+  // Soft delete implementation
   async remove(id: number, currentUserId: number, currentUserRole: RoleName): Promise<void> {
-    const existingCourse = await this.coursesRepository.findById(id);
+    const existingCourse = await this.coursesRepository.findById(id, { deletedAt: null });
     if (!existingCourse) {
       throw new NotFoundException('Course not found');
     }
@@ -104,7 +110,37 @@ export class CoursesService {
       throw new ForbiddenException('Only ADMIN and INSTRUCTOR can delete courses');
     }
 
-    await this.coursesRepository.delete(id);
+    // Perform soft delete by setting deletedAt timestamp
+    await this.coursesRepository.softDelete(id);
+  }
+
+  // Hard delete for admin purposes (optional)
+  async forceDelete(id: number, currentUserRole: RoleName): Promise<void> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can permanently delete courses');
+    }
+
+    const existingCourse = await this.coursesRepository.findByIdIncludingDeleted(id);
+    if (!existingCourse) {
+      throw new NotFoundException('Course not found');
+    }
+
+    await this.coursesRepository.hardDelete(id);
+  }
+
+  // Restore soft deleted course
+  async restore(id: number, currentUserRole: RoleName): Promise<CourseResponseDto> {
+    if (currentUserRole !== 'ADMIN') {
+      throw new ForbiddenException('Only ADMIN can restore courses');
+    }
+
+    const course = await this.coursesRepository.findByIdIncludingDeleted(id);
+    if (!course || !course.deletedAt) {
+      throw new NotFoundException('Deleted course not found');
+    }
+
+    const restoredCourse = await this.coursesRepository.restore(id);
+    return this.toResponseDto(restoredCourse);
   }
 
   private toResponseDto(course: any): CourseResponseDto {

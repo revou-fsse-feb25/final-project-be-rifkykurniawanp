@@ -8,119 +8,70 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CourseModulesService = void 0;
 const common_1 = require("@nestjs/common");
+const course_modules_repository_1 = require("./course-modules.repository");
 let CourseModulesService = class CourseModulesService {
-    courseModulesRepository;
-    constructor(courseModulesRepository) {
-        this.courseModulesRepository = courseModulesRepository;
+    repo;
+    constructor(repo) {
+        this.repo = repo;
     }
-    async findByCourseWithAccess(courseId, user) {
-        const courseExists = await this.courseModulesRepository.checkCourseExists(courseId);
-        if (!courseExists) {
-            throw new common_1.NotFoundException('Course not found');
-        }
-        if (user.role === 'USER') {
-        }
-        const modules = await this.courseModulesRepository.findByCourseIdWithLessons(courseId);
-        return modules.map(module => this.mapToResponseDto(module));
+    async create(createDto, courseId) {
+        const module = await this.repo.create({ ...createDto, courseId });
+        return this.toResponseDto(module);
     }
-    async findOneWithAccess(id, user) {
-        const module = await this.courseModulesRepository.findByIdWithLessons(id);
-        if (!module) {
-            throw new common_1.NotFoundException('Module not found');
-        }
-        if (user.role === 'USER') {
-        }
-        return this.mapToResponseDto(module);
+    async findAll(courseId, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+        const modules = await this.repo.findAll(skip, limit, { courseId, deletedAt: null });
+        return modules.map(m => this.toResponseDto(m));
     }
-    async createForCourse(courseId, createModuleDto, user) {
-        const courseExists = await this.courseModulesRepository.checkCourseExists(courseId);
-        if (!courseExists) {
-            throw new common_1.NotFoundException('Course not found');
-        }
-        if (user.role === 'INSTRUCTOR') {
-        }
-        try {
-            const module = await this.courseModulesRepository.create({
-                ...createModuleDto,
-                courseId,
-            });
-            return this.mapToResponseDto(module);
-        }
-        catch {
-            throw new common_1.BadRequestException('Failed to create module');
-        }
+    async findOne(id) {
+        const module = await this.repo.findById(id, { deletedAt: null });
+        if (!module)
+            throw new common_1.NotFoundException('Course module not found');
+        return this.toResponseDto(module);
     }
-    async updateWithOwnership(id, updateModuleDto, user) {
-        const module = await this.courseModulesRepository.findById(id);
-        if (!module) {
-            throw new common_1.NotFoundException('Module not found');
-        }
-        if (user.role === 'INSTRUCTOR') {
-            const hasAccess = await this.courseModulesRepository.checkModuleOwnership(id, user.id);
-            if (!hasAccess) {
-                throw new common_1.ForbiddenException('You do not have permission to update this module');
-            }
-        }
-        try {
-            const updatedModule = await this.courseModulesRepository.update(id, updateModuleDto);
-            return this.mapToResponseDto(updatedModule);
-        }
-        catch {
-            throw new common_1.BadRequestException('Failed to update module');
-        }
+    async update(id, updateDto) {
+        const existing = await this.repo.findById(id, { deletedAt: null });
+        if (!existing)
+            throw new common_1.NotFoundException('Course module not found');
+        const updated = await this.repo.update(id, updateDto);
+        return this.toResponseDto(updated);
     }
-    async removeWithOwnership(id, user) {
-        const module = await this.courseModulesRepository.findById(id);
-        if (!module) {
-            throw new common_1.NotFoundException('Module not found');
-        }
-        if (user.role === 'INSTRUCTOR') {
-            const hasAccess = await this.courseModulesRepository.checkModuleOwnership(id, user.id);
-            if (!hasAccess) {
-                throw new common_1.ForbiddenException('You do not have permission to delete this module');
-            }
-        }
-        try {
-            await this.courseModulesRepository.delete(id);
-        }
-        catch {
-            throw new common_1.BadRequestException('Failed to delete module');
-        }
+    async remove(id) {
+        const existing = await this.repo.findById(id, { deletedAt: null });
+        if (!existing)
+            throw new common_1.NotFoundException('Course module not found');
+        await this.repo.softDelete(id);
     }
-    mapToResponseDto(module) {
+    async forceDelete(id) {
+        const existing = await this.repo.findByIdIncludingDeleted(id);
+        if (!existing)
+            throw new common_1.NotFoundException('Course module not found');
+        await this.repo.hardDelete(id);
+    }
+    async restore(id) {
+        const module = await this.repo.findByIdIncludingDeleted(id);
+        if (!module || !module.deletedAt)
+            throw new common_1.NotFoundException('Deleted course module not found');
+        const restored = await this.repo.restore(id);
+        return this.toResponseDto(restored);
+    }
+    toResponseDto(module) {
         return {
             id: module.id,
-            courseId: module.courseId,
             title: module.title,
             orderNumber: module.orderNumber,
-            course: {
-                id: module.course.id,
-                title: module.course.title,
-                instructorId: module.course.instructorId,
-            },
-            lessons: module.lessons?.map(lesson => ({
-                id: lesson.id,
-                slug: lesson.slug,
-                title: lesson.title,
-                description: lesson.description,
-                duration: lesson.duration,
-                type: lesson.type,
-                orderNumber: lesson.orderNumber,
-            })) || [],
-            createdAt: module.createdAt || new Date(),
+            courseId: module.courseId,
+            lessons: module.lessons,
+            createdAt: module.createdAt,
         };
     }
 };
 exports.CourseModulesService = CourseModulesService;
 exports.CourseModulesService = CourseModulesService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)('ICourseModulesRepository')),
-    __metadata("design:paramtypes", [Object])
+    __metadata("design:paramtypes", [course_modules_repository_1.CourseModulesRepository])
 ], CourseModulesService);
 //# sourceMappingURL=course-modules.service.js.map

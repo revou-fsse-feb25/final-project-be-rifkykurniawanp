@@ -1,87 +1,108 @@
-// src/courses/courses.repository.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Course } from '@prisma/client';
-import {
-  ICoursesRepository,
-  CreateCourseData,
-  UpdateCourseData,
-  CourseFilter,
-} from './interfaces/courses.repository.interface';
-import {
-  COURSE_INCLUDE_BASIC,
-  COURSE_INCLUDE_WITH_MODULES,
-  COURSE_INCLUDE_FULL,
-  ORDER_BY_CREATED_DESC,
-  buildCourseWhere,
-} from './constants/courses.constants';
+import { ICoursesRepository, CourseFilter } from './interfaces/courses.repository.interface';
+import { CreateCourseDto } from './dto/request/create-course.dto';
+import { UpdateCourseDto } from './dto/request/update-course.dto';
+import { Prisma, Course } from '@prisma/client';
 
 @Injectable()
 export class CoursesRepository implements ICoursesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateCourseData): Promise<Course> {
+  /** Create course with all required fields */
+  async create(data: CreateCourseDto & { instructorId: number }): Promise<Course> {
     return this.prisma.course.create({
-      data,
-      include: COURSE_INCLUDE_WITH_MODULES,
+      data: {
+        title: data.title,
+        slug: data.slug,
+        description: data.description,
+        syllabus: data.syllabus,
+        price: data.price,
+        level: data.level,
+        category: data.category,
+        instructorId: data.instructorId,
+        duration: data.duration,
+        language: data.language,
+        certificate: data.certificate,
+      },
+      include: {
+        instructor: true,
+        modules: true,
+        enrollments: true,
+        cartItems: true,
+      },
     });
   }
 
-  async findById(id: number): Promise<Course | null> {
-    return this.prisma.course.findUnique({
-      where: { id },
-      include: COURSE_INCLUDE_FULL,
-    });
-  }
-
-  async findBySlug(slug: string): Promise<Course | null> {
-    return this.prisma.course.findUnique({
-      where: { slug },
-      include: COURSE_INCLUDE_WITH_MODULES,
-    });
-  }
-
-  async findAll(skip = 0, take = 10, filter?: CourseFilter): Promise<Course[]> {
+  async findAll(skip: number, take: number, filter?: CourseFilter): Promise<Course[]> {
     return this.prisma.course.findMany({
-      where: buildCourseWhere(filter),
       skip,
       take,
-      include: COURSE_INCLUDE_BASIC,
-      orderBy: ORDER_BY_CREATED_DESC,
+      where: { ...filter },
+      orderBy: { createdAt: 'desc' },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
     });
   }
 
-  async update(id: number, data: UpdateCourseData): Promise<Course> {
+  async findById(id: number, filter?: CourseFilter): Promise<Course | null> {
+    return this.prisma.course.findFirst({
+      where: { id, ...filter },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+    });
+  }
+
+  async findByIdIncludingDeleted(id: number): Promise<Course | null> {
+    return this.prisma.course.findUnique({
+      where: { id },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+    });
+  }
+
+  async findBySlug(slug: string, filter?: CourseFilter): Promise<Course | null> {
+    return this.prisma.course.findFirst({
+      where: { slug, ...filter },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+    });
+  }
+
+  async findBySlugIncludingDeleted(slug: string): Promise<Course | null> {
+    return this.prisma.course.findFirst({
+      where: { slug },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+    });
+  }
+
+  async findByInstructorId(instructorId: number, filter?: CourseFilter): Promise<Course[]> {
+    return this.prisma.course.findMany({
+      where: { instructorId, ...filter },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+    });
+  }
+
+  async update(id: number, data: UpdateCourseDto): Promise<Course> {
     return this.prisma.course.update({
       where: { id },
       data,
-      include: COURSE_INCLUDE_WITH_MODULES,
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
     });
   }
 
-  async delete(id: number): Promise<Course> {
-    return this.prisma.course.delete({ where: { id } });
+  async softDelete(id: number): Promise<void> {
+    await this.prisma.course.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
-  async updateRating(id: number, rating: number): Promise<Course> {
+  async hardDelete(id: number): Promise<void> {
+    await this.prisma.course.delete({ where: { id } });
+  }
+
+  async restore(id: number): Promise<Course> {
     return this.prisma.course.update({
       where: { id },
-      data: { rating },
-    });
-  }
-
-  async incrementStudentCount(id: number): Promise<Course> {
-    return this.prisma.course.update({
-      where: { id },
-      data: { students: { increment: 1 } },
-    });
-  }
-
-  async findByInstructorId(instructorId: number): Promise<Course[]> {
-    return this.prisma.course.findMany({
-      where: { instructorId },
-      include: COURSE_INCLUDE_WITH_MODULES,
-      orderBy: ORDER_BY_CREATED_DESC,
+      data: { deletedAt: null },
+      include: { instructor: true, modules: true, enrollments: true, cartItems: true },
     });
   }
 }

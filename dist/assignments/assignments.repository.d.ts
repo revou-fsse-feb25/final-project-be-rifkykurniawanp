@@ -1,47 +1,30 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateAssignmentDto } from './dto/request/create-assignment.dto';
-import { UpdateAssignmentDto } from './dto/request/update-assignment.dto';
-export declare class AssignmentsRepository {
+import { Assignment, AssignmentSubmission, Prisma } from '@prisma/client';
+import { IAssignmentsRepository, CreateAssignmentData, UpdateAssignmentData, CreateSubmissionData, UpdateSubmissionData } from './interfaces/assignments.repository.interface';
+export declare class AssignmentsRepository implements IAssignmentsRepository {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    create(dto: CreateAssignmentDto): import(".prisma/client").Prisma.Prisma__AssignmentClient<{
-        id: number;
-        lessonId: number;
-        title: string;
-        instructions: string;
-        dueDate: Date | null;
-        createdAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        id: number;
-        lessonId: number;
-        title: string;
-        instructions: string;
-        dueDate: Date | null;
-        createdAt: Date;
-    }[]>;
-    findOne(id: number): import(".prisma/client").Prisma.Prisma__AssignmentClient<{
-        id: number;
-        lessonId: number;
-        title: string;
-        instructions: string;
-        dueDate: Date | null;
-        createdAt: Date;
-    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    update(id: number, dto: UpdateAssignmentDto): import(".prisma/client").Prisma.Prisma__AssignmentClient<{
-        id: number;
-        lessonId: number;
-        title: string;
-        instructions: string;
-        dueDate: Date | null;
-        createdAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): import(".prisma/client").Prisma.Prisma__AssignmentClient<{
-        id: number;
-        lessonId: number;
-        title: string;
-        instructions: string;
-        dueDate: Date | null;
-        createdAt: Date;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    create(data: CreateAssignmentData): Promise<Assignment>;
+    findById(id: number, where?: Prisma.AssignmentWhereInput): Promise<Assignment | null>;
+    findByIdIncludingDeleted(id: number): Promise<Assignment | null>;
+    findByLessonId(lessonId: number, where?: Prisma.AssignmentWhereInput): Promise<Assignment[]>;
+    findByCourseId(courseId: number, where?: Prisma.AssignmentWhereInput): Promise<Assignment[]>;
+    findAll(skip?: number, take?: number, where?: Prisma.AssignmentWhereInput): Promise<Assignment[]>;
+    findDeleted(skip?: number, take?: number): Promise<Assignment[]>;
+    update(id: number, data: UpdateAssignmentData): Promise<Assignment>;
+    softDelete(id: number): Promise<Assignment>;
+    hardDelete(id: number): Promise<Assignment>;
+    restore(id: number): Promise<Assignment>;
+    countByLesson(lessonId: number, where?: Prisma.AssignmentWhereInput): Promise<number>;
+    countByCourse(courseId: number, where?: Prisma.AssignmentWhereInput): Promise<number>;
+    createSubmission(data: CreateSubmissionData): Promise<AssignmentSubmission>;
+    findSubmissionById(id: number): Promise<AssignmentSubmission | null>;
+    findSubmissionByUserAndAssignment(userId: number, assignmentId: number): Promise<AssignmentSubmission | null>;
+    findSubmissionsByAssignment(assignmentId: number): Promise<AssignmentSubmission[]>;
+    findSubmissionsByUser(userId: number): Promise<AssignmentSubmission[]>;
+    updateSubmission(id: number, data: UpdateSubmissionData): Promise<AssignmentSubmission>;
+    deleteSubmission(id: number): Promise<AssignmentSubmission>;
+    countSubmissionsByAssignment(assignmentId: number): Promise<number>;
+    countSubmissionsByUser(userId: number): Promise<number>;
+    countGradedSubmissionsByAssignment(assignmentId: number): Promise<number>;
 }

@@ -1,51 +1,22 @@
-// src/courses/interfaces/courses.repository.interface.ts
-import { Course, CourseCategory, CourseLevel } from '@prisma/client';
-
-export interface CreateCourseData {
-  title: string;
-  slug: string;
-  description?: string;
-  syllabus?: string;
-  price: number;
-  instructorId: number;
-  duration?: string;
-  level: CourseLevel;
-  category: CourseCategory;
-  language?: string;
-  certificate?: boolean;
-}
-
-export interface UpdateCourseData {
-  title?: string;
-  slug?: string;
-  description?: string;
-  syllabus?: string;
-  price?: number;
-  duration?: string;
-  level?: CourseLevel;
-  category?: CourseCategory;
-  language?: string;
-  certificate?: boolean;
-}
+import { Course } from '@prisma/client';
+import { CreateCourseDto } from '../dto/request/create-course.dto';
+import { UpdateCourseDto } from '../dto/request/update-course.dto';
 
 export interface CourseFilter {
-  category?: CourseCategory;
-  level?: CourseLevel;
-  instructorId?: number;
-  minPrice?: number;
-  maxPrice?: number;
-  language?: string;
-  certificate?: boolean;
+  deletedAt?: Date | null;
+  [key: string]: any; // tambahan fleksibel untuk filter lain
 }
 
 export interface ICoursesRepository {
-  create(data: CreateCourseData): Promise<Course>;
-  findById(id: number): Promise<Course | null>;
-  findBySlug(slug: string): Promise<Course | null>;
-  findAll(skip?: number, take?: number, filter?: CourseFilter): Promise<Course[]>;
-  update(id: number, data: UpdateCourseData): Promise<Course>;
-  delete(id: number): Promise<Course>;
-  updateRating(id: number, rating: number): Promise<Course>;
-  incrementStudentCount(id: number): Promise<Course>;
-  findByInstructorId(instructorId: number): Promise<Course[]>;
+  create(data: CreateCourseDto & { instructorId: number }): Promise<Course>;
+  findAll(skip: number, take: number, filter?: CourseFilter): Promise<Course[]>;
+  findById(id: number, filter?: CourseFilter): Promise<Course | null>;
+  findByIdIncludingDeleted(id: number): Promise<Course | null>;
+  findBySlug(slug: string, filter?: CourseFilter): Promise<Course | null>;
+  findBySlugIncludingDeleted(slug: string): Promise<Course | null>;
+  findByInstructorId(instructorId: number, filter?: CourseFilter): Promise<Course[]>;
+  update(id: number, data: UpdateCourseDto): Promise<Course>;
+  softDelete(id: number): Promise<void>;
+  hardDelete(id: number): Promise<void>;
+  restore(id: number): Promise<Course>;
 }

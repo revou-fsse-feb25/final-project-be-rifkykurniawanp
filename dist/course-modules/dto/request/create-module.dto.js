@@ -9,25 +9,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateModuleDto = void 0;
-const class_validator_1 = require("class-validator");
+exports.CreateCourseModuleDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
-class CreateModuleDto {
+const class_validator_1 = require("class-validator");
+class CreateCourseModuleDto {
     title;
     orderNumber;
+    courseId;
 }
-exports.CreateModuleDto = CreateModuleDto;
+exports.CreateCourseModuleDto = CreateCourseModuleDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Module title', example: 'Introduction to Coffee Brewing', maxLength: 255 }),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ description: 'Title of the course module' }),
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.MaxLength)(255),
     __metadata("design:type", String)
-], CreateModuleDto.prototype, "title", void 0);
+], CreateCourseModuleDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Order number of the module within the course', example: 1, minimum: 1 }),
+    (0, swagger_1.ApiProperty)({ description: 'Order number for module sorting', minimum: 1 }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
-], CreateModuleDto.prototype, "orderNumber", void 0);
+], CreateCourseModuleDto.prototype, "orderNumber", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Associated course ID' }),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateCourseModuleDto.prototype, "courseId", void 0);
 //# sourceMappingURL=create-module.dto.js.map

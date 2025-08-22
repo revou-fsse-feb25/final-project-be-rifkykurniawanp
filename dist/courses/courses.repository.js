@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CoursesRepository = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const courses_constants_1 = require("./constants/courses.constants");
 let CoursesRepository = class CoursesRepository {
     prisma;
     constructor(prisma) {
@@ -20,58 +19,87 @@ let CoursesRepository = class CoursesRepository {
     }
     async create(data) {
         return this.prisma.course.create({
-            data,
-            include: courses_constants_1.COURSE_INCLUDE_WITH_MODULES,
+            data: {
+                title: data.title,
+                slug: data.slug,
+                description: data.description,
+                syllabus: data.syllabus,
+                price: data.price,
+                level: data.level,
+                category: data.category,
+                instructorId: data.instructorId,
+                duration: data.duration,
+                language: data.language,
+                certificate: data.certificate,
+            },
+            include: {
+                instructor: true,
+                modules: true,
+                enrollments: true,
+                cartItems: true,
+            },
         });
     }
-    async findById(id) {
-        return this.prisma.course.findUnique({
-            where: { id },
-            include: courses_constants_1.COURSE_INCLUDE_FULL,
-        });
-    }
-    async findBySlug(slug) {
-        return this.prisma.course.findUnique({
-            where: { slug },
-            include: courses_constants_1.COURSE_INCLUDE_WITH_MODULES,
-        });
-    }
-    async findAll(skip = 0, take = 10, filter) {
+    async findAll(skip, take, filter) {
         return this.prisma.course.findMany({
-            where: (0, courses_constants_1.buildCourseWhere)(filter),
             skip,
             take,
-            include: courses_constants_1.COURSE_INCLUDE_BASIC,
-            orderBy: courses_constants_1.ORDER_BY_CREATED_DESC,
+            where: { ...filter },
+            orderBy: { createdAt: 'desc' },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+        });
+    }
+    async findById(id, filter) {
+        return this.prisma.course.findFirst({
+            where: { id, ...filter },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+        });
+    }
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.course.findUnique({
+            where: { id },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+        });
+    }
+    async findBySlug(slug, filter) {
+        return this.prisma.course.findFirst({
+            where: { slug, ...filter },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+        });
+    }
+    async findBySlugIncludingDeleted(slug) {
+        return this.prisma.course.findFirst({
+            where: { slug },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+        });
+    }
+    async findByInstructorId(instructorId, filter) {
+        return this.prisma.course.findMany({
+            where: { instructorId, ...filter },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
         });
     }
     async update(id, data) {
         return this.prisma.course.update({
             where: { id },
             data,
-            include: courses_constants_1.COURSE_INCLUDE_WITH_MODULES,
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
         });
     }
-    async delete(id) {
-        return this.prisma.course.delete({ where: { id } });
+    async softDelete(id) {
+        await this.prisma.course.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
     }
-    async updateRating(id, rating) {
+    async hardDelete(id) {
+        await this.prisma.course.delete({ where: { id } });
+    }
+    async restore(id) {
         return this.prisma.course.update({
             where: { id },
-            data: { rating },
-        });
-    }
-    async incrementStudentCount(id) {
-        return this.prisma.course.update({
-            where: { id },
-            data: { students: { increment: 1 } },
-        });
-    }
-    async findByInstructorId(instructorId) {
-        return this.prisma.course.findMany({
-            where: { instructorId },
-            include: courses_constants_1.COURSE_INCLUDE_WITH_MODULES,
-            orderBy: courses_constants_1.ORDER_BY_CREATED_DESC,
+            data: { deletedAt: null },
+            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
         });
     }
 };

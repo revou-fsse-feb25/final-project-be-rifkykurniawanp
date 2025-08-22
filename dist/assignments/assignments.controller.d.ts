@@ -1,64 +1,32 @@
 import { AssignmentsService } from './assignments.service';
 import { CreateAssignmentDto } from './dto/request/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/request/update-assignment.dto';
+import { CreateSubmissionDto } from './dto/request/create-submission.dto';
+import { UpdateSubmissionDto } from './dto/request/update-submission.dto';
+import { AssignmentResponseDto } from './dto/response/assignment.response.dto';
+import { SubmissionResponseDto } from './dto/response/submission.response.dto';
 export declare class AssignmentsController {
     private readonly assignmentsService;
     constructor(assignmentsService: AssignmentsService);
-    findAll(): Promise<{
-        success: boolean;
-        message: string;
-        data: {
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        }[];
-        meta: {
-            total: number;
-        };
-    }>;
-    findOne(id: number): Promise<{
-        success: boolean;
-        message: string;
-        data: {
-            isOverdue: boolean;
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        };
-    }>;
-    create(dto: CreateAssignmentDto, req: any): Promise<{
-        success: boolean;
-        message: string;
-        data: {
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        };
-    }>;
-    update(id: number, dto: UpdateAssignmentDto, req: any): Promise<{
-        success: boolean;
-        message: string;
-        data: {
-            id: number;
-            lessonId: number;
-            title: string;
-            instructions: string;
-            dueDate: Date | null;
-            createdAt: Date;
-        };
-    }>;
+    create(dto: CreateAssignmentDto, req: any): Promise<AssignmentResponseDto>;
+    findAll(page?: string, limit?: string, req?: any): Promise<AssignmentResponseDto[]>;
+    getDeleted(page?: string, limit?: string, req?: any): Promise<AssignmentResponseDto[]>;
+    findByLesson(lessonId: number, req: any): Promise<AssignmentResponseDto[]>;
+    findByCourse(courseId: number, req: any): Promise<AssignmentResponseDto[]>;
+    findOne(id: number, req: any): Promise<AssignmentResponseDto>;
+    update(id: number, dto: UpdateAssignmentDto, req: any): Promise<AssignmentResponseDto>;
     remove(id: number, req: any): Promise<{
-        success: boolean;
         message: string;
-        data: null;
+    }>;
+    forceDelete(id: number, req: any): Promise<{
+        message: string;
+    }>;
+    restore(id: number, req: any): Promise<AssignmentResponseDto>;
+    createSubmission(dto: CreateSubmissionDto, req: any): Promise<SubmissionResponseDto>;
+    getSubmissionsByAssignment(assignmentId: number, req: any): Promise<SubmissionResponseDto[]>;
+    getSubmissionsByUser(userId: number, req: any): Promise<SubmissionResponseDto[]>;
+    updateSubmission(id: number, dto: UpdateSubmissionDto, req: any): Promise<SubmissionResponseDto>;
+    removeSubmission(id: number, req: any): Promise<{
+        message: string;
     }>;
 }

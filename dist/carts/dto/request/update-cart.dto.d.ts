@@ -1,6 +1,5 @@
-import { CartItemType } from './add-to-cart.dto';
-export declare class UpdateCartDto {
-    quantity?: number;
-    price?: number;
-    itemType?: CartItemType;
+import { CreateCartDto } from './create-cart.dto';
+declare const UpdateCartDto_base: import("@nestjs/common").Type<Partial<CreateCartDto>>;
+export declare class UpdateCartDto extends UpdateCartDto_base {
 }
+export {};

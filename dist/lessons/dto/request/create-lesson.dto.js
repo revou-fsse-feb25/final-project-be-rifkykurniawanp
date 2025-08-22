@@ -10,12 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateLessonDto = void 0;
-const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const client_1 = require("@prisma/client");
 class CreateLessonDto {
-    moduleId;
-    slug;
     title;
     description;
     duration;
@@ -28,65 +25,39 @@ class CreateLessonDto {
 }
 exports.CreateLessonDto = CreateLessonDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1, description: 'ID of the course module' }),
-    (0, class_validator_1.IsInt)(),
-    __metadata("design:type", Number)
-], CreateLessonDto.prototype, "moduleId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'intro-to-brewing', description: 'Slug of the lesson', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreateLessonDto.prototype, "slug", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Introduction to Brewing' }),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Learn the basics of coffee brewing', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '10m', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "duration", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ enum: client_1.LessonType, example: client_1.LessonType.VIDEO }),
-    (0, class_validator_1.IsEnum)(client_1.LessonType),
+    (0, swagger_1.ApiProperty)({ enum: client_1.LessonType, default: client_1.LessonType.VIDEO }),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "type", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'https://video.url/lesson.mp4', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "videoUrl", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Lesson content here', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "content", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: '[]', required: false }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    (0, swagger_1.ApiProperty)({ required: false }),
+    __metadata("design:type", Object)
 ], CreateLessonDto.prototype, "quizQuestions", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 70 }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDecimal)(),
+    (0, swagger_1.ApiProperty)({ default: 70 }),
     __metadata("design:type", Number)
 ], CreateLessonDto.prototype, "passingScore", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 1 }),
-    (0, class_validator_1.IsInt)(),
+    (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Number)
 ], CreateLessonDto.prototype, "orderNumber", void 0);
 //# sourceMappingURL=create-lesson.dto.js.map

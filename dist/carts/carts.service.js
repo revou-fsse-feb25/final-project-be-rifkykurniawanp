@@ -11,44 +11,85 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CartsService = void 0;
 const common_1 = require("@nestjs/common");
-const carts_repository_1 = require("./carts.repository");
+const prisma_service_1 = require("../prisma/prisma.service");
+const client_1 = require("@prisma/client");
 let CartsService = class CartsService {
-    repository;
-    constructor(repository) {
-        this.repository = repository;
+    prisma;
+    constructor(prisma) {
+        this.prisma = prisma;
     }
-    async getCartByUser(userId) {
-        const cart = await this.repository.getCartByUser(userId);
-        if (!cart)
-            throw new common_1.NotFoundException('Cart not found');
-        return cart;
+    async create(userId, dto, role) {
+        if (role !== 'USER')
+            throw new common_1.ForbiddenException('Access denied');
+        return this.prisma.cart.create({
+            data: {
+                ...dto,
+                userId,
+            },
+        });
     }
-    async getCartById(cartId) {
-        const cart = await this.repository.getCartById(cartId);
-        if (!cart)
-            throw new common_1.NotFoundException('Cart not found');
-        return cart;
-    }
-    async addItem(dto) {
-        return this.repository.addItem(dto);
-    }
-    async updateItem(cartItemId, dto) {
-        return this.repository.updateItem(cartItemId, dto);
-    }
-    async removeItem(cartItemId) {
-        return this.repository.removeItem(cartItemId);
-    }
-    async checkout(cartId, userId) {
-        const cart = await this.repository.getCartById(cartId);
-        if (!cart || cart.userId !== userId) {
-            throw new common_1.NotFoundException('Cart not found for user');
+    async findAll(userId, role) {
+        if (role === 'ADMIN') {
+            return this.prisma.cart.findMany({
+                include: { user: true, items: { include: { product: true, course: true } }, payments: true },
+            });
         }
-        return { message: `Cart ${cartId} checked out by user ${userId}` };
+        return this.prisma.cart.findMany({
+            where: { userId },
+            include: { user: true, items: { include: { product: true, course: true } }, payments: true },
+        });
+    }
+    async findOne(id, userId, role) {
+        const cart = await this.prisma.cart.findUnique({
+            where: { id },
+            include: { user: true, items: { include: { product: true, course: true } }, payments: true },
+        });
+        if (!cart)
+            throw new common_1.NotFoundException(`Cart ${id} not found`);
+        if (role !== 'ADMIN' && cart.userId !== userId) {
+            throw new common_1.ForbiddenException('Access denied');
+        }
+        return cart;
+    }
+    async update(id, dto, userId, role) {
+        const cart = await this.findOne(id, userId, role);
+        return this.prisma.cart.update({
+            where: { id },
+            data: dto,
+            include: { items: { include: { product: true, course: true } }, payments: true },
+        });
+    }
+    async remove(id, userId, role) {
+        const cart = await this.findOne(id, userId, role);
+        return this.prisma.cart.delete({ where: { id } });
+    }
+    async addItem(cartId, userId, itemType, itemId, quantity, role) {
+        const cart = await this.findOne(cartId, userId, role);
+        if (itemType === 'PRODUCT') {
+            const product = await this.prisma.product.findUnique({ where: { id: itemId } });
+            if (!product)
+                throw new common_1.BadRequestException('Product not found');
+        }
+        else if (itemType === 'COURSE') {
+            const course = await this.prisma.course.findUnique({ where: { id: itemId } });
+            if (!course)
+                throw new common_1.BadRequestException('Course not found');
+        }
+        return this.prisma.cartItem.create({
+            data: { cartId, itemType, itemId, quantity, price: new client_1.Prisma.Decimal(0) },
+        });
+    }
+    async removeItem(cartId, userId, itemId, role) {
+        const cart = await this.findOne(cartId, userId, role);
+        const item = await this.prisma.cartItem.findFirst({ where: { cartId, id: itemId } });
+        if (!item)
+            throw new common_1.NotFoundException('CartItem not found');
+        return this.prisma.cartItem.delete({ where: { id: item.id } });
     }
 };
 exports.CartsService = CartsService;
 exports.CartsService = CartsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [carts_repository_1.CartsRepository])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], CartsService);
 //# sourceMappingURL=carts.service.js.map

@@ -19,14 +19,8 @@ exports.CourseModulesModule = CourseModulesModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
         controllers: [course_modules_controller_1.CourseModulesController],
-        providers: [
-            course_modules_service_1.CourseModulesService,
-            {
-                provide: 'ICourseModulesRepository',
-                useClass: course_modules_repository_1.CourseModulesRepository,
-            },
-        ],
-        exports: [course_modules_service_1.CourseModulesService],
+        providers: [course_modules_service_1.CourseModulesService, course_modules_repository_1.CourseModulesRepository],
+        exports: [course_modules_service_1.CourseModulesService, course_modules_repository_1.CourseModulesRepository],
     })
 ], CourseModulesModule);
 //# sourceMappingURL=course-modules.module.js.map

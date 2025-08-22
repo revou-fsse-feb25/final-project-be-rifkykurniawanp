@@ -1,74 +1,102 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
+import { PaymentStatus, PayableType } from '@prisma/client';
+
+export class UserBasicDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 'john@example.com' })
+  email: string;
+
+  @ApiProperty({ example: 'John' })
+  firstName?: string;
+
+  @ApiProperty({ example: 'Doe' })
+  lastName?: string;
+}
+
+export class CartBasicDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 3 })
+  totalItems: number;
+
+  @ApiProperty({ example: 75000 })
+  totalAmount: number;
+}
+
+export class ProductOrderDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 75000 })
+  totalPrice: number;
+
+  @ApiProperty({ example: 'COMPLETED' })
+  status: string;
+
+  @ApiProperty({ example: 2 })
+  itemCount: number;
+}
+
+export class CourseEnrollmentDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 1 })
+  courseId: number;
+
+  @ApiProperty({ example: 'Coffee Brewing Masterclass' })
+  courseName?: string;
+
+  @ApiProperty({ example: 150000 })
+  pricePaid: number;
+
+  @ApiProperty({ example: 75 })
+  progress: number;
+}
 
 export class PaymentResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
 
-  @ApiProperty({
-    example: { id: 1, name: "John Doe", email: "john@example.com" },
-    nullable: true,
-  })
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  } | null;
+  @ApiProperty({ example: 1 })
+  userId: number;
 
-  @ApiProperty({
-    example: { id: 12, totalAmount: 50000 },
-    nullable: true,
-  })
-  cart: {
-    id: number;
-    totalAmount: number;
-  } | null;
+  @ApiProperty({ example: 1 })
+  cartId: number;
 
-  @ApiProperty({ example: 50000 })
+  @ApiProperty({ example: 75000 })
   amount: number;
 
-  @ApiProperty({ example: "PENDING" })
-  status: string;
-
-  @ApiProperty({ example: "CREDIT_CARD" })
+  @ApiProperty({ example: 'credit_card' })
   paymentMethod: string;
 
-  @ApiProperty({ example: "ORDER" })
-  payableType: string;
+  @ApiProperty({ enum: PaymentStatus, example: 'COMPLETED' })
+  status: PaymentStatus;
 
-  @ApiProperty({ example: 45 })
+  @ApiProperty({ enum: PayableType, example: 'PRODUCT' })
+  payableType: PayableType;
+
+  @ApiProperty({ example: 1 })
   payableId: number;
 
-  @ApiProperty({ example: "2025-08-19T10:00:00.000Z", nullable: true })
-  paidAt: Date | null;
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
+  paidAt?: Date;
 
-  @ApiProperty({ example: "2025-08-19T09:00:00.000Z" })
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
   createdAt: Date;
 
-  @ApiProperty({ example: "2025-08-19T09:30:00.000Z" })
-  updatedAt: Date;
+  @ApiProperty({ type: UserBasicDto })
+  user?: UserBasicDto;
 
-  constructor(payment: any) {
-    this.id = payment.id;
-    this.user = payment.user
-      ? {
-          id: payment.user.id,
-          name: payment.user.name,
-          email: payment.user.email,
-        }
-      : null;
-    this.cart = payment.cart
-      ? {
-          id: payment.cart.id,
-          totalAmount: payment.cart.totalAmount,
-        }
-      : null;
-    this.amount = payment.amount;
-    this.status = payment.status;
-    this.paymentMethod = payment.paymentMethod;
-    this.payableType = payment.payableType;
-    this.payableId = payment.payableId;
-    this.paidAt = payment.paidAt;
-    this.createdAt = payment.createdAt;
-    this.updatedAt = payment.updatedAt;
-  }
+  @ApiProperty({ type: CartBasicDto })
+  cart?: CartBasicDto;
+
+  @ApiProperty({ type: [ProductOrderDto] })
+  productOrders: ProductOrderDto[];
+
+  @ApiProperty({ type: [CourseEnrollmentDto] })
+  courseEnrollments: CourseEnrollmentDto[];
 }

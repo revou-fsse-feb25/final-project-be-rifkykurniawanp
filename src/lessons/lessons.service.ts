@@ -1,48 +1,68 @@
-import { Injectable } from '@nestjs/common';
-import { LessonsRepository } from './lessons.repository';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { ILessonsRepository } from './interfaces/lessons.repository.interface';
 import { CreateLessonDto } from './dto/request/create-lesson.dto';
 import { UpdateLessonDto } from './dto/request/update-lesson.dto';
+import { LessonResponseDto } from './dto/response/lesson.response.dto';
 
 @Injectable()
 export class LessonsService {
-  constructor(private readonly lessonsRepository: LessonsRepository) {}
+  constructor(@Inject(ILessonsRepository)               // ✅ pakai token
+    private readonly repo: ILessonsRepository // ✅ pakai typing interface
+  ) {}
 
-  create(dto: CreateLessonDto) {
-    // dto harus sudah berisi moduleId (dipaksa di controller via path param)
-    return this.lessonsRepository.create(dto);
+  async create(createDto: CreateLessonDto, moduleId: number): Promise<LessonResponseDto> {
+    const lesson = await this.repo.create({ ...createDto, moduleId });
+    return this.toResponseDto(lesson);
   }
 
-  findAllByModule(moduleId: number) {
-    return this.lessonsRepository.findAllByModule(moduleId);
+  async findAll(moduleId: number, page = 1, limit = 10): Promise<LessonResponseDto[]> {
+    const skip = (page - 1) * limit;
+    const lessons = await this.repo.findAll(skip, limit, { moduleId, deletedAt: null });
+    return lessons.map(l => this.toResponseDto(l));
   }
 
-  findOne(id: number) {
-    return this.lessonsRepository.findOne(id);
+  async findOne(id: number): Promise<LessonResponseDto> {
+    const lesson = await this.repo.findById(id, { deletedAt: null });
+    if (!lesson) throw new NotFoundException('Lesson not found');
+    return this.toResponseDto(lesson);
   }
 
-  findBySlug(slug: string) {
-    return this.lessonsRepository.findBySlug(slug);
+  async update(id: number, updateDto: UpdateLessonDto): Promise<LessonResponseDto> {
+    const existing = await this.repo.findById(id, { deletedAt: null });
+    if (!existing) throw new NotFoundException('Lesson not found');
+    const updated = await this.repo.update(id, updateDto);
+    return this.toResponseDto(updated);
   }
 
-  update(id: number, dto: UpdateLessonDto) {
-    return this.lessonsRepository.update(id, dto);
+  async remove(id: number): Promise<void> {
+    const existing = await this.repo.findById(id, { deletedAt: null });
+    if (!existing) throw new NotFoundException('Lesson not found');
+    await this.repo.softDelete(id);
   }
 
-  remove(id: number) {
-    return this.lessonsRepository.remove(id);
+  async forceDelete(id: number): Promise<void> {
+    const existing = await this.repo.findByIdIncludingDeleted(id);
+    if (!existing) throw new NotFoundException('Lesson not found');
+    await this.repo.hardDelete(id);
   }
 
-  // ===== Progress (per user) =====
-  getProgress(lessonId: number, userId: number) {
-    return this.lessonsRepository.getProgress(lessonId, userId);
+  async restore(id: number): Promise<LessonResponseDto> {
+    const lesson = await this.repo.findByIdIncludingDeleted(id);
+    if (!lesson || !lesson.deletedAt) throw new NotFoundException('Deleted lesson not found');
+    const restored = await this.repo.restore(id);
+    return this.toResponseDto(restored);
   }
 
-  completeLesson(lessonId: number, userId: number) {
-    return this.lessonsRepository.completeLesson(lessonId, userId);
-  }
-
-  // Course progress: biasanya per user; admin bisa lihat semua (optional filter)
-  getCourseProgress(courseId: number, userId?: number) {
-    return this.lessonsRepository.getCourseProgress(courseId, userId);
+  private toResponseDto(lesson: any): LessonResponseDto {
+    return {
+      id: lesson.id,
+      title: lesson.title,
+      description: lesson.description,
+      duration: lesson.duration,
+      type: lesson.type,
+      moduleId: lesson.moduleId,
+      orderNumber: lesson.orderNumber,
+      createdAt: lesson.createdAt,
+    };
   }
 }

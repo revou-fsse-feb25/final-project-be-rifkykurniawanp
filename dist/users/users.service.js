@@ -52,31 +52,39 @@ let UsersService = class UsersService {
         this.usersRepository = usersRepository;
     }
     async create(dto) {
-        if (await this.usersRepository.findByEmail(dto.email)) {
+        const existingUser = await this.usersRepository.findByEmailIncludingDeleted(dto.email);
+        if (existingUser && !existingUser.deletedAt) {
             throw new common_1.BadRequestException('Email already exists');
         }
         const hashedPassword = await bcrypt.hash(dto.password, 10);
-        const user = await this.usersRepository.create({ ...dto, password: hashedPassword });
+        const user = await this.usersRepository.create({
+            ...dto,
+            name: `${dto.firstName ?? ''} ${dto.lastName ?? ''}`.trim(),
+            password: hashedPassword,
+        });
         return this.toResponseDto(user);
     }
     async findAll(page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        return (await this.usersRepository.findAll(skip, limit)).map(this.toResponseDto);
+        const users = await this.usersRepository.findAll(skip, limit, { deletedAt: null });
+        return users.map(this.toResponseDto);
     }
     async findOne(id, currentUserId, currentUserRole) {
-        const user = await this.usersRepository.findById(id);
+        const user = await this.usersRepository.findById(id, { deletedAt: null });
         if (!user)
             throw new common_1.NotFoundException('User not found');
-        if (currentUserRole !== 'ADMIN' || currentUserId !== id) {
+        if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
             throw new common_1.ForbiddenException('You can only access your own profile');
         }
         return this.toResponseDto(user);
     }
     async findByRole(role) {
-        return (await this.usersRepository.findByRole(role)).map(this.toResponseDto);
+        const users = await this.usersRepository.findByRole(role, { deletedAt: null });
+        return users.map(this.toResponseDto);
     }
     async update(id, dto, currentUserId, currentUserRole) {
-        if (!(await this.usersRepository.findById(id))) {
+        const user = await this.usersRepository.findById(id, { deletedAt: null });
+        if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
         if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
@@ -85,13 +93,63 @@ let UsersService = class UsersService {
         if (dto.role && currentUserRole !== 'ADMIN') {
             throw new common_1.ForbiddenException('Only admins can change user roles');
         }
-        return this.toResponseDto(await this.usersRepository.update(id, dto));
+        if (dto.email && dto.email !== user.email) {
+            const existingUser = await this.usersRepository.findByEmail(dto.email, { deletedAt: null });
+            if (existingUser) {
+                throw new common_1.BadRequestException('Email already exists');
+            }
+        }
+        const updatedUser = await this.usersRepository.update(id, dto);
+        return this.toResponseDto(updatedUser);
     }
-    async remove(id) {
-        if (!(await this.usersRepository.findById(id))) {
+    async remove(id, currentUserId, currentUserRole) {
+        const user = await this.usersRepository.findById(id, { deletedAt: null });
+        if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        await this.usersRepository.delete(id);
+        if (currentUserRole !== 'ADMIN' && currentUserId !== id) {
+            throw new common_1.ForbiddenException('You can only delete your own account');
+        }
+        if (user.role === 'ADMIN') {
+            const adminCount = await this.usersRepository.countByRole('ADMIN', { deletedAt: null });
+            if (adminCount <= 1) {
+                throw new common_1.BadRequestException('Cannot delete the last admin user');
+            }
+        }
+        await this.usersRepository.softDelete(id);
+    }
+    async forceDelete(id, currentUserRole) {
+        if (currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only ADMIN can permanently delete users');
+        }
+        const user = await this.usersRepository.findByIdIncludingDeleted(id);
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        await this.usersRepository.hardDelete(id);
+    }
+    async restore(id, currentUserRole) {
+        if (currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only ADMIN can restore users');
+        }
+        const user = await this.usersRepository.findByIdIncludingDeleted(id);
+        if (!user || !user.deletedAt) {
+            throw new common_1.NotFoundException('Deleted user not found');
+        }
+        const emailExists = await this.usersRepository.findByEmail(user.email, { deletedAt: null });
+        if (emailExists) {
+            throw new common_1.BadRequestException('Cannot restore user: email is already in use');
+        }
+        const restoredUser = await this.usersRepository.restore(id);
+        return this.toResponseDto(restoredUser);
+    }
+    async getDeleted(page = 1, limit = 10, currentUserRole) {
+        if (currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only ADMIN can view deleted users');
+        }
+        const skip = (page - 1) * limit;
+        const users = await this.usersRepository.findDeleted(skip, limit);
+        return users.map(this.toResponseDto);
     }
     toResponseDto = (user) => {
         const { password, ...rest } = user;

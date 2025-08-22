@@ -18,8 +18,8 @@ let ProductsService = class ProductsService {
         this.productsRepository = productsRepository;
     }
     async create(createProductDto, currentUserId, currentUserRole) {
-        const existingProduct = await this.productsRepository.findBySlug(createProductDto.slug);
-        if (existingProduct) {
+        const existingProduct = await this.productsRepository.findBySlugIncludingDeleted(createProductDto.slug);
+        if (existingProduct && !existingProduct.deletedAt) {
             throw new common_1.BadRequestException('Product slug already exists');
         }
         let supplierId = createProductDto.supplierId;
@@ -37,29 +37,32 @@ let ProductsService = class ProductsService {
     }
     async findAll(page = 1, limit = 10, filter) {
         const skip = (page - 1) * limit;
-        const products = await this.productsRepository.findAll(skip, limit, filter);
+        const products = await this.productsRepository.findAll(skip, limit, {
+            ...filter,
+            deletedAt: null
+        });
         return products.map(product => this.toResponseDto(product));
     }
     async findOne(id) {
-        const product = await this.productsRepository.findById(id);
+        const product = await this.productsRepository.findById(id, { deletedAt: null });
         if (!product) {
             throw new common_1.NotFoundException('Product not found');
         }
         return this.toResponseDto(product);
     }
     async findBySlug(slug) {
-        const product = await this.productsRepository.findBySlug(slug);
+        const product = await this.productsRepository.findBySlug(slug, { deletedAt: null });
         if (!product) {
             throw new common_1.NotFoundException('Product not found');
         }
         return this.toResponseDto(product);
     }
     async findBySupplierId(supplierId) {
-        const products = await this.productsRepository.findBySupplierId(supplierId);
+        const products = await this.productsRepository.findBySupplierId(supplierId, { deletedAt: null });
         return products.map(product => this.toResponseDto(product));
     }
     async update(id, updateProductDto, currentUserId, currentUserRole) {
-        const existingProduct = await this.productsRepository.findById(id);
+        const existingProduct = await this.productsRepository.findById(id, { deletedAt: null });
         if (!existingProduct) {
             throw new common_1.NotFoundException('Product not found');
         }
@@ -70,7 +73,7 @@ let ProductsService = class ProductsService {
             throw new common_1.ForbiddenException('Only ADMIN and SUPPLIER can update products');
         }
         if (updateProductDto.slug && updateProductDto.slug !== existingProduct.slug) {
-            const slugExists = await this.productsRepository.findBySlug(updateProductDto.slug);
+            const slugExists = await this.productsRepository.findBySlug(updateProductDto.slug, { deletedAt: null });
             if (slugExists) {
                 throw new common_1.BadRequestException('Product slug already exists');
             }
@@ -79,7 +82,7 @@ let ProductsService = class ProductsService {
         return this.toResponseDto(product);
     }
     async remove(id, currentUserId, currentUserRole) {
-        const existingProduct = await this.productsRepository.findById(id);
+        const existingProduct = await this.productsRepository.findById(id, { deletedAt: null });
         if (!existingProduct) {
             throw new common_1.NotFoundException('Product not found');
         }
@@ -89,7 +92,28 @@ let ProductsService = class ProductsService {
         else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'SUPPLIER') {
             throw new common_1.ForbiddenException('Only ADMIN and SUPPLIER can delete products');
         }
-        await this.productsRepository.delete(id);
+        await this.productsRepository.softDelete(id);
+    }
+    async forceDelete(id, currentUserRole) {
+        if (currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only ADMIN can permanently delete products');
+        }
+        const existingProduct = await this.productsRepository.findByIdIncludingDeleted(id);
+        if (!existingProduct) {
+            throw new common_1.NotFoundException('Product not found');
+        }
+        await this.productsRepository.hardDelete(id);
+    }
+    async restore(id, currentUserRole) {
+        if (currentUserRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only ADMIN can restore products');
+        }
+        const product = await this.productsRepository.findByIdIncludingDeleted(id);
+        if (!product || !product.deletedAt) {
+            throw new common_1.NotFoundException('Deleted product not found');
+        }
+        const restoredProduct = await this.productsRepository.restore(id);
+        return this.toResponseDto(restoredProduct);
     }
     async updateRating(id, rating, reviewCount) {
         const product = await this.productsRepository.updateRating(id, rating, reviewCount);

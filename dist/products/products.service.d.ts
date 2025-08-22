@@ -14,6 +14,8 @@ export declare class ProductsService {
     findBySupplierId(supplierId: number): Promise<ProductResponseDto[]>;
     update(id: number, updateProductDto: UpdateProductDto, currentUserId: number, currentUserRole: RoleName): Promise<ProductResponseDto>;
     remove(id: number, currentUserId: number, currentUserRole: RoleName): Promise<void>;
+    forceDelete(id: number, currentUserRole: RoleName): Promise<void>;
+    restore(id: number, currentUserRole: RoleName): Promise<ProductResponseDto>;
     updateRating(id: number, rating: number, reviewCount: number): Promise<ProductResponseDto>;
     private toResponseDto;
 }

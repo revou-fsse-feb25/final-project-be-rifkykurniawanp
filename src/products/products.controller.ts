@@ -71,69 +71,6 @@ export class ProductsController {
   @Get()
   @ApiOperation({ summary: 'Get all products with optional filters' })
   @ApiOkResponse({ description: 'A list of products', type: [ProductResponseDto] })
-  @ApiQuery({ 
-    name: 'page', 
-    required: false, 
-    description: 'Page number for pagination', 
-    type: 'number', 
-    example: 1 
-  })
-  @ApiQuery({ 
-    name: 'limit', 
-    required: false, 
-    description: 'Number of items per page', 
-    type: 'number', 
-    example: 10 
-  })
-  @ApiQuery({ 
-    name: 'category', 
-    required: false, 
-    enum: ProductCategory, 
-    description: 'Filter by product category' 
-  })
-  @ApiQuery({ 
-    name: 'origin', 
-    required: false, 
-    enum: ProductOrigin, 
-    description: 'Filter by product origin' 
-  })
-  @ApiQuery({ 
-    name: 'status', 
-    required: false, 
-    enum: ProductStatus, 
-    description: 'Filter by product status' 
-  })
-  @ApiQuery({ 
-    name: 'supplierId', 
-    required: false, 
-    description: 'Filter by supplier ID', 
-    type: 'number' 
-  })
-  @ApiQuery({ 
-    name: 'minPrice', 
-    required: false, 
-    description: 'Filter by minimum price', 
-    type: 'number' 
-  })
-  @ApiQuery({ 
-    name: 'maxPrice', 
-    required: false, 
-    description: 'Filter by maximum price', 
-    type: 'number' 
-  })
-  @ApiQuery({ 
-    name: 'tags', 
-    required: false, 
-    description: 'Filter by product tags (comma-separated)', 
-    type: 'string',
-    example: 'ARABICA,ROBUSTA'
-  })
-  @ApiQuery({ 
-    name: 'search', 
-    required: false, 
-    description: 'Search by product name or description', 
-    type: 'string' 
-  })
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -161,107 +98,28 @@ export class ProductsController {
     return this.productsService.findAll(pageNum, limitNum, filter);
   }
 
-  @Get('search')
-  @ApiOperation({ summary: 'Search products by name or description' })
-  @ApiQuery({ 
-    name: 'q', 
-    required: true, 
-    description: 'Search query', 
-    type: 'string' 
-  })
-  @ApiQuery({ 
-    name: 'page', 
-    required: false, 
-    description: 'Page number for pagination', 
-    type: 'number', 
-    example: 1 
-  })
-  @ApiQuery({ 
-    name: 'limit', 
-    required: false, 
-    description: 'Number of items per page', 
-    type: 'number', 
-    example: 10 
-  })
-  @ApiOkResponse({ description: 'Search results', type: [ProductResponseDto] })
-  search(
-    @Query('q') query: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ): Promise<ProductResponseDto[]> {
-    const pageNum = page ? parseInt(page) : 1;
-    const limitNum = limit ? parseInt(limit) : 10;
-    
-    // For now, return empty array until search is implemented in service
-    // You'll need to implement search functionality in the service layer
-    return this.productsService.findAll(pageNum, limitNum, {});
-  }
-
-  @Get('category/:category')
-  @ApiOperation({ summary: 'Get products by category' })
-  @ApiParam({ 
-    name: 'category', 
-    enum: ProductCategory,
-    description: 'Product category' 
-  })
-  @ApiOkResponse({ description: 'Products in the specified category', type: [ProductResponseDto] })
-  findByCategory(
-    @Param('category') category: ProductCategory,
-  ): Promise<ProductResponseDto[]> {
-    return this.productsService.findAll(1, 100, { category });
-  }
-
-  @Get('origin/:origin')
-  @ApiOperation({ summary: 'Get products by origin' })
-  @ApiParam({ 
-    name: 'origin', 
-    enum: ProductOrigin,
-    description: 'Product origin' 
-  })
-  @ApiOkResponse({ description: 'Products from the specified origin', type: [ProductResponseDto] })
-  findByOrigin(
-    @Param('origin') origin: ProductOrigin,
-  ): Promise<ProductResponseDto[]> {
-    return this.productsService.findAll(1, 100, { origin });
-  }
-
-  @Get('supplier/:supplierId')
-  @ApiOperation({ summary: 'Get all products by a supplier ID' })
-  @ApiParam({ 
-    name: 'supplierId', 
-    description: 'The unique ID of the supplier', 
-    type: 'number' 
-  })
-  @ApiOkResponse({ 
-    description: 'A list of products by the specified supplier', 
-    type: [ProductResponseDto] 
-  })
-  findBySupplierId(
-    @Param('supplierId', ParseIntPipe) supplierId: number,
-  ): Promise<ProductResponseDto[]> {
-    return this.productsService.findBySupplierId(supplierId);
-  }
-
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Get a product by its slug' })
-  @ApiParam({ 
-    name: 'slug', 
-    description: 'The unique slug of the product', 
-    type: 'string' 
-  })
+  @ApiParam({ name: 'slug', description: 'The unique slug of the product', type: 'string' })
   @ApiOkResponse({ description: 'The product with the given slug', type: ProductResponseDto })
   @ApiNotFoundResponse({ description: 'Product not found' })
   findBySlug(@Param('slug') slug: string): Promise<ProductResponseDto> {
     return this.productsService.findBySlug(slug);
   }
 
+  @Get('supplier/:supplierId')
+  @ApiOperation({ summary: 'Get all products by a supplier ID' })
+  @ApiParam({ name: 'supplierId', description: 'The unique ID of the supplier', type: 'number' })
+  @ApiOkResponse({ description: 'A list of products by the specified supplier', type: [ProductResponseDto] })
+  findBySupplierId(
+    @Param('supplierId', ParseIntPipe) supplierId: number,
+  ): Promise<ProductResponseDto[]> {
+    return this.productsService.findBySupplierId(supplierId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a single product by ID' })
-  @ApiParam({ 
-    name: 'id', 
-    description: 'The unique ID of the product', 
-    type: 'number' 
-  })
+  @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })
   @ApiOkResponse({ description: 'The product with the given ID', type: ProductResponseDto })
   @ApiNotFoundResponse({ description: 'Product not found' })
   findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductResponseDto> {
@@ -273,11 +131,7 @@ export class ProductsController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a product by ID' })
-  @ApiParam({ 
-    name: 'id', 
-    description: 'The unique ID of the product', 
-    type: 'number' 
-  })
+  @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })
   @ApiOkResponse({ description: 'The updated product', type: ProductResponseDto })
   @ApiBody({ type: UpdateProductDto })
   @ApiNotFoundResponse({ description: 'Product not found' })
@@ -299,18 +153,45 @@ export class ProductsController {
   @Roles('ADMIN', 'SUPPLIER')
   @Delete(':id')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a product by ID' })
-  @ApiParam({ 
-    name: 'id', 
-    description: 'The unique ID of the product', 
-    type: 'number' 
-  })
-  @ApiOkResponse({ description: 'Product successfully deleted' })
+  @ApiOperation({ summary: 'Soft delete a product by ID' })
+  @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })
+  @ApiOkResponse({ description: 'Product successfully deleted (soft delete)' })
   @ApiNotFoundResponse({ description: 'Product not found' })
   remove(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: AuthenticatedRequest,
   ): Promise<void> {
     return this.productsService.remove(id, req.user.id, req.user.role as any);
+  }
+
+  // NEW SOFT DELETE ENDPOINTS
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Delete(':id/force')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Permanently delete a product by ID (Admin only)' })
+  @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })
+  @ApiOkResponse({ description: 'Product permanently deleted' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  forceDelete(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    return this.productsService.forceDelete(id, req.user.role as any);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id/restore')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Restore a soft deleted product (Admin only)' })
+  @ApiParam({ name: 'id', description: 'The unique ID of the product', type: 'number' })
+  @ApiOkResponse({ description: 'Product successfully restored', type: ProductResponseDto })
+  @ApiNotFoundResponse({ description: 'Deleted product not found' })
+  restore(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<ProductResponseDto> {
+    return this.productsService.restore(id, req.user.role as any);
   }
 }
