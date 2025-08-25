@@ -20,9 +20,6 @@ export declare class PaymentsController {
     }>;
     findAll(page?: string, limit?: string, req?: any): Promise<({
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -32,6 +29,9 @@ export declare class PaymentsController {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         cart: {
             id: number;
@@ -76,9 +76,6 @@ export declare class PaymentsController {
     })[]>;
     findByStatus(status: PaymentStatus, req: any): Promise<({
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -88,6 +85,9 @@ export declare class PaymentsController {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
     } & {
         id: number;
@@ -138,9 +138,6 @@ export declare class PaymentsController {
     })[]>;
     findOne(id: number, req: any): Promise<{
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -150,6 +147,9 @@ export declare class PaymentsController {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         cart: {
             id: number;

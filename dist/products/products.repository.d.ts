@@ -8,14 +8,14 @@ export declare class ProductsRepository implements IProductsRepository {
     create(data: CreateProductDto & {
         supplierId: number;
     }): Promise<{
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -28,9 +28,6 @@ export declare class ProductsRepository implements IProductsRepository {
     }>;
     findAll(skip: number, take: number, filter?: ProductFilter): Promise<({
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -40,6 +37,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -50,14 +50,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -70,9 +70,6 @@ export declare class ProductsRepository implements IProductsRepository {
     })[]>;
     findById(id: number, filter?: ProductFilter): Promise<({
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -82,6 +79,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -92,14 +92,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -112,9 +112,6 @@ export declare class ProductsRepository implements IProductsRepository {
     }) | null>;
     findBySlug(slug: string, filter?: ProductFilter): Promise<({
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -124,6 +121,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -134,14 +134,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -154,9 +154,6 @@ export declare class ProductsRepository implements IProductsRepository {
     }) | null>;
     findBySlugIncludingDeleted(slug: string): Promise<({
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -166,6 +163,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -176,14 +176,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -196,9 +196,6 @@ export declare class ProductsRepository implements IProductsRepository {
     }) | null>;
     findBySupplierId(supplierId: number, filter?: ProductFilter): Promise<({
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -208,6 +205,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -218,14 +218,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -238,9 +238,6 @@ export declare class ProductsRepository implements IProductsRepository {
     })[]>;
     findByIdIncludingDeleted(id: number): Promise<({
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -250,6 +247,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -260,14 +260,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -280,9 +280,6 @@ export declare class ProductsRepository implements IProductsRepository {
     }) | null>;
     update(id: number, data: UpdateProductDto): Promise<{
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -292,6 +289,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -302,14 +302,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -322,9 +322,6 @@ export declare class ProductsRepository implements IProductsRepository {
     }>;
     updateRating(id: number, rating: number, reviewCount: number): Promise<{
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -334,6 +331,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -344,14 +344,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;
@@ -366,9 +366,6 @@ export declare class ProductsRepository implements IProductsRepository {
     hardDelete(id: number): Promise<void>;
     restore(id: number): Promise<{
         supplier: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -378,6 +375,9 @@ export declare class ProductsRepository implements IProductsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         reviews: {
             id: number;
@@ -388,14 +388,14 @@ export declare class ProductsRepository implements IProductsRepository {
             comment: string | null;
         }[];
     } & {
-        name: string;
-        id: number;
-        slug: string;
         description: string | null;
+        id: number;
         createdAt: Date;
         deletedAt: Date | null;
+        name: string;
         tags: import(".prisma/client").$Enums.ProductTagName[];
         status: import(".prisma/client").$Enums.ProductStatus;
+        slug: string;
         price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         image: string | null;

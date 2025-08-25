@@ -11,8 +11,6 @@ export declare class AuthService {
     login(dto: LoginDto): Promise<AuthResponseDto>;
     private generateToken;
     getUserProfile(userId: number): Promise<{
-        id: number;
-        createdAt: Date;
         email: string;
         firstName: string | null;
         lastName: string | null;
@@ -21,6 +19,8 @@ export declare class AuthService {
         role: import(".prisma/client").$Enums.RoleName;
         isBuyer: boolean;
         isStudent: boolean;
+        id: number;
+        createdAt: Date;
     }>;
     updateProfile(userId: number, updateData: {
         firstName?: string;
@@ -28,7 +28,6 @@ export declare class AuthService {
         phone?: string;
         address?: string;
     }): Promise<{
-        id: number;
         email: string;
         firstName: string | null;
         lastName: string | null;
@@ -37,13 +36,12 @@ export declare class AuthService {
         role: import(".prisma/client").$Enums.RoleName;
         isBuyer: boolean;
         isStudent: boolean;
+        id: number;
     }>;
     changePassword(userId: number, currentPassword: string, newPassword: string): Promise<{
         message: string;
     }>;
     verifyToken(token: string): Promise<{
-        id: number;
-        createdAt: Date;
         email: string;
         firstName: string | null;
         lastName: string | null;
@@ -52,5 +50,7 @@ export declare class AuthService {
         role: import(".prisma/client").$Enums.RoleName;
         isBuyer: boolean;
         isStudent: boolean;
+        id: number;
+        createdAt: Date;
     }>;
 }

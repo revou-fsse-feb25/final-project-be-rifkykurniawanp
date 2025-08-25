@@ -1,347 +1,326 @@
-  // ================= GENERATOR & DATASOURCE =================
-  generator client {
-    provider = "prisma-client-js"
-  }
+generator client {
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
-  }
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 
-  // ================= ENUMS =================
-  enum RoleName {
-    ADMIN
-    SUPPLIER
-    INSTRUCTOR
-    USER
-  }
+model User {
+  id                    Int                    @id @default(autoincrement())
+  email                 String                 @unique
+  password              String
+  firstName             String?
+  lastName              String?
+  phone                 String?
+  address               String?
+  role                  RoleName
+  isBuyer               Boolean                @default(false)
+  isStudent             Boolean                @default(false)
+  createdAt             DateTime               @default(now())
+  deletedAt             DateTime?
+  assignmentSubmissions AssignmentSubmission[]
+  carts                 Cart[]
+  courses               Course[]
+  courseEnrollments     CourseEnrollment[]
+  lessonProgresses      LessonProgress[]
+  payments              Payment[]
+  products              Product[]
+  productOrders         ProductOrder[]
+  productReviews        ProductReview[]
+}
 
-  enum ProductCategory {
-    COFFEE
-    TEA
-    HERBAL
-    EQUIPMENT
-  }
+model Product {
+  id          Int                @id @default(autoincrement())
+  slug        String             @unique
+  name        String
+  description String?
+  price       Decimal            @db.Decimal(12, 2)
+  stock       Int                @default(0)
+  image       String?
+  category    ProductCategory
+  status      ProductStatus
+  supplierId  Int
+  rating      Decimal            @default(0) @db.Decimal(2, 1)
+  reviewCount Int                @default(0)
+  origin      ProductOrigin
+  weight      String?
+  tags        ProductTagName[]
+  createdAt   DateTime           @default(now())
+  deletedAt   DateTime?
+  cartItems   CartItem[]
+  supplier    User               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  orderItems  ProductOrderItem[]
+  reviews     ProductReview[]
+}
 
-  enum ProductOrigin {
-    INDONESIA
-    VIETNAM
-    BRAZIL
-    ETHIOPIA
-    OTHER
-  }
+model ProductReview {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  enum ProductStatus {
-    ACTIVE
-    OUT_OF_STOCK
-    DRAFT
-  }
+model Course {
+  id           Int                @id @default(autoincrement())
+  title        String
+  slug         String             @unique
+  description  String?
+  syllabus     String?
+  price        Decimal            @db.Decimal(12, 2)
+  instructorId Int
+  rating       Decimal            @default(0) @db.Decimal(2, 1)
+  students     Int                @default(0)
+  duration     String?
+  level        CourseLevel
+  category     CourseCategory
+  language     String             @default("id")
+  certificate  Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  deletedAt    DateTime?
+  cartItems    CartItem[]
+  instructor   User               @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  enrollments  CourseEnrollment[]
+  modules      CourseModule[]
+}
 
-  enum ProductTagName {
-    ARABICA
-    ROBUSTA
-    GREEN_TEA
-    HERBAL
-    EQUIPMENT
-  }
+model CourseModule {
+  id          Int       @id @default(autoincrement())
+  courseId    Int
+  title       String
+  orderNumber Int
+  deletedAt   DateTime?
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+}
 
-  enum CourseCategory {
-    COFFEE_BREWING
-    TEA_TASTING
-    HERBAL_HEALTH
-  }
+model Lesson {
+  id            Int              @id @default(autoincrement())
+  moduleId      Int
+  slug          String?          @unique
+  title         String
+  description   String?
+  duration      String?
+  type          LessonType       @default(VIDEO)
+  videoUrl      String?
+  content       String?
+  quizQuestions Json?
+  passingScore  Decimal          @default(70) @db.Decimal(5, 2)
+  orderNumber   Int
+  createdAt     DateTime         @default(now())
+  deletedAt     DateTime?
+  assignments   Assignment[]
+  module        CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progresses    LessonProgress[]
+}
 
-  enum CourseLevel {
-    BEGINNER
-    INTERMEDIATE
-    ADVANCED
-  }
+model LessonProgress {
+  lessonId  Int
+  userId    Int
+  completed Boolean  @default(false)
+  updatedAt DateTime @default(now()) @updatedAt
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  enum CartItemType {
-    PRODUCT
-    COURSE
-  }
+  @@id([lessonId, userId])
+}
 
-  enum LessonType {
-    VIDEO
-    ARTICLE
-    QUIZ
-    ASSIGNMENT
-  }
+model Assignment {
+  id           Int                    @id @default(autoincrement())
+  lessonId     Int
+  title        String
+  instructions String
+  dueDate      DateTime?
+  createdAt    DateTime               @default(now())
+  deletedAt    DateTime?
+  lesson       Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions  AssignmentSubmission[]
+}
 
-  enum PayableType {
-    PRODUCT
-    COURSE
-  }
+model AssignmentSubmission {
+  id           Int        @id @default(autoincrement())
+  assignmentId Int
+  userId       Int
+  content      String?
+  grade        Decimal?   @db.Decimal(5, 2)
+  submittedAt  DateTime   @default(now())
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  enum PaymentStatus {
-    PENDING
-    COMPLETED
-    FAILED
-    CANCELLED
-  }
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  payments  Payment[]
+}
 
-  enum OrderStatus {
-    PENDING
-    PROCESSING
-    COMPLETED
-    CANCELLED
-  }
+model CartItem {
+  id        Int          @id @default(autoincrement())
+  cartId    Int
+  itemType  CartItemType
+  itemId    Int
+  quantity  Int          @default(1)
+  price     Decimal      @db.Decimal(12, 2)
+  deletedAt DateTime?
+  cart      Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
-  // ================= MODELS =================
-  model User {
-    id         Int       @id @default(autoincrement())
-    email      String    @unique
-    password   String
-    firstName  String?
-    lastName   String?
-    phone      String?
-    address    String?
-    role       RoleName
-    isBuyer    Boolean   @default(false)
-    isStudent  Boolean   @default(false)
-    createdAt  DateTime  @default(now())
-    deletedAt  DateTime? // soft delete
+  // Relasi opsional tergantung itemType
+  product   Product?     @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "CartItem_itemId_product_fkey")
+  course    Course?      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "CartItem_itemId_course_fkey")
+}
 
-    products          Product[]
-    productReviews    ProductReview[]
-    courses           Course[]
-    lessonProgresses  LessonProgress[]
-    carts             Cart[]
-    payments          Payment[]
-    productOrders     ProductOrder[]
-    courseEnrollments CourseEnrollment[]
-    assignmentSubmissions AssignmentSubmission[]
-  }
+model Payment {
+  id                Int                @id @default(autoincrement())
+  userId            Int
+  cartId            Int
+  amount            Decimal            @db.Decimal(12, 2)
+  paymentMethod     String
+  status            PaymentStatus      @default(PENDING)
+  payableType       PayableType
+  payableId         Int
+  paidAt            DateTime?
+  createdAt         DateTime           @default(now())
+  deletedAt         DateTime?
+  courseEnrollments CourseEnrollment[]
+  cart              Cart               @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productOrders     ProductOrder[]
+}
 
-  model Product {
-    id          Int             @id @default(autoincrement())
-    slug        String          @unique
-    name        String
-    description String?
-    price       Decimal         @db.Decimal(12,2)
-    stock       Int             @default(0)
-    image       String?
-    category    ProductCategory
-    status      ProductStatus
-    supplierId  Int
-    rating      Decimal         @default(0) @db.Decimal(2,1)
-    reviewCount Int             @default(0)
-    origin      ProductOrigin
-    weight      String?
-    tags        ProductTagName[]
-    createdAt   DateTime        @default(now())
-    deletedAt   DateTime?       // soft delete
+model ProductOrder {
+  id         Int                @id @default(autoincrement())
+  buyerId    Int
+  paymentId  Int
+  totalPrice Decimal            @db.Decimal(12, 2)
+  status     OrderStatus        @default(PENDING)
+  createdAt  DateTime           @default(now())
+  buyer      User               @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  payment    Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  items      ProductOrderItem[]
+}
 
-    supplier   User             @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-    reviews    ProductReview[]
-    cartItems  CartItem[]
-    orderItems ProductOrderItem[]
-  }
+model ProductOrderItem {
+  id        Int          @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  priceEach Decimal      @db.Decimal(12, 2)
+  order     ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
 
-  model ProductReview {
-    id        Int      @id @default(autoincrement())
-    productId Int
-    userId    Int
-    rating    Int
-    comment   String?
-    createdAt DateTime @default(now())
+model CourseEnrollment {
+  id                 Int          @id @default(autoincrement())
+  courseId           Int
+  studentId          Int
+  paymentId          Int
+  pricePaid          Decimal      @db.Decimal(12, 2)
+  progress           Int          @default(0)
+  certificateAwarded Boolean      @default(false)
+  enrolledAt         DateTime     @default(now())
+  certificate        Certificate?
+  course             Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  payment            Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  student            User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
 
-    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  }
+model Certificate {
+  id                        Int              @id @default(autoincrement())
+  enrollmentId              Int              @unique
+  finalLessonsCompleted     Boolean          @default(false)
+  finalAssignmentsCompleted Boolean          @default(false)
+  eligible                  Boolean          @default(false)
+  issuedAt                  DateTime?
+  certificateUrl            String?
+  enrollment                CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
 
-  model Course {
-    id           Int           @id @default(autoincrement())
-    title        String
-    slug         String        @unique
-    description  String?
-    syllabus     String?
-    price        Decimal       @db.Decimal(12,2)
-    instructorId Int
-    rating       Decimal       @default(0) @db.Decimal(2,1)
-    students     Int           @default(0)
-    duration     String?
-    level        CourseLevel
-    category     CourseCategory
-    language     String        @default("id")
-    certificate  Boolean       @default(false)
-    createdAt    DateTime      @default(now())
-    deletedAt    DateTime?     // soft delete
+enum RoleName {
+  ADMIN
+  SUPPLIER
+  INSTRUCTOR
+  USER
+}
 
-    instructor  User                @relation(fields: [instructorId], references: [id], onDelete: Cascade)
-    modules     CourseModule[]
-    cartItems   CartItem[]
-    enrollments CourseEnrollment[]
-  }
+enum ProductCategory {
+  COFFEE
+  TEA
+  HERBAL
+  EQUIPMENT
+}
 
-  model CourseModule {
-    id          Int      @id @default(autoincrement())
-    courseId    Int
-    title       String
-    orderNumber Int
-    deletedAt   DateTime?
+enum ProductOrigin {
+  INDONESIA
+  VIETNAM
+  BRAZIL
+  ETHIOPIA
+  OTHER
+}
 
-    course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    lessons Lesson[]
-  }
+enum ProductStatus {
+  ACTIVE
+  OUT_OF_STOCK
+  DRAFT
+}
 
-  model Lesson {
-    id           Int       @id @default(autoincrement())
-    moduleId     Int
-    slug         String?   @unique
-    title        String
-    description  String?
-    duration     String?
-    type         LessonType @default(VIDEO)
-    videoUrl     String?
-    content      String?
-    quizQuestions Json?     // Changed from String to Json for better data structure
-    passingScore Decimal   @default(70) @db.Decimal(5,2)
-    orderNumber  Int
-    createdAt    DateTime  @default(now())
-    deletedAt    DateTime? // <--- soft delete
+enum ProductTagName {
+  ARABICA
+  ROBUSTA
+  GREEN_TEA
+  HERBAL
+  EQUIPMENT
+}
 
-    
+enum CourseCategory {
+  COFFEE_BREWING
+  TEA_TASTING
+  HERBAL_HEALTH
+}
 
-    module       CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-    progresses   LessonProgress[]
-    assignments  Assignment[]
-  }
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
 
-  model LessonProgress {
-    lessonId  Int
-    userId    Int
-    completed Boolean  @default(false)
-    updatedAt DateTime @default(now()) @updatedAt
+enum CartItemType {
+  PRODUCT
+  COURSE
+}
 
-    lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum LessonType {
+  VIDEO
+  ARTICLE
+  QUIZ
+  ASSIGNMENT
+}
 
-    @@id([lessonId, userId])
-  }
+enum PayableType {
+  PRODUCT
+  COURSE
+}
 
-  model Assignment {
-    id           Int       @id @default(autoincrement())
-    lessonId     Int
-    title        String
-    instructions String
-    dueDate      DateTime?
-    createdAt    DateTime  @default(now())
-    deletedAt    DateTime? // <--- soft delete
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
 
-    lesson      Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-    submissions AssignmentSubmission[]
-  }
-
-  model AssignmentSubmission {
-    id           Int       @id @default(autoincrement())
-    assignmentId Int
-    userId       Int
-    content      String?
-    grade        Decimal?  @db.Decimal(5,2)
-    submittedAt  DateTime  @default(now())
-
-    assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-    user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  }
-
-  // ================= CART & PAYMENT =================
-  model Cart {
-    id        Int        @id @default(autoincrement())
-    userId    Int
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
-    deletedAt DateTime?
-
-    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-    items     CartItem[]
-    payments  Payment[]
-  }
-
-  model CartItem {
-    id        Int          @id @default(autoincrement())
-    cartId    Int
-    itemType  CartItemType
-    itemId    Int
-    quantity  Int          @default(1)
-    price     Decimal      @db.Decimal(12,2)
-    deletedAt DateTime?
-
-    cart    Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-    product Product? @relation(fields: [itemId], references: [id], map: "CartItem_itemId_product_fkey")
-    course  Course?  @relation(fields: [itemId], references: [id], map: "CartItem_itemId_course_fkey")
-  }
-
-  model Payment {
-    id              Int          @id @default(autoincrement())
-    userId          Int
-    cartId          Int
-    amount          Decimal      @db.Decimal(12,2)
-    paymentMethod   String
-    status          PaymentStatus @default(PENDING)
-    payableType     PayableType
-    payableId       Int
-    
-    paidAt          DateTime?
-    createdAt       DateTime      @default(now())
-    deletedAt       DateTime?
-
-    user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    cart            Cart          @relation(fields: [cartId], references: [id], onDelete: Cascade)
-    productOrders   ProductOrder[]
-    courseEnrollments CourseEnrollment[]
-  }
-
-  model ProductOrder {
-    id         Int          @id @default(autoincrement())
-    buyerId    Int
-    paymentId  Int
-    totalPrice Decimal      @db.Decimal(12,2)
-    status     OrderStatus  @default(PENDING)
-    createdAt  DateTime     @default(now())
-
-    buyer    User         @relation(fields: [buyerId], references: [id], onDelete: Cascade)
-    payment  Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-    items    ProductOrderItem[]
-  }
-
-  model ProductOrderItem {
-    id        Int       @id @default(autoincrement())
-    orderId   Int
-    productId Int
-    quantity  Int
-    priceEach Decimal   @db.Decimal(12,2)
-
-    order   ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-    product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  }
-
-  model CourseEnrollment {
-    id                 Int       @id @default(autoincrement())
-    courseId           Int
-    studentId          Int
-    paymentId          Int
-    pricePaid          Decimal   @db.Decimal(12,2)
-    progress           Int       @default(0)
-    certificateAwarded Boolean   @default(false)
-    enrolledAt         DateTime  @default(now())
-
-    course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    student  User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-    payment  Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-    certificate Certificate?
-  }
-
-  model Certificate {
-    id                        Int      @id @default(autoincrement())
-    enrollmentId              Int      @unique
-    finalLessonsCompleted     Boolean  @default(false)
-    finalAssignmentsCompleted Boolean  @default(false)
-    eligible                  Boolean  @default(false)
-    issuedAt                  DateTime?
-    certificateUrl            String?
-
-    enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  }
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}

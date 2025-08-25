@@ -8,9 +8,6 @@ export declare class PaymentService {
     create(dto: CreatePaymentDto, userId: number, role: string): Promise<Payment>;
     findAll(page: number, limit: number, role: string): Promise<({
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -20,6 +17,9 @@ export declare class PaymentService {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         cart: {
             id: number;
@@ -64,9 +64,6 @@ export declare class PaymentService {
     })[]>;
     findByStatus(status: PaymentStatus, role: string): Promise<({
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -76,6 +73,9 @@ export declare class PaymentService {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
     } & {
         id: number;
@@ -126,9 +126,6 @@ export declare class PaymentService {
     })[]>;
     findOne(id: number, requestUserId: number, role: string): Promise<{
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -138,6 +135,9 @@ export declare class PaymentService {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         cart: {
             id: number;

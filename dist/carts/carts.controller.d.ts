@@ -46,19 +46,19 @@ export declare class CartsController {
     }, req: any): Promise<{
         id: number;
         deletedAt: Date | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
-        price: import("@prisma/client/runtime/library").Decimal;
     }>;
     removeItem(cartId: number, itemId: number, req: any): Promise<{
         id: number;
         deletedAt: Date | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
-        price: import("@prisma/client/runtime/library").Decimal;
     }>;
 }

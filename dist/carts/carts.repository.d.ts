@@ -184,9 +184,6 @@ export declare class CartsRepository {
     })[]>;
     findDeleted(skip?: number, take?: number): Promise<({
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -196,17 +193,20 @@ export declare class CartsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         items: ({
             product: {
-                name: string;
-                id: number;
-                slug: string;
                 description: string | null;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
+                name: string;
                 tags: import(".prisma/client").$Enums.ProductTagName[];
                 status: import(".prisma/client").$Enums.ProductStatus;
+                slug: string;
                 price: Prisma.Decimal;
                 stock: number;
                 image: string | null;
@@ -218,19 +218,19 @@ export declare class CartsRepository {
                 reviewCount: number;
             } | null;
             course: {
-                id: number;
-                slug: string;
-                title: string;
+                certificate: boolean;
                 description: string | null;
-                duration: string | null;
+                title: string;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
-                certificate: boolean;
+                slug: string;
                 price: Prisma.Decimal;
                 category: import(".prisma/client").$Enums.CourseCategory;
                 rating: Prisma.Decimal;
                 syllabus: string | null;
                 instructorId: number;
+                duration: string | null;
                 level: import(".prisma/client").$Enums.CourseLevel;
                 language: string;
                 students: number;
@@ -266,9 +266,6 @@ export declare class CartsRepository {
     })[]>;
     findByIdIncludingDeleted(id: number): Promise<({
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -278,17 +275,20 @@ export declare class CartsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         items: ({
             product: {
-                name: string;
-                id: number;
-                slug: string;
                 description: string | null;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
+                name: string;
                 tags: import(".prisma/client").$Enums.ProductTagName[];
                 status: import(".prisma/client").$Enums.ProductStatus;
+                slug: string;
                 price: Prisma.Decimal;
                 stock: number;
                 image: string | null;
@@ -300,19 +300,19 @@ export declare class CartsRepository {
                 reviewCount: number;
             } | null;
             course: {
-                id: number;
-                slug: string;
-                title: string;
+                certificate: boolean;
                 description: string | null;
-                duration: string | null;
+                title: string;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
-                certificate: boolean;
+                slug: string;
                 price: Prisma.Decimal;
                 category: import(".prisma/client").$Enums.CourseCategory;
                 rating: Prisma.Decimal;
                 syllabus: string | null;
                 instructorId: number;
+                duration: string | null;
                 level: import(".prisma/client").$Enums.CourseLevel;
                 language: string;
                 students: number;
@@ -348,9 +348,6 @@ export declare class CartsRepository {
     }) | null>;
     update(id: number, data: UpdateCartData): Promise<{
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -360,17 +357,20 @@ export declare class CartsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         items: ({
             product: {
-                name: string;
-                id: number;
-                slug: string;
                 description: string | null;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
+                name: string;
                 tags: import(".prisma/client").$Enums.ProductTagName[];
                 status: import(".prisma/client").$Enums.ProductStatus;
+                slug: string;
                 price: Prisma.Decimal;
                 stock: number;
                 image: string | null;
@@ -382,19 +382,19 @@ export declare class CartsRepository {
                 reviewCount: number;
             } | null;
             course: {
-                id: number;
-                slug: string;
-                title: string;
+                certificate: boolean;
                 description: string | null;
-                duration: string | null;
+                title: string;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
-                certificate: boolean;
+                slug: string;
                 price: Prisma.Decimal;
                 category: import(".prisma/client").$Enums.CourseCategory;
                 rating: Prisma.Decimal;
                 syllabus: string | null;
                 instructorId: number;
+                duration: string | null;
                 level: import(".prisma/client").$Enums.CourseLevel;
                 language: string;
                 students: number;
@@ -437,9 +437,6 @@ export declare class CartsRepository {
     }>;
     restore(id: number): Promise<{
         user: {
-            id: number;
-            createdAt: Date;
-            deletedAt: Date | null;
             email: string;
             password: string;
             firstName: string | null;
@@ -449,17 +446,20 @@ export declare class CartsRepository {
             role: import(".prisma/client").$Enums.RoleName;
             isBuyer: boolean;
             isStudent: boolean;
+            id: number;
+            createdAt: Date;
+            deletedAt: Date | null;
         };
         items: ({
             product: {
-                name: string;
-                id: number;
-                slug: string;
                 description: string | null;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
+                name: string;
                 tags: import(".prisma/client").$Enums.ProductTagName[];
                 status: import(".prisma/client").$Enums.ProductStatus;
+                slug: string;
                 price: Prisma.Decimal;
                 stock: number;
                 image: string | null;
@@ -471,19 +471,19 @@ export declare class CartsRepository {
                 reviewCount: number;
             } | null;
             course: {
-                id: number;
-                slug: string;
-                title: string;
+                certificate: boolean;
                 description: string | null;
-                duration: string | null;
+                title: string;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
-                certificate: boolean;
+                slug: string;
                 price: Prisma.Decimal;
                 category: import(".prisma/client").$Enums.CourseCategory;
                 rating: Prisma.Decimal;
                 syllabus: string | null;
                 instructorId: number;
+                duration: string | null;
                 level: import(".prisma/client").$Enums.CourseLevel;
                 language: string;
                 students: number;
@@ -526,14 +526,14 @@ export declare class CartsRepository {
     }>;
     createItem(data: CreateCartItemData): Promise<{
         product: {
-            name: string;
-            id: number;
-            slug: string;
             description: string | null;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
+            name: string;
             tags: import(".prisma/client").$Enums.ProductTagName[];
             status: import(".prisma/client").$Enums.ProductStatus;
+            slug: string;
             price: Prisma.Decimal;
             stock: number;
             image: string | null;
@@ -545,19 +545,19 @@ export declare class CartsRepository {
             reviewCount: number;
         } | null;
         course: {
-            id: number;
-            slug: string;
-            title: string;
+            certificate: boolean;
             description: string | null;
-            duration: string | null;
+            title: string;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
-            certificate: boolean;
+            slug: string;
             price: Prisma.Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: Prisma.Decimal;
             syllabus: string | null;
             instructorId: number;
+            duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
             students: number;
@@ -573,14 +573,14 @@ export declare class CartsRepository {
     }>;
     findItemByCartAndItem(cartId: number, itemType: CartItemType, itemId: number): Promise<({
         product: {
-            name: string;
-            id: number;
-            slug: string;
             description: string | null;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
+            name: string;
             tags: import(".prisma/client").$Enums.ProductTagName[];
             status: import(".prisma/client").$Enums.ProductStatus;
+            slug: string;
             price: Prisma.Decimal;
             stock: number;
             image: string | null;
@@ -592,19 +592,19 @@ export declare class CartsRepository {
             reviewCount: number;
         } | null;
         course: {
-            id: number;
-            slug: string;
-            title: string;
+            certificate: boolean;
             description: string | null;
-            duration: string | null;
+            title: string;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
-            certificate: boolean;
+            slug: string;
             price: Prisma.Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: Prisma.Decimal;
             syllabus: string | null;
             instructorId: number;
+            duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
             students: number;
@@ -620,14 +620,14 @@ export declare class CartsRepository {
     }) | null>;
     findItemById(id: number): Promise<({
         product: {
-            name: string;
-            id: number;
-            slug: string;
             description: string | null;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
+            name: string;
             tags: import(".prisma/client").$Enums.ProductTagName[];
             status: import(".prisma/client").$Enums.ProductStatus;
+            slug: string;
             price: Prisma.Decimal;
             stock: number;
             image: string | null;
@@ -639,19 +639,19 @@ export declare class CartsRepository {
             reviewCount: number;
         } | null;
         course: {
-            id: number;
-            slug: string;
-            title: string;
+            certificate: boolean;
             description: string | null;
-            duration: string | null;
+            title: string;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
-            certificate: boolean;
+            slug: string;
             price: Prisma.Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: Prisma.Decimal;
             syllabus: string | null;
             instructorId: number;
+            duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
             students: number;
@@ -667,14 +667,14 @@ export declare class CartsRepository {
     }) | null>;
     findItemsByCart(cartId: number): Promise<({
         product: {
-            name: string;
-            id: number;
-            slug: string;
             description: string | null;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
+            name: string;
             tags: import(".prisma/client").$Enums.ProductTagName[];
             status: import(".prisma/client").$Enums.ProductStatus;
+            slug: string;
             price: Prisma.Decimal;
             stock: number;
             image: string | null;
@@ -686,19 +686,19 @@ export declare class CartsRepository {
             reviewCount: number;
         } | null;
         course: {
-            id: number;
-            slug: string;
-            title: string;
+            certificate: boolean;
             description: string | null;
-            duration: string | null;
+            title: string;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
-            certificate: boolean;
+            slug: string;
             price: Prisma.Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: Prisma.Decimal;
             syllabus: string | null;
             instructorId: number;
+            duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
             students: number;
@@ -714,14 +714,14 @@ export declare class CartsRepository {
     })[]>;
     updateItem(id: number, data: UpdateCartItemData): Promise<{
         product: {
-            name: string;
-            id: number;
-            slug: string;
             description: string | null;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
+            name: string;
             tags: import(".prisma/client").$Enums.ProductTagName[];
             status: import(".prisma/client").$Enums.ProductStatus;
+            slug: string;
             price: Prisma.Decimal;
             stock: number;
             image: string | null;
@@ -733,19 +733,19 @@ export declare class CartsRepository {
             reviewCount: number;
         } | null;
         course: {
-            id: number;
-            slug: string;
-            title: string;
+            certificate: boolean;
             description: string | null;
-            duration: string | null;
+            title: string;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
-            certificate: boolean;
+            slug: string;
             price: Prisma.Decimal;
             category: import(".prisma/client").$Enums.CourseCategory;
             rating: Prisma.Decimal;
             syllabus: string | null;
             instructorId: number;
+            duration: string | null;
             level: import(".prisma/client").$Enums.CourseLevel;
             language: string;
             students: number;

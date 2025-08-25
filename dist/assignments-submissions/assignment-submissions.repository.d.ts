@@ -12,13 +12,13 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
         user: {
             firstName: string | undefined;
             lastName: string | undefined;
-            id: number;
             email: string;
+            id: number;
         };
         assignment: {
             dueDate: Date | undefined;
-            id: number;
             title: string;
+            id: number;
         };
         id: number;
         content: string | null;
@@ -35,13 +35,13 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
             user: {
                 firstName: string | undefined;
                 lastName: string | undefined;
-                id: number;
                 email: string;
+                id: number;
             };
             assignment: {
                 dueDate: Date | undefined;
-                id: number;
                 title: string;
+                id: number;
             };
             id: number;
             content: string | null;
@@ -72,31 +72,31 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
                         instructorId: number;
                     };
                 } & {
-                    id: number;
                     title: string;
-                    orderNumber: number;
+                    id: number;
                     deletedAt: Date | null;
                     courseId: number;
+                    orderNumber: number;
                 };
             } & {
-                id: number;
-                moduleId: number;
-                slug: string | null;
-                title: string;
-                description: string | null;
-                duration: string | null;
                 type: import(".prisma/client").$Enums.LessonType;
-                videoUrl: string | null;
-                content: string | null;
-                quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
-                passingScore: import("@prisma/client/runtime/library").Decimal;
-                orderNumber: number;
+                description: string | null;
+                title: string;
+                id: number;
                 createdAt: Date;
                 deletedAt: Date | null;
+                content: string | null;
+                slug: string | null;
+                duration: string | null;
+                orderNumber: number;
+                moduleId: number;
+                videoUrl: string | null;
+                quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
+                passingScore: import("@prisma/client/runtime/library").Decimal;
             };
         } & {
-            id: number;
             title: string;
+            id: number;
             createdAt: Date;
             deletedAt: Date | null;
             lessonId: number;
