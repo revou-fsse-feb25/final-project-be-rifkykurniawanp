@@ -1,34 +1,50 @@
-// src/courses/dto/response/course.response.dto.ts
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CourseCategory, CourseLevel } from '@prisma/client';
-import { InstructorResponseDto } from './instructor.response.dto';
+export class LessonResponseDto {
+  id: number;
+  slug?: string;
+  title: string;
+  description?: string;
+  duration?: string;
+  type: string;
+  videoUrl?: string;
+  content?: string;
+  quizQuestions?: any;
+  passingScore: number;
+  orderNumber: number;
+}
+
+export class ModuleResponseDto {
+  id: number;
+  title: string;
+  orderNumber: number;
+  deletedAt?: Date | null; // 🔥 tambahkan ini
+  lessons: LessonResponseDto[];
+}
+
+
+export class InstructorResponseDto {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 export class CourseResponseDto {
-  @ApiProperty() id: number;
-  @ApiProperty() title: string;
-  @ApiProperty() slug: string;
-  @ApiPropertyOptional() description?: string;
-  @ApiPropertyOptional() syllabus?: string;
-  @ApiProperty() price: number;
-  @ApiProperty() rating: number;
-  @ApiProperty() students: number;
-  @ApiPropertyOptional() duration?: string;
-  @ApiProperty({ enum: CourseLevel }) level: CourseLevel;
-  @ApiProperty({ enum: CourseCategory }) category: CourseCategory;
-  @ApiProperty() language: string;
-  @ApiProperty() certificate: boolean;
-  @ApiProperty() createdAt: Date;
+  id: number;
+  title: string;
+  slug: string;
+  description?: string;
+  syllabus?: string;
+  price: number;
+  rating: number;
+  students: number;
+  duration?: string;
+  level: string;
+  category: string;
+  language: string;
+  certificate: boolean;
+  createdAt: Date;
 
-  @ApiProperty({ type: () => InstructorResponseDto })
   instructor: InstructorResponseDto;
-
-  @ApiPropertyOptional({
-    type: [Object],
-  })
-  modules?: Array<any>;
-
-  @ApiPropertyOptional({
-    type: [Object],
-  })
+  modules?: ModuleResponseDto[];
   enrollments?: Array<any>;
 }

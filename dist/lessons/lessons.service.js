@@ -65,12 +65,18 @@ let LessonsService = class LessonsService {
         return {
             id: lesson.id,
             title: lesson.title,
+            slug: lesson.slug,
             description: lesson.description,
             duration: lesson.duration,
             type: lesson.type,
             moduleId: lesson.moduleId,
             orderNumber: lesson.orderNumber,
+            videoUrl: lesson.videoUrl,
+            content: lesson.content,
+            quizQuestions: lesson.quizQuestions,
+            passingScore: lesson.passingScore,
             createdAt: lesson.createdAt,
+            deletedAt: lesson.deletedAt,
         };
     }
 };

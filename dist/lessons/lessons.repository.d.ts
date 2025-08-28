@@ -8,25 +8,48 @@ export declare class LessonsRepository implements ILessonsRepository {
     create(data: CreateLessonDto & {
         moduleId: number;
     }): Promise<{
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
+        assignments: {
+            id: number;
+            title: string;
+            createdAt: Date;
+            deletedAt: Date | null;
+            lessonId: number;
+            instructions: string;
+            dueDate: Date | null;
+        }[];
+        module: {
+            id: number;
+            title: string;
+            orderNumber: number;
+            deletedAt: Date | null;
+            courseId: number;
+        };
+        progresses: {
+            lessonId: number;
+            userId: number;
+            completed: boolean;
+            updatedAt: Date;
+        }[];
+    } & {
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
     findAll(skip: number, take: number, filter?: LessonFilter): Promise<({
         assignments: {
-            title: string;
             id: number;
+            title: string;
             createdAt: Date;
             deletedAt: Date | null;
             lessonId: number;
@@ -34,38 +57,38 @@ export declare class LessonsRepository implements ILessonsRepository {
             dueDate: Date | null;
         }[];
         module: {
-            title: string;
             id: number;
+            title: string;
+            orderNumber: number;
             deletedAt: Date | null;
             courseId: number;
-            orderNumber: number;
         };
         progresses: {
-            userId: number;
-            updatedAt: Date;
             lessonId: number;
+            userId: number;
             completed: boolean;
+            updatedAt: Date;
         }[];
     } & {
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     })[]>;
     findById(id: number, filter?: LessonFilter): Promise<({
         assignments: {
-            title: string;
             id: number;
+            title: string;
             createdAt: Date;
             deletedAt: Date | null;
             lessonId: number;
@@ -73,38 +96,38 @@ export declare class LessonsRepository implements ILessonsRepository {
             dueDate: Date | null;
         }[];
         module: {
-            title: string;
             id: number;
+            title: string;
+            orderNumber: number;
             deletedAt: Date | null;
             courseId: number;
-            orderNumber: number;
         };
         progresses: {
-            userId: number;
-            updatedAt: Date;
             lessonId: number;
+            userId: number;
             completed: boolean;
+            updatedAt: Date;
         }[];
     } & {
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }) | null>;
     findByIdIncludingDeleted(id: number): Promise<({
         assignments: {
-            title: string;
             id: number;
+            title: string;
             createdAt: Date;
             deletedAt: Date | null;
             lessonId: number;
@@ -112,38 +135,38 @@ export declare class LessonsRepository implements ILessonsRepository {
             dueDate: Date | null;
         }[];
         module: {
-            title: string;
             id: number;
+            title: string;
+            orderNumber: number;
             deletedAt: Date | null;
             courseId: number;
-            orderNumber: number;
         };
         progresses: {
-            userId: number;
-            updatedAt: Date;
             lessonId: number;
+            userId: number;
             completed: boolean;
+            updatedAt: Date;
         }[];
     } & {
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }) | null>;
     update(id: number, data: UpdateLessonDto): Promise<{
         assignments: {
-            title: string;
             id: number;
+            title: string;
             createdAt: Date;
             deletedAt: Date | null;
             lessonId: number;
@@ -151,70 +174,93 @@ export declare class LessonsRepository implements ILessonsRepository {
             dueDate: Date | null;
         }[];
         module: {
-            title: string;
             id: number;
+            title: string;
+            orderNumber: number;
             deletedAt: Date | null;
             courseId: number;
-            orderNumber: number;
         };
         progresses: {
-            userId: number;
-            updatedAt: Date;
             lessonId: number;
+            userId: number;
             completed: boolean;
+            updatedAt: Date;
         }[];
     } & {
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
     softDelete(id: number): Promise<{
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
+        assignments: {
+            id: number;
+            title: string;
+            createdAt: Date;
+            deletedAt: Date | null;
+            lessonId: number;
+            instructions: string;
+            dueDate: Date | null;
+        }[];
+        module: {
+            id: number;
+            title: string;
+            orderNumber: number;
+            deletedAt: Date | null;
+            courseId: number;
+        };
+        progresses: {
+            lessonId: number;
+            userId: number;
+            completed: boolean;
+            updatedAt: Date;
+        }[];
+    } & {
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
     hardDelete(id: number): Promise<{
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
     restore(id: number): Promise<{
         assignments: {
-            title: string;
             id: number;
+            title: string;
             createdAt: Date;
             deletedAt: Date | null;
             lessonId: number;
@@ -222,32 +268,32 @@ export declare class LessonsRepository implements ILessonsRepository {
             dueDate: Date | null;
         }[];
         module: {
-            title: string;
             id: number;
+            title: string;
+            orderNumber: number;
             deletedAt: Date | null;
             courseId: number;
-            orderNumber: number;
         };
         progresses: {
-            userId: number;
-            updatedAt: Date;
             lessonId: number;
+            userId: number;
             completed: boolean;
+            updatedAt: Date;
         }[];
     } & {
-        type: import(".prisma/client").$Enums.LessonType;
-        description: string | null;
-        title: string;
         id: number;
-        createdAt: Date;
-        deletedAt: Date | null;
-        content: string | null;
-        slug: string | null;
-        duration: string | null;
-        orderNumber: number;
         moduleId: number;
+        slug: string | null;
+        title: string;
+        description: string | null;
+        duration: string | null;
+        type: import(".prisma/client").$Enums.LessonType;
         videoUrl: string | null;
+        content: string | null;
         quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
         passingScore: import("@prisma/client/runtime/library").Decimal;
+        orderNumber: number;
+        createdAt: Date;
+        deletedAt: Date | null;
     }>;
 }

@@ -6,8 +6,9 @@ import { LessonResponseDto } from './dto/response/lesson.response.dto';
 
 @Injectable()
 export class LessonsService {
-  constructor(@Inject(ILessonsRepository)               // ✅ pakai token
-    private readonly repo: ILessonsRepository // ✅ pakai typing interface
+  constructor(
+    @Inject(ILessonsRepository)
+    private readonly repo: ILessonsRepository,
   ) {}
 
   async create(createDto: CreateLessonDto, moduleId: number): Promise<LessonResponseDto> {
@@ -53,16 +54,23 @@ export class LessonsService {
     return this.toResponseDto(restored);
   }
 
+  // ✅ mapper lengkap sesuai schema & DTO terbaru
   private toResponseDto(lesson: any): LessonResponseDto {
     return {
       id: lesson.id,
       title: lesson.title,
+      slug: lesson.slug,
       description: lesson.description,
       duration: lesson.duration,
       type: lesson.type,
       moduleId: lesson.moduleId,
       orderNumber: lesson.orderNumber,
+      videoUrl: lesson.videoUrl,
+      content: lesson.content,
+      quizQuestions: lesson.quizQuestions,
+      passingScore: lesson.passingScore,
       createdAt: lesson.createdAt,
+      deletedAt: lesson.deletedAt,
     };
   }
 }

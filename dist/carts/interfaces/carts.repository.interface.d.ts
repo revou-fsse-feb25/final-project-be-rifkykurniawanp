@@ -59,13 +59,12 @@ export interface ICartsRepository {
     softDelete(id: number): Promise<Cart>;
     hardDelete(id: number): Promise<Cart>;
     restore(id: number): Promise<CartWithRelations>;
-    countByUser(userId: number): Promise<number>;
-    createItem(data: CreateCartItemData): Promise<CartItemWithRelations>;
-    findItemById(id: number): Promise<CartItemWithRelations | null>;
-    findItemByCartAndItem(cartId: number, itemType: string, itemId: number): Promise<CartItemWithRelations | null>;
-    findItemsByCart(cartId: number): Promise<CartItemWithRelations[]>;
-    updateItem(id: number, data: UpdateCartItemData): Promise<CartItemWithRelations>;
+    createItem(data: CreateCartItemData): Promise<CartItem>;
+    findItemById(id: number): Promise<CartItem | null>;
+    findItemByCartAndItem(cartId: number, itemType: CartItemType, itemId: number): Promise<CartItem | null>;
+    findItemsByCart(cartId: number): Promise<CartItem[]>;
+    findItemsWithDetails(cartId: number): Promise<CartItemWithRelations[]>;
+    updateItem(id: number, data: UpdateCartItemData): Promise<CartItem>;
     deleteItem(id: number): Promise<CartItem>;
     deleteItemsByCart(cartId: number): Promise<Prisma.BatchPayload>;
-    countItemsByCart(cartId: number): Promise<number>;
 }

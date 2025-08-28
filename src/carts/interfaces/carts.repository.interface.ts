@@ -1,3 +1,4 @@
+// src/carts/interfaces/cart.interface.ts
 import { Cart, CartItem, CartItemType, Prisma } from '@prisma/client';
 
 export interface CreateCartData {
@@ -21,6 +22,7 @@ export interface UpdateCartItemData {
   price?: number;
 }
 
+// Updated interfaces tanpa direct relations
 export interface CartWithRelations extends Cart {
   user: {
     id: number;
@@ -36,6 +38,7 @@ export interface CartWithRelations extends Cart {
   items: CartItemWithRelations[];
 }
 
+// CartItem dengan manual relations
 export interface CartItemWithRelations extends CartItem {
   product?: {
     id: number;
@@ -67,15 +70,14 @@ export interface ICartsRepository {
   softDelete(id: number): Promise<Cart>;
   hardDelete(id: number): Promise<Cart>;
   restore(id: number): Promise<CartWithRelations>;
-  countByUser(userId: number): Promise<number>;
-
-  // Cart Item CRUD
-  createItem(data: CreateCartItemData): Promise<CartItemWithRelations>;
-  findItemById(id: number): Promise<CartItemWithRelations | null>;
-  findItemByCartAndItem(cartId: number, itemType: string, itemId: number): Promise<CartItemWithRelations | null>;
-  findItemsByCart(cartId: number): Promise<CartItemWithRelations[]>;
-  updateItem(id: number, data: UpdateCartItemData): Promise<CartItemWithRelations>;
+  
+  // Cart Item CRUD - Updated methods
+  createItem(data: CreateCartItemData): Promise<CartItem>;
+  findItemById(id: number): Promise<CartItem | null>;
+  findItemByCartAndItem(cartId: number, itemType: CartItemType, itemId: number): Promise<CartItem | null>;
+  findItemsByCart(cartId: number): Promise<CartItem[]>;
+  findItemsWithDetails(cartId: number): Promise<CartItemWithRelations[]>; // New method
+  updateItem(id: number, data: UpdateCartItemData): Promise<CartItem>;
   deleteItem(id: number): Promise<CartItem>;
   deleteItemsByCart(cartId: number): Promise<Prisma.BatchPayload>;
-  countItemsByCart(cartId: number): Promise<number>;
 }

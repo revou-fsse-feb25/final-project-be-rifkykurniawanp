@@ -66,6 +66,7 @@ let CourseModulesService = class CourseModulesService {
             courseId: module.courseId,
             lessons: module.lessons,
             createdAt: module.createdAt,
+            deletedAt: module.deletedAt
         };
     }
 };

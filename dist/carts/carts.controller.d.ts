@@ -6,37 +6,37 @@ export declare class CartsController {
     constructor(cartsService: CartsService);
     create(req: any, dto: CreateCartDto): Promise<{
         id: number;
-        createdAt: Date;
         deletedAt: Date | null;
         userId: number;
+        createdAt: Date;
         updatedAt: Date;
     }>;
     findAll(req: any, page?: string, limit?: string): Promise<{
         id: number;
-        createdAt: Date;
         deletedAt: Date | null;
         userId: number;
+        createdAt: Date;
         updatedAt: Date;
     }[]>;
     findOne(id: number, req: any): Promise<{
         id: number;
-        createdAt: Date;
         deletedAt: Date | null;
         userId: number;
+        createdAt: Date;
         updatedAt: Date;
     }>;
     update(id: number, dto: UpdateCartDto, req: any): Promise<{
         id: number;
-        createdAt: Date;
         deletedAt: Date | null;
         userId: number;
+        createdAt: Date;
         updatedAt: Date;
     }>;
     remove(id: number, req: any): Promise<{
         id: number;
-        createdAt: Date;
         deletedAt: Date | null;
         userId: number;
+        createdAt: Date;
         updatedAt: Date;
     }>;
     addItem(cartId: number, body: {
@@ -45,20 +45,20 @@ export declare class CartsController {
         quantity: number;
     }, req: any): Promise<{
         id: number;
-        deletedAt: Date | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+        deletedAt: Date | null;
     }>;
     removeItem(cartId: number, itemId: number, req: any): Promise<{
         id: number;
-        deletedAt: Date | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
         itemId: number;
         quantity: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+        deletedAt: Date | null;
     }>;
 }

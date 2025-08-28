@@ -22,6 +22,7 @@ interface AuthenticatedRequest extends Request {
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
+  // ========================= CREATE =========================
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN', 'INSTRUCTOR')
   @Post()
@@ -37,6 +38,7 @@ export class CoursesController {
     return this.coursesService.create(createCourseDto, req.user.id, req.user.role as any);
   }
 
+  // ========================= GET ALL =========================
   @Get()
   @ApiOperation({ summary: 'Get all courses with pagination' })
   @ApiOkResponse({ description: 'A list of courses', type: [CourseResponseDto] })
@@ -49,6 +51,17 @@ export class CoursesController {
     return this.coursesService.findAll(Number(page), Number(limit));
   }
 
+  // ========================= GET BY ID =========================
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single course by ID' })
+  @ApiParam({ name: 'id', description: 'The unique ID of the course', type: 'number' })
+  @ApiOkResponse({ description: 'The course with the given ID', type: CourseResponseDto })
+  @ApiNotFoundResponse({ description: 'Course not found' })
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<CourseResponseDto> {
+    return this.coursesService.findOne(id);
+  }
+
+  // ========================= GET BY SLUG =========================
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Get a course by its slug' })
   @ApiParam({ name: 'slug', description: 'The unique slug of the course', type: 'string' })
@@ -58,6 +71,7 @@ export class CoursesController {
     return this.coursesService.findBySlug(slug);
   }
 
+  // ========================= GET BY INSTRUCTOR =========================
   @Get('instructor/:instructorId')
   @ApiOperation({ summary: 'Get all courses by an instructor ID' })
   @ApiParam({ name: 'instructorId', description: 'The unique ID of the instructor', type: 'number' })
@@ -68,15 +82,7 @@ export class CoursesController {
     return this.coursesService.findByInstructorId(instructorId);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a single course by ID' })
-  @ApiParam({ name: 'id', description: 'The unique ID of the course', type: 'number' })
-  @ApiOkResponse({ description: 'The course with the given ID', type: CourseResponseDto })
-  @ApiNotFoundResponse({ description: 'Course not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<CourseResponseDto> {
-    return this.coursesService.findOne(id);
-  }
-
+  // ========================= UPDATE =========================
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN', 'INSTRUCTOR')
   @Patch(':id')
@@ -95,6 +101,7 @@ export class CoursesController {
     return this.coursesService.update(id, updateCourseDto, req.user.id, req.user.role as any);
   }
 
+  // ========================= SOFT DELETE =========================
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN', 'INSTRUCTOR')
   @Delete(':id')
@@ -110,7 +117,7 @@ export class CoursesController {
     return this.coursesService.remove(id, req.user.id, req.user.role as any);
   }
 
-  // NEW SOFT DELETE ENDPOINTS
+  // ========================= FORCE DELETE =========================
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN')
   @Delete(':id/force')
@@ -126,6 +133,7 @@ export class CoursesController {
     return this.coursesService.forceDelete(id, req.user.role as any);
   }
 
+  // ========================= RESTORE =========================
   @UseGuards(JwtGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch(':id/restore')

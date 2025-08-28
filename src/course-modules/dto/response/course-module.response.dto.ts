@@ -19,4 +19,7 @@ export class CourseModuleResponseDto {
 
   @ApiProperty({ description: 'Created at timestamp' })
   createdAt: Date;
+
+  @ApiProperty({ description: 'Soft delete timestamp', required: false, nullable: true })
+  deletedAt?: Date | null;  // ✅ tambahkan
 }

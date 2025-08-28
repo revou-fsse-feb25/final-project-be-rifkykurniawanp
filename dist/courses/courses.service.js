@@ -17,103 +17,77 @@ let CoursesService = class CoursesService {
     constructor(coursesRepository) {
         this.coursesRepository = coursesRepository;
     }
-    async create(createCourseDto, currentUserId, currentUserRole) {
-        const existingCourse = await this.coursesRepository.findBySlugIncludingDeleted(createCourseDto.slug);
-        if (existingCourse && !existingCourse.deletedAt) {
+    async create(dto, userId, role) {
+        const exists = await this.coursesRepository.findBySlugIncludingDeleted(dto.slug);
+        if (exists && !exists.deletedAt)
             throw new common_1.BadRequestException('Course slug already exists');
-        }
-        let instructorId = createCourseDto.instructorId;
-        if (currentUserRole === 'INSTRUCTOR') {
-            instructorId = currentUserId;
-        }
-        else if (currentUserRole !== 'ADMIN') {
+        let instructorId = dto.instructorId;
+        if (role === 'INSTRUCTOR')
+            instructorId = userId;
+        else if (role !== 'ADMIN')
             throw new common_1.ForbiddenException('Only ADMIN and INSTRUCTOR can create courses');
-        }
-        const course = await this.coursesRepository.create({
-            ...createCourseDto,
-            instructorId,
-        });
+        const course = await this.coursesRepository.create({ ...dto, instructorId });
         return this.toResponseDto(course);
     }
-    async findAll(page = 1, limit = 10, filter) {
+    async findAll(page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        const courses = await this.coursesRepository.findAll(skip, limit, {
-            ...filter,
-            deletedAt: null
-        });
-        return courses.map(course => this.toResponseDto(course));
+        const courses = await this.coursesRepository.findAll(skip, limit, { deletedAt: null });
+        return courses.map(c => this.toResponseDto(c));
     }
     async findOne(id) {
         const course = await this.coursesRepository.findById(id, { deletedAt: null });
-        if (!course) {
+        if (!course)
             throw new common_1.NotFoundException('Course not found');
-        }
         return this.toResponseDto(course);
     }
     async findBySlug(slug) {
         const course = await this.coursesRepository.findBySlug(slug, { deletedAt: null });
-        if (!course) {
+        if (!course)
             throw new common_1.NotFoundException('Course not found');
-        }
         return this.toResponseDto(course);
     }
     async findByInstructorId(instructorId) {
         const courses = await this.coursesRepository.findByInstructorId(instructorId, { deletedAt: null });
-        return courses.map(course => this.toResponseDto(course));
+        return courses.map(c => this.toResponseDto(c));
     }
-    async update(id, updateCourseDto, currentUserId, currentUserRole) {
-        const existingCourse = await this.coursesRepository.findById(id, { deletedAt: null });
-        if (!existingCourse) {
+    async update(id, dto, userId, role) {
+        const course = await this.coursesRepository.findById(id, { deletedAt: null });
+        if (!course)
             throw new common_1.NotFoundException('Course not found');
-        }
-        if (currentUserRole === 'INSTRUCTOR' && existingCourse.instructorId !== currentUserId) {
-            throw new common_1.ForbiddenException('You can only update your own courses');
-        }
-        else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'INSTRUCTOR') {
-            throw new common_1.ForbiddenException('Only ADMIN and INSTRUCTOR can update courses');
-        }
-        if (updateCourseDto.slug && updateCourseDto.slug !== existingCourse.slug) {
-            const slugExists = await this.coursesRepository.findBySlug(updateCourseDto.slug, { deletedAt: null });
-            if (slugExists) {
+        if (role === 'INSTRUCTOR' && course.instructorId !== userId)
+            throw new common_1.ForbiddenException('Cannot update other instructors');
+        if (dto.slug && dto.slug !== course.slug) {
+            const slugExists = await this.coursesRepository.findBySlug(dto.slug, { deletedAt: null });
+            if (slugExists)
                 throw new common_1.BadRequestException('Course slug already exists');
-            }
         }
-        const course = await this.coursesRepository.update(id, updateCourseDto);
-        return this.toResponseDto(course);
+        const updated = await this.coursesRepository.update(id, dto);
+        return this.toResponseDto(updated);
     }
-    async remove(id, currentUserId, currentUserRole) {
-        const existingCourse = await this.coursesRepository.findById(id, { deletedAt: null });
-        if (!existingCourse) {
+    async remove(id, userId, role) {
+        const course = await this.coursesRepository.findById(id, { deletedAt: null });
+        if (!course)
             throw new common_1.NotFoundException('Course not found');
-        }
-        if (currentUserRole === 'INSTRUCTOR' && existingCourse.instructorId !== currentUserId) {
-            throw new common_1.ForbiddenException('You can only delete your own courses');
-        }
-        else if (currentUserRole !== 'ADMIN' && currentUserRole !== 'INSTRUCTOR') {
-            throw new common_1.ForbiddenException('Only ADMIN and INSTRUCTOR can delete courses');
-        }
+        if (role === 'INSTRUCTOR' && course.instructorId !== userId)
+            throw new common_1.ForbiddenException('Cannot delete other instructors');
         await this.coursesRepository.softDelete(id);
     }
-    async forceDelete(id, currentUserRole) {
-        if (currentUserRole !== 'ADMIN') {
-            throw new common_1.ForbiddenException('Only ADMIN can permanently delete courses');
-        }
-        const existingCourse = await this.coursesRepository.findByIdIncludingDeleted(id);
-        if (!existingCourse) {
+    async forceDelete(id, role) {
+        if (role !== 'ADMIN')
+            throw new common_1.ForbiddenException('Only ADMIN can delete');
+        const course = await this.coursesRepository.findByIdIncludingDeleted(id);
+        if (!course)
             throw new common_1.NotFoundException('Course not found');
-        }
         await this.coursesRepository.hardDelete(id);
     }
-    async restore(id, currentUserRole) {
-        if (currentUserRole !== 'ADMIN') {
-            throw new common_1.ForbiddenException('Only ADMIN can restore courses');
-        }
+    async restore(id, role) {
+        if (role !== 'ADMIN')
+            throw new common_1.ForbiddenException('Only ADMIN can restore');
         const course = await this.coursesRepository.findByIdIncludingDeleted(id);
-        if (!course || !course.deletedAt) {
+        if (!course || !course.deletedAt)
             throw new common_1.NotFoundException('Deleted course not found');
-        }
-        const restoredCourse = await this.coursesRepository.restore(id);
-        return this.toResponseDto(restoredCourse);
+        const restored = await this.coursesRepository.restore(id);
+        return this.toResponseDto(restored);
     }
     toResponseDto(course) {
         return {
@@ -123,8 +97,8 @@ let CoursesService = class CoursesService {
             description: course.description,
             syllabus: course.syllabus,
             price: Number(course.price),
-            rating: Number(course.rating),
-            students: course.students,
+            rating: Number(course.rating ?? 0),
+            students: course.students ?? 0,
             duration: course.duration,
             level: course.level,
             category: course.category,
@@ -132,7 +106,24 @@ let CoursesService = class CoursesService {
             certificate: course.certificate,
             createdAt: course.createdAt,
             instructor: course.instructor,
-            modules: course.modules,
+            modules: course.modules?.map((m) => ({
+                id: m.id,
+                title: m.title,
+                orderNumber: m.orderNumber,
+                lessons: m.lessons?.map((l) => ({
+                    id: l.id,
+                    slug: l.slug,
+                    title: l.title,
+                    description: l.description,
+                    duration: l.duration,
+                    type: l.type,
+                    videoUrl: l.videoUrl,
+                    content: l.content,
+                    quizQuestions: l.quizQuestions,
+                    passingScore: Number(l.passingScore ?? 0),
+                    orderNumber: l.orderNumber,
+                })),
+            })),
             enrollments: course.enrollments,
         };
     }

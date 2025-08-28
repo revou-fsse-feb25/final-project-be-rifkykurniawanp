@@ -6,4 +6,5 @@ export declare class CourseModuleResponseDto {
     courseId: number;
     lessons: LessonResponseDto[];
     createdAt: Date;
+    deletedAt?: Date | null;
 }

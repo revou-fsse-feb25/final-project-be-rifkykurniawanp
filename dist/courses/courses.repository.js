@@ -20,21 +20,11 @@ let CoursesRepository = class CoursesRepository {
     async create(data) {
         return this.prisma.course.create({
             data: {
-                title: data.title,
-                slug: data.slug,
-                description: data.description,
-                syllabus: data.syllabus,
-                price: data.price,
-                level: data.level,
-                category: data.category,
-                instructorId: data.instructorId,
-                duration: data.duration,
-                language: data.language,
-                certificate: data.certificate,
+                ...data,
             },
             include: {
                 instructor: true,
-                modules: true,
+                modules: { include: { lessons: true } },
                 enrollments: true,
                 cartItems: true,
             },
@@ -46,51 +36,36 @@ let CoursesRepository = class CoursesRepository {
             take,
             where: { ...filter },
             orderBy: { createdAt: 'desc' },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
         });
     }
     async findById(id, filter) {
         return this.prisma.course.findFirst({
             where: { id, ...filter },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
-        });
-    }
-    async findByIdIncludingDeleted(id) {
-        return this.prisma.course.findUnique({
-            where: { id },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
         });
     }
     async findBySlug(slug, filter) {
         return this.prisma.course.findFirst({
             where: { slug, ...filter },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
-        });
-    }
-    async findBySlugIncludingDeleted(slug) {
-        return this.prisma.course.findFirst({
-            where: { slug },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
         });
     }
     async findByInstructorId(instructorId, filter) {
         return this.prisma.course.findMany({
             where: { instructorId, ...filter },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
         });
     }
     async update(id, data) {
         return this.prisma.course.update({
             where: { id },
             data,
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
         });
     }
     async softDelete(id) {
-        await this.prisma.course.update({
-            where: { id },
-            data: { deletedAt: new Date() },
-        });
+        await this.prisma.course.update({ where: { id }, data: { deletedAt: new Date() } });
     }
     async hardDelete(id) {
         await this.prisma.course.delete({ where: { id } });
@@ -99,7 +74,19 @@ let CoursesRepository = class CoursesRepository {
         return this.prisma.course.update({
             where: { id },
             data: { deletedAt: null },
-            include: { instructor: true, modules: true, enrollments: true, cartItems: true },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
+        });
+    }
+    async findBySlugIncludingDeleted(slug) {
+        return this.prisma.course.findFirst({
+            where: { slug },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
+        });
+    }
+    async findByIdIncludingDeleted(id) {
+        return this.prisma.course.findUnique({
+            where: { id },
+            include: { instructor: true, modules: { include: { lessons: true } }, enrollments: true, cartItems: true },
         });
     }
 };

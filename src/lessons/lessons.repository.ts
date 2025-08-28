@@ -9,7 +9,14 @@ export class LessonsRepository implements ILessonsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateLessonDto & { moduleId: number }) {
-    return this.prisma.lesson.create({ data });
+    return this.prisma.lesson.create({
+      data,
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
+    });
   }
 
   async findAll(skip: number, take: number, filter: LessonFilter = {}) {
@@ -21,21 +28,33 @@ export class LessonsRepository implements ILessonsRepository {
         deletedAt: filter.deletedAt ?? null,
       },
       orderBy: { orderNumber: 'asc' },
-      include: { module: true, assignments: true, progresses: true },
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
     });
   }
 
   async findById(id: number, filter: LessonFilter = {}) {
     return this.prisma.lesson.findFirst({
       where: { id, deletedAt: filter.deletedAt ?? null },
-      include: { module: true, assignments: true, progresses: true },
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
     });
   }
 
   async findByIdIncludingDeleted(id: number) {
     return this.prisma.lesson.findUnique({
       where: { id },
-      include: { module: true, assignments: true, progresses: true },
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
     });
   }
 
@@ -43,7 +62,11 @@ export class LessonsRepository implements ILessonsRepository {
     return this.prisma.lesson.update({
       where: { id },
       data,
-      include: { module: true, assignments: true, progresses: true },
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
     });
   }
 
@@ -51,18 +74,29 @@ export class LessonsRepository implements ILessonsRepository {
     return this.prisma.lesson.update({
       where: { id },
       data: { deletedAt: new Date() },
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
     });
   }
 
   async hardDelete(id: number) {
-    return this.prisma.lesson.delete({ where: { id } });
+    return this.prisma.lesson.delete({
+      where: { id },
+    });
   }
 
   async restore(id: number) {
     return this.prisma.lesson.update({
       where: { id },
       data: { deletedAt: null },
-      include: { module: true, assignments: true, progresses: true },
+      include: {
+        module: true,
+        assignments: true,
+        progresses: true,
+      },
     });
   }
 }

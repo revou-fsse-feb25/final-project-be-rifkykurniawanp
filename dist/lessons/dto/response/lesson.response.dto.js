@@ -15,12 +15,18 @@ const client_1 = require("@prisma/client");
 class LessonResponseDto {
     id;
     title;
+    slug;
     description;
     duration;
     type;
     moduleId;
     orderNumber;
+    videoUrl;
+    content;
+    quizQuestions;
+    passingScore;
     createdAt;
+    deletedAt;
 }
 exports.LessonResponseDto = LessonResponseDto;
 __decorate([
@@ -31,6 +37,10 @@ __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
 ], LessonResponseDto.prototype, "title", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, nullable: true }),
+    __metadata("design:type", Object)
+], LessonResponseDto.prototype, "slug", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ required: false }),
     __metadata("design:type", String)
@@ -52,7 +62,28 @@ __decorate([
     __metadata("design:type", Number)
 ], LessonResponseDto.prototype, "orderNumber", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    __metadata("design:type", String)
+], LessonResponseDto.prototype, "videoUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    __metadata("design:type", String)
+], LessonResponseDto.prototype, "content", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    __metadata("design:type", Object)
+], LessonResponseDto.prototype, "quizQuestions", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    __metadata("design:type", Number)
+], LessonResponseDto.prototype, "passingScore", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Date)
 ], LessonResponseDto.prototype, "createdAt", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, nullable: true }),
+    __metadata("design:type", Object)
+], LessonResponseDto.prototype, "deletedAt", void 0);
+exports.default = LessonResponseDto;
 //# sourceMappingURL=lesson.response.dto.js.map

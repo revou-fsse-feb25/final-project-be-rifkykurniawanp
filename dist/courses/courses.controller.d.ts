@@ -15,9 +15,9 @@ export declare class CoursesController {
     constructor(coursesService: CoursesService);
     create(createCourseDto: CreateCourseDto, req: AuthenticatedRequest): Promise<CourseResponseDto>;
     findAll(page?: number, limit?: number): Promise<CourseResponseDto[]>;
+    findOne(id: number): Promise<CourseResponseDto>;
     findBySlug(slug: string): Promise<CourseResponseDto>;
     findByInstructorId(instructorId: number): Promise<CourseResponseDto[]>;
-    findOne(id: number): Promise<CourseResponseDto>;
     update(id: number, updateCourseDto: UpdateCourseDto, req: AuthenticatedRequest): Promise<CourseResponseDto>;
     remove(id: number, req: AuthenticatedRequest): Promise<void>;
     forceDelete(id: number, req: AuthenticatedRequest): Promise<void>;

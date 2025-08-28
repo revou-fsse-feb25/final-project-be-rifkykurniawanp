@@ -33,14 +33,14 @@ let CoursesController = class CoursesController {
     async findAll(page = 1, limit = 10) {
         return this.coursesService.findAll(Number(page), Number(limit));
     }
+    async findOne(id) {
+        return this.coursesService.findOne(id);
+    }
     async findBySlug(slug) {
         return this.coursesService.findBySlug(slug);
     }
     async findByInstructorId(instructorId) {
         return this.coursesService.findByInstructorId(instructorId);
-    }
-    async findOne(id) {
-        return this.coursesService.findOne(id);
     }
     async update(id, updateCourseDto, req) {
         return this.coursesService.update(id, updateCourseDto, req.user.id, req.user.role);
@@ -84,6 +84,17 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CoursesController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get a single course by ID' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the course', type: 'number' }),
+    (0, swagger_1.ApiOkResponse)({ description: 'The course with the given ID', type: course_response_dto_1.CourseResponseDto }),
+    (0, swagger_1.ApiNotFoundResponse)({ description: 'Course not found' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], CoursesController.prototype, "findOne", null);
+__decorate([
     (0, common_1.Get)('slug/:slug'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a course by its slug' }),
     (0, swagger_1.ApiParam)({ name: 'slug', description: 'The unique slug of the course', type: 'string' }),
@@ -104,17 +115,6 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], CoursesController.prototype, "findByInstructorId", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get a single course by ID' }),
-    (0, swagger_1.ApiParam)({ name: 'id', description: 'The unique ID of the course', type: 'number' }),
-    (0, swagger_1.ApiOkResponse)({ description: 'The course with the given ID', type: course_response_dto_1.CourseResponseDto }),
-    (0, swagger_1.ApiNotFoundResponse)({ description: 'Course not found' }),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], CoursesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtGuard, role_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)('ADMIN', 'INSTRUCTOR'),

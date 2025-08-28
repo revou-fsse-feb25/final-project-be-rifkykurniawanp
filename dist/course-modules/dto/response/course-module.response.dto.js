@@ -19,6 +19,7 @@ class CourseModuleResponseDto {
     courseId;
     lessons;
     createdAt;
+    deletedAt;
 }
 exports.CourseModuleResponseDto = CourseModuleResponseDto;
 __decorate([
@@ -45,4 +46,8 @@ __decorate([
     (0, swagger_1.ApiProperty)({ description: 'Created at timestamp' }),
     __metadata("design:type", Date)
 ], CourseModuleResponseDto.prototype, "createdAt", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Soft delete timestamp', required: false, nullable: true }),
+    __metadata("design:type", Object)
+], CourseModuleResponseDto.prototype, "deletedAt", void 0);
 //# sourceMappingURL=course-module.response.dto.js.map
