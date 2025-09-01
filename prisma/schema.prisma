@@ -1,13 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// ================= GENERATOR & DATASOURCE =================
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ================= ENUMS =================
@@ -18,439 +17,473 @@ enum RoleName {
   USER
 }
 
-enum PermissionName {
-  VIEW_DASHBOARD
-  MANAGE_ORDERS
-  MANAGE_PRODUCTS
-  MANAGE_COURSES
-  MANAGE_USERS
+enum ProductStatus {
+  ACTIVE
+  OUT_OF_STOCK
+  DRAFT
 }
 
-// ================= USERS & ROLES =================
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LessonType {
+  VIDEO
+  ARTICLE
+  QUIZ
+  ASSIGNMENT
+}
+
+enum CartItemType {
+  PRODUCT
+  COURSE
+}
+
+enum PayableType {
+  PRODUCT
+  COURSE
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+// ================= AUTH & RBAC =================
+model User {
+  id                    Int                    @id @default(autoincrement())
+  email                 String                 @unique
+  password              String
+  firstName             String?
+  lastName              String?
+  phone                 String?
+  address               String?
+  isBuyer               Boolean                @default(false)
+  isStudent             Boolean                @default(false)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  deletedAt             DateTime?
+
+  // Relations
+  userRoles             UserRole[]
+  assignmentSubmissions AssignmentSubmission[]
+  carts                 Cart[]
+  courses               Course[]               @relation("InstructorCourses")
+  courseEnrollments     CourseEnrollment[]
+  lessonProgresses      LessonProgress[]
+  payments              Payment[]
+  products              Product[]              @relation("SupplierProducts")
+  productOrders         ProductOrder[]         @relation("BuyerOrders")
+  productReviews        ProductReview[]
+}
+
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        RoleName @unique
-  description String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
+  id          Int              @id @default(autoincrement())
+  name        RoleName         @unique
+  description String?
+  createdAt   DateTime         @default(now())
 
-  users           User[]
   rolePermissions RolePermission[]
-
-  @@map("roles")
+  userRoles       UserRole[]
 }
 
 model Permission {
-  id          Int            @id @default(autoincrement())
-  name        PermissionName @unique
-  description String?        @db.Text
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
 
   rolePermissions RolePermission[]
+}
 
-  @@map("permissions")
+model UserRole {
+  userId Int
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
 }
 
 model RolePermission {
-  id           Int      @id @default(autoincrement())
-  roleId       Int      @map("role_id")
-  permissionId Int      @map("permission_id")
-  createdAt    DateTime @default(now()) @map("created_at")
+  roleId       Int
+  permissionId Int
 
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
-  @@unique([roleId, permissionId])
-  @@map("role_permissions")
+  @@id([roleId, permissionId])
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique @db.VarChar(100)
-  password  String   @db.VarChar(255)
-  address   String?  @db.VarChar(100)
-  firstName String?  @map("first_name") @db.VarChar(50)
-  lastName  String?  @map("last_name") @db.VarChar(50)
-  phone     String?  @db.VarChar(20)
-  roleId    Int      @map("role_id")
-  isBuyer   Boolean  @default(false) @map("is_buyer")
-  isStudent Boolean  @default(false) @map("is_student")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  role Role @relation(fields: [roleId], references: [id])
-
-  // Product relations
-  suppliedProducts Product[]
-  productReviews   ProductReview[]
-  productOrders    ProductOrder[]
-
-  // Course relations
-  instructedCourses     Course[] @relation("UserInstructedCourses")
-  courseEnrollments     CourseEnrollment[]
-  lessonProgress        LessonProgress[]
-  quizAttempts          QuizAttempt[]
-  assignmentSubmissions AssignmentSubmission[]
-
-  payments Payment[]
-
-  @@map("users")
-}
-
-// ================= PRODUCT CATEGORIES =================
-model ProductCategory {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(50)
-  slug      String   @unique @db.VarChar(50)
-  parentId  Int?     @map("parent_id")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  parent   ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children ProductCategory[] @relation("CategoryHierarchy")
-  products Product[]
-
-  @@map("product_categories")
-}
-
-// ================= PRODUCTS & ORDERS =================
+// ================= PRODUCT SYSTEM =================
 model Product {
-  id             Int      @id @default(autoincrement())
-  slug           String   @unique @db.VarChar(100)
-  name           String?  @db.VarChar(100)
-  description    String?  @db.Text
-  price          Decimal? @db.Decimal(12, 2)
-  stock          Int?
-  image          String?  @db.VarChar(255)
-  categoryId     Int?     @map("category_id")
-  supplierId     Int      @map("supplier_id")
-  rating         Decimal? @default(0) @db.Decimal(2, 1)
-  reviewCount    Int?     @default(0) @map("review_count")
-  origin         String?  @db.VarChar(50)
-  weight         String?  @db.VarChar(20)
-  roastLevel     String?  @map("roast_level") @db.VarChar(20)
-  caffeine       String?  @db.VarChar(20)
-  brewingMethods Json?    @map("brewing_methods")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id          Int                @id @default(autoincrement())
+  slug        String             @unique
+  name        String
+  description String?
+  price       Decimal            @db.Decimal(12, 2)
+  stock       Int                @default(0)
+  image       String?
+  status      ProductStatus
+  supplierId  Int
+  rating      Decimal            @default(0) @db.Decimal(2, 1)
+  reviewCount Int                @default(0)
+  origin      String?
+  weight      String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  deletedAt   DateTime?
 
-  category ProductCategory? @relation(fields: [categoryId], references: [id])
-  supplier User             @relation(fields: [supplierId], references: [id])
+  supplier    User               @relation("SupplierProducts", fields: [supplierId], references: [id], onDelete: Cascade)
+  category    ProductCategory?   @relation(fields: [categoryId], references: [id])
+  categoryId  Int?
+  tags        ProductTag[]
+  cartItems   CartItem[]
+  orderItems  ProductOrderItem[]
+  reviews     ProductReview[]
 
-  productTags    ProductTag[]
-  productReviews ProductReview[]
-  orderItems     ProductOrderItem[]
+  @@index([slug])
+}
 
-  @@map("products")
+model ProductCategory {
+  id        Int        @id @default(autoincrement())
+  name      String
+  slug      String     @unique
+  parentId  Int?
+  createdAt DateTime   @default(now())
+
+  parent    ProductCategory?  @relation("ProductCategoryHierarchy", fields: [parentId], references: [id])
+  children  ProductCategory[]  @relation("ProductCategoryHierarchy")
+
+  products  Product[]
 }
 
 model ProductTag {
-  id        Int    @id @default(autoincrement())
-  productId Int    @map("product_id")
-  tag       String @db.VarChar(50)
+  id        Int      @id @default(autoincrement())
+  productId Int
+  tag       String
+  createdAt DateTime @default(now())
 
-  product Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, tag])
-  @@map("product_tags")
 }
 
 model ProductReview {
   id        Int      @id @default(autoincrement())
-  productId Int      @map("product_id")
-  userId    Int      @map("user_id")
-  rating    Int // 1-5
-  comment   String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
+  productId Int
+  userId    Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
 
-  product Product @relation(fields: [productId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("product_reviews")
+  @@unique([productId, userId])
 }
 
-model ProductOrder {
-  id         Int      @id @default(autoincrement())
-  buyerId    Int      @map("buyer_id")
-  totalPrice Decimal? @map("total_price") @db.Decimal(12, 2)
-  status     String?  @db.VarChar(20) // pending, shipped, completed, canceled
-  createdAt  DateTime @default(now()) @map("created_at")
+// ================= COURSE & LEARNING =================
+model Course {
+  id           Int                        @id @default(autoincrement())
+  title        String
+  slug         String                     @unique
+  description  String?
+  syllabus     String?
+  price        Decimal                    @db.Decimal(12, 2)
+  instructorId Int
+  rating       Decimal                    @default(0) @db.Decimal(2, 1)
+  students     Int                        @default(0)
+  duration     String?
+  level        CourseLevel
+  language     String                     @default("id")
+  certificate  Boolean                    @default(false)
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+  deletedAt    DateTime?
 
-  buyer      User               @relation(fields: [buyerId], references: [id])
-  orderItems ProductOrderItem[]
+  instructor   User                       @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
+  category     CourseCategory?            @relation(fields: [categoryId], references: [id])
+  categoryId   Int?
+  cartItems    CartItem[]
+  enrollments  CourseEnrollment[]
+  modules      CourseModule[]
+  requirements CourseRequirement[]
+  outcomes     CourseLearningOutcome[]
+  tags         CourseTag[]
 
-  @@map("product_orders")
+  @@index([slug])
 }
 
-model ProductOrderItem {
-  id        Int      @id @default(autoincrement())
-  orderId   Int      @map("order_id")
-  productId Int      @map("product_id")
-  quantity  Int?
-  priceEach Decimal? @map("price_each") @db.Decimal(12, 2)
-
-  order   ProductOrder @relation(fields: [orderId], references: [id])
-  product Product      @relation(fields: [productId], references: [id])
-
-  @@map("product_order_items")
-}
-
-// ================= COURSE CATEGORIES =================
 model CourseCategory {
   id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(50)
-  slug      String   @unique @db.VarChar(50)
-  createdAt DateTime @default(now()) @map("created_at")
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
 
-  courses Course[]
-
-  @@map("course_categories")
-}
-
-// ================= COURSES =================
-model Course {
-  id               Int       @id @default(autoincrement())
-  title            String?   @db.VarChar(100)
-  slug             String?   @unique @db.VarChar(100)
-  description      String?   @db.Text
-  price            Decimal?  @db.Decimal(12, 2)
-  originalPrice    Decimal?  @map("original_price") @db.Decimal(12, 2)
-  instructorId     Int?      @map("instructor_id")
-  instructorBio    String?   @map("instructor_bio") @db.Text
-  instructorAvatar String?   @map("instructor_avatar") @db.VarChar(255)
-  rating           Decimal?  @db.Decimal(2, 1)
-  students         Int?
-  duration         String?   @db.VarChar(20)
-  level            String?   @db.VarChar(50)
-  icon             String?   @db.VarChar(10)
-  color            String?   @db.VarChar(30)
-  categoryId       Int?      @map("category_id")
-  language         String?   @db.VarChar(50)
-  lastUpdated      DateTime? @map("last_updated")
-  certificate      Boolean?  @default(false)
-  createdAt        DateTime  @default(now()) @map("created_at")
-
-  instructor User?           @relation("UserInstructedCourses", fields: [instructorId], references: [id])
-  category   CourseCategory? @relation(fields: [categoryId], references: [id])
-
-  enrollments        CourseEnrollment[]
-  courseTags         CourseTag[]
-  courseRequirements CourseRequirement[]
-  learningOutcomes   CourseLearningOutcome[]
-  courseModules      CourseModule[]
-
-  @@map("courses")
-}
-
-model CourseEnrollment {
-  id                 Int      @id @default(autoincrement())
-  courseId           Int      @map("course_id")
-  studentId          Int      @map("student_id")
-  enrolledAt         DateTime @default(now()) @map("enrolled_at")
-  progress           Int?     @default(0) // percent 0-100
-  certificateAwarded Boolean? @default(false) @map("certificate_awarded")
-
-  course  Course @relation(fields: [courseId], references: [id])
-  student User   @relation(fields: [studentId], references: [id])
-
-  certificates Certificate[]
-
-  @@unique([courseId, studentId])
-  @@map("course_enrollments")
-}
-
-// ================= COURSE DETAILS =================
-model CourseTag {
-  id       Int    @id @default(autoincrement())
-  courseId Int    @map("course_id")
-  tag      String @db.VarChar(50)
-
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@unique([courseId, tag])
-  @@map("course_tags")
+  courses   Course[]
 }
 
 model CourseRequirement {
-  id       Int     @id @default(autoincrement())
-  courseId Int     @map("course_id")
-  content  String? @db.Text
-
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@map("course_requirements")
+  id        Int    @id @default(autoincrement())
+  courseId  Int
+  content   String
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model CourseLearningOutcome {
-  id       Int     @id @default(autoincrement())
-  courseId Int     @map("course_id")
-  content  String? @db.Text
-
-  course Course @relation(fields: [courseId], references: [id])
-
-  @@map("course_learning_outcomes")
+  id        Int    @id @default(autoincrement())
+  courseId  Int
+  content   String
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
-// ================= COURSE MODULES & LESSONS =================
+model CourseTag {
+  id        Int    @id @default(autoincrement())
+  courseId  Int
+  tag       String
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, tag])
+}
+
 model CourseModule {
-  id          Int     @id @default(autoincrement())
-  courseId    Int     @map("course_id")
-  title       String? @db.VarChar(100)
-  orderNumber Int?    @map("order_number")
+  id          Int       @id @default(autoincrement())
+  courseId    Int
+  title       String
+  orderNumber Int
+  deletedAt   DateTime?
 
-  course  Course   @relation(fields: [courseId], references: [id])
-  lessons Lesson[]
-
-  @@map("course_modules")
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
 }
 
 model Lesson {
-  id          Int      @id @default(autoincrement())
-  moduleId    Int      @map("module_id")
-  slug        String?  @unique @db.VarChar(100)
-  title       String?  @db.VarChar(100)
-  description String?  @db.Text
-  duration    String?  @db.VarChar(20)
-  type        String?  @db.VarChar(20) // video, article, quiz, assignment
-  videoUrl    String?  @map("video_url") @db.VarChar(255)
-  content     String?  @db.Text
-  orderNumber Int?     @map("order_number")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id            Int              @id @default(autoincrement())
+  moduleId      Int
+  slug          String?          @unique
+  title         String
+  description   String?
+  duration      String?
+  type          LessonType       @default(VIDEO)
+  videoUrl      String?
+  content       String?
+  orderNumber   Int
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
 
-  module CourseModule @relation(fields: [moduleId], references: [id])
-
-  lessonProgress LessonProgress[]
-  quiz           Quiz?
-  assignments    Assignment[]
-
-  @@map("lessons")
+  module        CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progresses    LessonProgress[]
+  assignments   Assignment[]
+  quiz          Quiz?
 }
 
-// ================= LESSON PROGRESS =================
 model LessonProgress {
-  id         Int      @id @default(autoincrement())
-  lessonId   Int      @map("lesson_id")
-  userId     Int      @map("user_id")
-  completed  Boolean? @default(false)
-  bookmarked Boolean? @default(false)
-  updatedAt  DateTime @default(now()) @map("updated_at")
+  lessonId  Int
+  userId    Int
+  completed Boolean  @default(false)
+  updatedAt DateTime @default(now()) @updatedAt
 
-  lesson Lesson @relation(fields: [lessonId], references: [id])
-  user   User   @relation(fields: [userId], references: [id])
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  certificates Certificate[]
-
-  @@unique([lessonId, userId])
-  @@map("lesson_progress")
+  @@id([lessonId, userId])
 }
 
-// ================= QUIZZES =================
+// ================= ASSESSMENTS / QUIZ =================
+model Assignment {
+  id           Int                    @id @default(autoincrement())
+  lessonId     Int
+  title        String
+  instructions String
+  dueDate      DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  deletedAt    DateTime?
+
+  lesson       Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions  AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id           Int        @id @default(autoincrement())
+  assignmentId Int
+  userId       Int
+  content      String?
+  grade        Decimal?   @db.Decimal(5, 2)
+  submittedAt  DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Quiz {
-  id           Int      @id @default(autoincrement())
-  lessonId     Int      @unique @map("lesson_id")
-  title        String?  @db.VarChar(100)
-  passingScore Decimal? @default(70) @map("passing_score") @db.Decimal(5, 2)
-  createdAt    DateTime @default(now()) @map("created_at")
+  id        Int           @id @default(autoincrement())
+  lessonId  Int           @unique
+  createdAt DateTime      @default(now())
 
-  lesson        Lesson         @relation(fields: [lessonId], references: [id])
-  quizQuestions QuizQuestion[]
-  quizAttempts  QuizAttempt[]
-
-  @@map("quizzes")
+  lesson    Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
 }
 
 model QuizQuestion {
-  id       Int     @id @default(autoincrement())
-  quizId   Int     @map("quiz_id")
-  question String? @db.Text
-  type     String? @db.VarChar(20)
-
-  quiz        Quiz         @relation(fields: [quizId], references: [id])
-  quizChoices QuizChoice[]
-
-  @@map("quiz_questions")
+  id       Int        @id @default(autoincrement())
+  quizId   Int
+  content  String
+  orderNum Int
+  quiz     Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  choices  QuizChoice[]
 }
 
 model QuizChoice {
-  id        Int      @id @default(autoincrement())
-  questionId Int     @map("question_id")
-  text      String?  @db.VarChar(255)
-  isCorrect Boolean?
-
-  question QuizQuestion @relation(fields: [questionId], references: [id])
-
-  @@map("quiz_choices")
+  id         Int          @id @default(autoincrement())
+  questionId Int
+  content    String
+  isCorrect  Boolean
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model QuizAttempt {
   id          Int      @id @default(autoincrement())
-  quizId      Int      @map("quiz_id")
-  userId      Int      @map("user_id")
+  quizId      Int
+  userId      Int
   score       Decimal? @db.Decimal(5, 2)
-  attemptedAt DateTime @default(now()) @map("attempted_at")
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
 
-  quiz Quiz @relation(fields: [quizId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("quiz_attempts")
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ================= ASSIGNMENTS =================
-model Assignment {
-  id           Int       @id @default(autoincrement())
-  lessonId     Int       @map("lesson_id")
-  title        String?   @db.VarChar(100)
-  instructions String?   @db.Text
-  dueDate      DateTime? @map("due_date")
-  createdAt    DateTime  @default(now()) @map("created_at")
+// ================= CART & CHECKOUT =================
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
 
-  lesson                Lesson                 @relation(fields: [lessonId], references: [id])
-  assignmentSubmissions AssignmentSubmission[]
-
-  @@map("assignments")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  payments  Payment[]
 }
 
-model AssignmentSubmission {
-  id           Int       @id @default(autoincrement())
-  assignmentId Int       @map("assignment_id")
-  userId       Int       @map("user_id")
-  submittedAt  DateTime? @map("submitted_at")
-  content      String?   @db.Text
-  grade        Decimal?  @db.Decimal(5, 2)
-  feedback     String?   @db.Text
+model CartItem {
+  id        Int          @id @default(autoincrement())
+  cartId    Int
+  itemType  CartItemType
+  productId Int?
+  courseId  Int?
+  quantity  Int          @default(1)
+  price     Decimal      @db.Decimal(12, 2)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  deletedAt DateTime?
 
-  assignment Assignment @relation(fields: [assignmentId], references: [id])
-  user       User       @relation(fields: [userId], references: [id])
+  cart      Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  course    Course?      @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
-  certificates Certificate[]
-
-  @@map("assignment_submissions")
+  /// NOTE:
+  /// We DO NOT include @@check here because Prisma schema does not support it.
+  /// Enforce the invariant (productId XOR courseId) and (quantity == 1 for COURSE)
+  /// in application logic (service layer). Optionally, add a DB-level CHECK via raw SQL migration (see notes below).
 }
 
-// ================= CERTIFICATES =================
-model Certificate {
-  id                              Int       @id @default(autoincrement())
-  enrollmentId                    Int       @map("enrollment_id")
-  finalLessonProgressId           Int?      @map("final_lesson_progress_id")
-  finalAssignmentSubmissionId     Int?      @map("final_assignment_submission_id")
-  issuedAt                        DateTime? @map("issued_at")
-  certificateUrl                  String?   @map("certificate_url") @db.VarChar(255)
-
-  enrollment                    CourseEnrollment      @relation(fields: [enrollmentId], references: [id])
-  finalLessonProgress           LessonProgress?       @relation(fields: [finalLessonProgressId], references: [id])
-  finalAssignmentSubmission     AssignmentSubmission? @relation(fields: [finalAssignmentSubmissionId], references: [id])
-
-  @@map("certificates")
-}
-
-// ================= PAYMENTS =================
+// ================= PAYMENT & ORDERS =================
 model Payment {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @map("user_id")
-  paymentDate   DateTime @default(now()) @map("payment_date")
-  amount        Decimal  @db.Decimal(12, 2)
-  paymentMethod String?  @map("payment_method") @db.VarChar(50)
-  status        String?  @db.VarChar(20)
-  payableType   String   @map("payable_type") @db.VarChar(50)
-  payableId     Int      @map("payable_id")
-  note          String?  @db.Text
+  id                Int                @id @default(autoincrement())
+  userId            Int
+  cartId            Int?
+  amount            Decimal            @db.Decimal(12, 2)
+  paymentMethod     String
+  status            PaymentStatus      @default(PENDING)
+  payableType       PayableType
+  payableId         Int?
+  paidAt            DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
 
-  user User @relation(fields: [userId], references: [id])
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cart              Cart?              @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productOrders     ProductOrder[]
+  courseEnrollments CourseEnrollment[]
+}
 
-  @@map("payments")
+model ProductOrder {
+  id         Int                @id @default(autoincrement())
+  buyerId    Int
+  paymentId  Int
+  totalPrice Decimal            @db.Decimal(12, 2)
+  status     OrderStatus        @default(PENDING)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  buyer      User               @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  payment    Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  items      ProductOrderItem[]
+}
+
+model ProductOrderItem {
+  id        Int          @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  priceEach Decimal      @db.Decimal(12, 2)
+
+  order     ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ================= COURSE ENROLLMENT & CERTIFICATE =================
+model CourseEnrollment {
+  id                 Int          @id @default(autoincrement())
+  courseId           Int
+  studentId          Int
+  paymentId          Int
+  pricePaid          Decimal      @db.Decimal(12, 2)
+  progress           Int          @default(0)
+  certificateAwarded Boolean      @default(false)
+  enrolledAt         DateTime     @default(now())
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  course             Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  payment            Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  student            User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  certificate        Certificate?
+
+  @@unique([courseId, studentId])
+}
+
+model Certificate {
+  id                        Int              @id @default(autoincrement())
+  enrollmentId              Int              @unique
+  finalLessonsCompleted     Boolean          @default(false)
+  finalAssignmentsCompleted Boolean          @default(false)
+  eligible                  Boolean          @default(false)
+  issuedAt                  DateTime?
+  certificateUrl            String?
+
+  enrollment                CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
 }
