@@ -1,5 +1,5 @@
 // prisma/seeds/core/admin-users.ts
-import { PrismaClient, RoleName } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
@@ -8,9 +8,9 @@ export async function seedAdminUsers() {
   console.log("👤 Seeding admin users...");
 
   try {
-    // Find ADMIN role
-    const adminRole = await prisma.role.findUnique({
-      where: { name: RoleName.ADMIN },
+    // Find ADMIN role (UserRole model, using Role enum)
+    const adminRole = await prisma.userRole.findUnique({
+      where: { name: Role.ADMIN },
     });
 
     if (!adminRole) {

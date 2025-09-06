@@ -12,14 +12,14 @@ datasource db {
 // ================= MODELS & ENUMS (FULL HYBRID) =================
 
 // ---------------- RBAC: Enums ----------------
-enum RoleName {
+enum Role {
   ADMIN
   SUPPLIER
   INSTRUCTOR
   USER
 }
 
-enum PermissionName {
+enum Permission {
   VIEW_DASHBOARD
   MANAGE_ORDERS
   MANAGE_PRODUCTS
@@ -28,28 +28,48 @@ enum PermissionName {
 }
 
 // ---------------- RBAC: Models ----------------
-model Role {
-  id          Int             @id @default(autoincrement())
-  name        RoleName        @unique
+model UserRole {
+  id          Int                @id @default(autoincrement())
+  name        Role               @unique
   description String?
   users       User[]
-  permissions RolePermission[]
+  permissions UserRolePermission[]
 }
 
-model Permission {
-  id          Int             @id @default(autoincrement())
-  name        PermissionName  @unique
+model UserPermission {
+  id          Int                @id @default(autoincrement())
+  name        Permission         @unique
   description String?
-  roles       RolePermission[]
+  roles       UserRolePermission[]
+
+  // ABAC: per-user assignments (new)
+  assignments UserPermissionAssignment[]
 }
 
-model RolePermission {
+model UserRolePermission {
   roleId       Int
   permissionId Int
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         UserRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   UserPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
+}
+
+/// ---------------- ABAC: per-user permission assignment ---------------
+/// This join table allows granting (or later revoking) individual users
+/// specific permissions without changing their role. Use when you want
+/// temporary or fine-grained overrides.
+model UserPermissionAssignment {
+  userId       Int
+  permissionId Int
+  conditions   Json? 
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   UserPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+
+  @@id([userId, permissionId])
+  @@index([permissionId])
 }
 
 // ================= EXISTING MODELS =================
@@ -62,9 +82,8 @@ model User {
   lastName  String?
   phone     String?
   address   String?
-  // role is now a relation to Role (roleId). Keep roleName enum available for seeding/clarity.
   roleId    Int?
-  role      Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  role      UserRole? @relation(fields: [roleId], references: [id], onDelete: SetNull)
   isBuyer   Boolean   @default(false)
   isStudent Boolean   @default(false)
   createdAt DateTime  @default(now())
@@ -77,12 +96,36 @@ model User {
   courseEnrollments     CourseEnrollment[]
   lessonProgresses      LessonProgress[]
   payments              Payment[]
-  products              Product[] // As supplier
-  productOrders         ProductOrder[] // As buyer
+  products              Product[]
+  productOrders         ProductOrder[]
   productReviews        ProductReview[]
   courseReviews         CourseReview[]
-  instructor            Instructor? // One-to-one instructor profile
+  instructor            Instructor?
+  refreshTokens         RefreshToken[]   // 👈 Relasi ke RefreshToken
+
+  // ABAC: user-specific permission assignments
+  permissionAssignments UserPermissionAssignment[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([deletedAt])
 }
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   // hashed token, jangan simpan plain
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device    String?  // contoh: "Chrome on Windows"
+  ipAddress String?  // opsional, untuk keamanan
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([token])
+}
+
 
 model Instructor {
   id            Int      @id @default(autoincrement())
@@ -102,26 +145,30 @@ model Instructor {
   // Relations
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courses Course[]
+
+  // Performance Indexes
+  @@index([isVerified, rating])  // Verified instructor listings
+  @@index([totalStudents])       // Popular instructors
 }
 
 model Product {
-  id          Int              @id @default(autoincrement())
-  slug        String           @unique
+  id          Int             @id @default(autoincrement())
+  slug        String          @unique
   name        String
   description String?
-  price       Decimal          @db.Decimal(12, 2)
-  stock       Int              @default(0)
+  price       Decimal         @db.Decimal(12, 2)
+  stock       Int             @default(0)
   images      String[] // Multiple images (Postgres text[])
   category    ProductCategory
   status      ProductStatus
   supplierId  Int
-  rating      Decimal          @default(0) @db.Decimal(2, 1)
-  reviewCount Int              @default(0)
+  rating      Decimal         @default(0) @db.Decimal(2, 1)
+  reviewCount Int             @default(0)
   origin      ProductOrigin
   weight      String?
-  tags        ProductTagName[] // enum array
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  tags        ProductTag[] // enum array
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   deletedAt   DateTime?
 
   // Relations
@@ -130,9 +177,14 @@ model Product {
   orderItems ProductOrderItem[]
   reviews    ProductReview[]
 
+  // Performance Indexes
   @@index([slug])
   @@index([name])
   @@index([description])
+  @@index([category, status])        // E-commerce filtering
+  @@index([rating, reviewCount])     // Popular products
+  @@index([supplierId, status])      // Supplier products
+  @@index([deletedAt])               // Soft delete filtering
 }
 
 model ProductReview {
@@ -142,12 +194,16 @@ model ProductReview {
   rating    Int      @db.SmallInt // 1-5 rating
   comment   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([productId, userId]) // One review per user per product
+  // Performance Indexes
+  @@index([productId, rating])       // Product reviews sorted by rating
+  @@index([userId, createdAt])       // User review history
+  @@unique([productId, userId])      // One review per user per product
 }
 
 model Course {
@@ -192,9 +248,15 @@ model Course {
   modules     CourseModule[]
   reviews     CourseReview[]
 
+  // Performance Indexes
   @@index([slug])
   @@index([title])
   @@index([shortDescription])
+  @@index([category, level, status])     // Course filtering
+  @@index([rating, students])            // Popular courses
+  @@index([instructorId, isPublished])   // Instructor courses
+  @@index([isPublished, createdAt])      // Recent published courses
+  @@index([deletedAt])                   // Soft delete filtering
 }
 
 model CourseReview {
@@ -209,7 +271,10 @@ model CourseReview {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([courseId, userId]) // One review per user per course
+  // Performance Indexes
+  @@index([courseId, rating])        // Course reviews sorted by rating
+  @@index([userId, createdAt])       // User review history
+  @@unique([courseId, userId])       // One review per user per course
 }
 
 model CourseModule {
@@ -226,6 +291,10 @@ model CourseModule {
   // Relations
   course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons Lesson[]
+
+  // Performance Indexes
+  @@index([courseId, orderNumber])   // Module ordering
+  @@index([courseId, isPublished])   // Published modules
 }
 
 model Lesson {
@@ -251,6 +320,12 @@ model Lesson {
   module      CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   assignments Assignment[]
   progresses  LessonProgress[]
+
+  // Performance Indexes
+  @@index([slug])
+  @@index([moduleId, orderNumber])   // Lesson ordering
+  @@index([moduleId, isPublished])   // Published lessons
+  @@index([isPreview])               // Free preview lessons
 }
 
 model LessonProgress {
@@ -266,6 +341,10 @@ model LessonProgress {
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Performance Indexes
+  @@index([userId, completed])           // User progress dashboard
+  @@index([lessonId, completed])         // Lesson completion stats
+  @@index([userId, completed, createdAt]) // Progress timeline
   @@id([lessonId, userId])
 }
 
@@ -278,11 +357,15 @@ model Assignment {
   maxScore     Decimal?  @db.Decimal(5, 2)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
+  deletedAt     DateTime?
 
   // Relations
   lesson      Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   submissions AssignmentSubmission[]
+
+  // Performance Indexes
+  @@index([lessonId])                // Lesson assignments
+  @@index([dueDate])                 // Upcoming assignments
 }
 
 model AssignmentSubmission {
@@ -299,6 +382,11 @@ model AssignmentSubmission {
   // Relations
   assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Performance Indexes
+  @@index([assignmentId, userId])    // Assignment submissions
+  @@index([userId, submittedAt])     // User submission history
+  @@index([assignmentId, grade])     // Grading overview
 }
 
 model Cart {
@@ -312,6 +400,8 @@ model Cart {
   user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items    CartItem[]
   payments Payment[]
+
+  // Performance Indexes - userId is already indexed due to @unique
 }
 
 model CartItem {
@@ -332,6 +422,11 @@ model CartItem {
   cart    Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   course  Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Performance Indexes
+  @@index([cartId, deletedAt])       // Active cart items
+  @@index([productId])               // Product cart analytics
+  @@index([courseId])                // Course cart analytics
 
   // NOTE:
   // Prisma does not support @@check. Enforce these rules in service layer
@@ -358,6 +453,11 @@ model Payment {
   cart              Cart               @relation(fields: [cartId], references: [id], onDelete: Cascade)
   courseEnrollments CourseEnrollment[]
   productOrders     ProductOrder[]
+
+  // Performance Indexes
+  @@index([userId, status, createdAt])   // Payment history with status
+  @@index([status, paidAt])              // Admin payment reports
+  @@index([transactionId])               // External payment lookup
 }
 
 model ProductOrder {
@@ -374,6 +474,11 @@ model ProductOrder {
   buyer   User               @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   payment Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   items   ProductOrderItem[]
+
+  // Performance Indexes
+  @@index([buyerId, status])             // User order history
+  @@index([status, createdAt])           // Admin order management
+  @@index([paymentId])                   // Payment-order lookup
 }
 
 model ProductOrderItem {
@@ -386,6 +491,10 @@ model ProductOrderItem {
   // Relations
   order   ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Performance Indexes
+  @@index([orderId])                     // Order items
+  @@index([productId])                   // Product sales analytics
 }
 
 model CourseEnrollment {
@@ -406,7 +515,12 @@ model CourseEnrollment {
   payment     Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   certificate Certificate?
 
-  @@unique([courseId, studentId]) // One enrollment per student per course
+  // Performance Indexes
+  @@index([studentId, enrolledAt])       // "My Courses" sorted by date
+  @@index([courseId, progress])          // Course completion statistics
+  @@index([studentId, progress])         // Student progress overview
+  @@index([certificateAwarded])          // Certificate eligible students
+  @@unique([courseId, studentId])        // One enrollment per student per course
 }
 
 model Certificate {
@@ -421,6 +535,10 @@ model Certificate {
 
   // Relations
   enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  // Performance Indexes
+  @@index([certificateNumber])          // Certificate verification
+  @@index([eligible, issuedAt])         // Certificate generation queue
 }
 
 // ==================== ENUMS ====================
@@ -450,7 +568,7 @@ enum ProductStatus {
   DISCONTINUED
 }
 
-enum ProductTagName {
+enum ProductTag {
   ARABICA
   ROBUSTA
   GREEN_TEA

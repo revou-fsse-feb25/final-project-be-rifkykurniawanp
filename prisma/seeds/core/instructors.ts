@@ -1,55 +1,63 @@
 // prisma/seeds/core/instructors.ts
-import { PrismaClient, Instructor } from "@prisma/client";
+import { PrismaClient, Instructor, Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 export async function seedInstructors(): Promise<Instructor[]> {
   console.log("👨‍🏫 Seeding instructor profiles...");
 
-  // Find all users with role INSTRUCTOR
-  const instructorUsers = await prisma.user.findMany({
-    where: { role: { name: "INSTRUCTOR" } },
+  // Pastikan role INSTRUCTOR ada
+  const instructorRole = await prisma.userRole.findUnique({
+    where: { name: Role.INSTRUCTOR },
   });
 
-  if (instructorUsers.length === 0) {
-    console.warn("⚠️ No instructor users found. Please seed users with INSTRUCTOR role first.");
-    return [];
+  if (!instructorRole) {
+    throw new Error("❌ Role INSTRUCTOR not found. Please seed roles first.");
   }
 
-  const seededInstructors: Instructor[] = [];
+  // Cari user dengan role instructor
+  let instructorUser = await prisma.user.findUnique({
+    where: { email: "instructor@example.com" },
+  });
 
-  for (const user of instructorUsers) {
-    const instructorData = {
-      userId: user.id,
-      bio: "Experienced instructor in coffee, tea, and herbal courses.",
-      profileImage: null,
-      expertise: ["COFFEE_BREWING", "TEA_CEREMONY"], // example expertise
-      experience: "5 years",
-      socialLinks: {
-        instagram: "https://instagram.com/example",
-        linkedin: "https://linkedin.com/in/example",
+  // Kalau belum ada → bikin user instructor baru
+  if (!instructorUser) {
+    const hashedPassword = await bcrypt.hash("password123", 10); // hash password
+
+    instructorUser = await prisma.user.create({
+      data: {
+        email: "instructor@example.com",
+        password: hashedPassword,
+        firstName: "Jane",
+        lastName: "Doe",
+        roleId: instructorRole.id,
+        isStudent: false,
       },
-      isVerified: true,
-      rating: 4.7,
-      totalStudents: 0,
-      totalCourses: 0,
-    };
-
-    const instructor = await prisma.instructor.upsert({
-      where: { userId: user.id },
-      update: { ...instructorData },
-      create: { ...instructorData },
     });
-
-    console.log(
-      instructor.createdAt.getTime() === instructor.updatedAt.getTime()
-        ? `✅ Instructor profile created for ${user.email}`
-        : `ℹ️ Instructor profile updated for ${user.email}`
-    );
-
-    seededInstructors.push(instructor);
+    console.log(`✅ User instructor created: ${instructorUser.email}`);
   }
 
-  console.log("✅ All instructor profiles seeded successfully");
-  return seededInstructors;
+  // Buat / update instructor profile
+  const instructorProfile = await prisma.instructor.upsert({
+    where: { userId: instructorUser.id },
+    update: {
+      bio: "Expert in coffee brewing and tea ceremony.",
+      expertise: ["COFFEE_BREWING", "TEA_CEREMONY"],
+      experience: "5 years",
+      socialLinks: { instagram: "https://instagram.com/example" },
+      isVerified: true,
+    },
+    create: {
+      userId: instructorUser.id,
+      bio: "Expert in coffee brewing and tea ceremony.",
+      expertise: ["COFFEE_BREWING", "TEA_CEREMONY"],
+      experience: "5 years",
+      socialLinks: { instagram: "https://instagram.com/example" },
+      isVerified: true,
+    },
+  });
+
+  console.log(`✅ Instructor profile ready for ${instructorUser.email}`);
+  return [instructorProfile];
 }

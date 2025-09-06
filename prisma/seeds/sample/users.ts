@@ -1,53 +1,44 @@
 // prisma/seeds/sample/users.ts
-import { PrismaClient, RoleName } from "@prisma/client";
+import { PrismaClient, Role, UserRole, Permission } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-/**
- * SAMPLE USERS
- * - Mirrors your earlier sample with Supplier + Instructor + Students
- * - Uses role relation via roleId (resolved from RoleName)
- * - Idempotent (safe to run repeatedly)
- * - Console checklist + summary
- */
-export async function seedSampleUsers() {
+export async function seedSampleUsers(): Promise<void> {
   console.log("👤 Seeding sample users...");
 
   // --- Pre-check: required roles exist ---
-  const requiredRoles: RoleName[] = [
-    RoleName.USER,
-    RoleName.SUPPLIER,
-    RoleName.INSTRUCTOR,
-  ];
+  const requiredRoles: Role[] = [Role.USER, Role.SUPPLIER, Role.INSTRUCTOR];
 
-  const roles = await prisma.role.findMany({
+  const roles = await prisma.userRole.findMany({
     where: { name: { in: requiredRoles } },
   });
 
-  const missingRoles = requiredRoles.filter(
-    (r) => !roles.some((db) => db.name === r)
-  );
-
+  const missingRoles = requiredRoles.filter((r) => !roles.some((db) => db.name === r));
   if (missingRoles.length) {
     throw new Error(
-      `Missing roles: ${missingRoles.join(
-        ", "
-      )}. Seed core roles/permissions first.`
+      `Missing roles: ${missingRoles.join(", ")}. Seed core roles/permissions first.`
     );
   }
 
-  const roleByName = new Map(roles.map((r) => [r.name, r]));
+  const roleByName = new Map<Role, UserRole>(roles.map((r) => [r.name, r]));
 
   // --- Data ---
-  const usersData = [
-    // Students/Buyers
+  const usersData: Array<{
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role: Role;
+    isBuyer: boolean;
+    isStudent: boolean;
+  }> = [
     {
       email: "user1@example.com",
       password: "password123",
       firstName: "John",
       lastName: "Doe",
-      role: RoleName.USER,
+      role: Role.USER,
       isBuyer: true,
       isStudent: true,
     },
@@ -56,35 +47,30 @@ export async function seedSampleUsers() {
       password: "password123",
       firstName: "Jane",
       lastName: "Smith",
-      role: RoleName.USER,
+      role: Role.USER,
       isBuyer: true,
       isStudent: true,
     },
-
-    // Supplier
     {
       email: "supplier1@example.com",
       password: "password123",
       firstName: "Alice",
       lastName: "Supplier",
-      role: RoleName.SUPPLIER,
+      role: Role.SUPPLIER,
       isBuyer: false,
       isStudent: false,
     },
-
-    // Instructor (will be picked up by core/instructors.ts to create Instructor profile)
     {
       email: "instructor1@example.com",
       password: "password123",
       firstName: "Bob",
       lastName: "Instructor",
-      role: RoleName.INSTRUCTOR,
+      role: Role.INSTRUCTOR,
       isBuyer: false,
       isStudent: false,
     },
-  ] as const;
+  ];
 
-  // --- Upsert loop with created/updated tracking ---
   const created: string[] = [];
   const updated: string[] = [];
 
@@ -99,7 +85,7 @@ export async function seedSampleUsers() {
 
     const hashedPassword = await bcrypt.hash(u.password, 10);
 
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: u.email },
       update: {
         firstName: u.firstName,
@@ -118,10 +104,56 @@ export async function seedSampleUsers() {
         isBuyer: u.isBuyer,
         isStudent: u.isStudent,
       },
+      select: { id: true, email: true },
     });
 
     if (existing) updated.push(u.email);
     else created.push(u.email);
+
+    // --- ABAC assignments ---
+    // Example rules per user
+    const abacAssignments: Array<{ permissionName: Permission; conditions?: any }> = [];
+
+    if (u.email === "supplier1@example.com") {
+      abacAssignments.push({
+        permissionName: Permission.MANAGE_PRODUCTS,
+        conditions: { resourceOwnerOnly: true },
+      });
+      abacAssignments.push({
+        permissionName: Permission.MANAGE_ORDERS,
+        conditions: { resourceOwnerOnly: true },
+      });
+    } else if (u.email === "instructor1@example.com") {
+      abacAssignments.push({
+        permissionName: Permission.MANAGE_COURSES,
+        conditions: { resourceOwnerOnly: true },
+      });
+    } else if (u.email === "user1@example.com") {
+      // Example: extra ABAC for regular user
+      abacAssignments.push({
+        permissionName: Permission.VIEW_DASHBOARD,
+        conditions: { premiumWidgets: true },
+      });
+    }
+
+    // Upsert ABAC assignments
+    for (const assignment of abacAssignments) {
+      const permission = await prisma.userPermission.findUnique({
+        where: { name: assignment.permissionName },
+      });
+      if (!permission) {
+        console.warn(`⚠️ Permission ${assignment.permissionName} not found`);
+        continue;
+      }
+
+      await prisma.userPermissionAssignment.upsert({
+        where: {
+          userId_permissionId: { userId: user.id, permissionId: permission.id },
+        },
+        update: { conditions: assignment.conditions },
+        create: { userId: user.id, permissionId: permission.id, conditions: assignment.conditions },
+      });
+    }
   }
 
   // --- Checklist / validation ---
@@ -130,7 +162,7 @@ export async function seedSampleUsers() {
     _count: { roleId: true },
   });
 
-  const roleCounts: Record<string, number> = {};
+  const roleCounts = {} as Record<Role, number>;
   for (const r of roles) {
     const row = countsByRole.find((c) => c.roleId === r.id);
     roleCounts[r.name] = row?._count.roleId ?? 0;
@@ -141,13 +173,13 @@ export async function seedSampleUsers() {
   console.log(`• Created: ${created.length} -> ${created.join(", ") || "—"}`);
   console.log(`• Updated: ${updated.length} -> ${updated.join(", ") || "—"}`);
   console.log(
-    `• Users by role -> USER: ${roleCounts.USER}, SUPPLIER: ${roleCounts.SUPPLIER}, INSTRUCTOR: ${roleCounts.INSTRUCTOR}`
+    `• Users by role -> USER: ${roleCounts[Role.USER] ?? 0}, SUPPLIER: ${roleCounts[Role.SUPPLIER] ?? 0}, INSTRUCTOR: ${roleCounts[Role.INSTRUCTOR] ?? 0}`
   );
   console.log(
     `• Instructor users exist: ${
-      roleCounts.INSTRUCTOR > 0 ? "YES ✅" : "NO ❌"
+      (roleCounts[Role.INSTRUCTOR] ?? 0) > 0 ? "YES ✅" : "NO ❌"
     } (run core/instructors.ts after this to create Instructor profiles)`
   );
 
-  console.log("✅ Sample users seeded successfully.");
+  console.log("✅ Sample users seeded successfully with ABAC assignments.");
 }

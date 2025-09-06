@@ -1,43 +1,56 @@
 // prisma/seeds/core/roles.ts
-import { PrismaClient, RoleName } from "@prisma/client";
+import { PrismaClient, Role, Permission, UserRole } from "@prisma/client";
 import { seedPermissions } from "./permissions";
 
 const prisma = new PrismaClient();
 
-export async function seedRoles() {
+export async function seedRoles(): Promise<UserRole[]> {
   console.log("🛡️ Seeding roles and linking permissions...");
 
   try {
-    // Seed permissions first
-    const permissions = await seedPermissions();
+    // ✅ Seed permissions first (returns RBAC + ABAC objects)
+    const { seededPermissions } = await seedPermissions();
 
-    // Define role data
-    const rolesData = [
+    // ✅ Define role data
+    const rolesData: {
+      name: Role;
+      description: string;
+      permissionNames: Permission[];
+    }[] = [
       {
-        name: RoleName.ADMIN,
+        name: Role.ADMIN,
         description: "System administrator with full access",
-        permissionNames: permissions.map(p => p.name), // All permissions
+        permissionNames: seededPermissions.map((p) => p.name), // all permissions
       },
       {
-        name: RoleName.SUPPLIER,
+        name: Role.SUPPLIER,
         description: "Product supplier",
-        permissionNames: ["VIEW_DASHBOARD", "MANAGE_PRODUCTS", "MANAGE_ORDERS"],
+        permissionNames: [
+          Permission.VIEW_DASHBOARD,
+          Permission.MANAGE_PRODUCTS,
+          Permission.MANAGE_ORDERS,
+        ],
       },
       {
-        name: RoleName.INSTRUCTOR,
+        name: Role.INSTRUCTOR,
         description: "Course instructor",
-        permissionNames: ["VIEW_DASHBOARD", "MANAGE_COURSES"],
+        permissionNames: [
+          Permission.VIEW_DASHBOARD,
+          Permission.MANAGE_COURSES,
+        ],
       },
       {
-        name: RoleName.USER,
+        name: Role.USER,
         description: "Regular user",
-        permissionNames: ["VIEW_DASHBOARD"],
+        permissionNames: [Permission.VIEW_DASHBOARD],
       },
     ];
 
-    // Upsert roles and assign permissions
+    const seededRoles: UserRole[] = [];
+
+    // ✅ Upsert roles and assign permissions
     for (const roleData of rolesData) {
-      const role = await prisma.role.upsert({
+      const role = await prisma.userRole.upsert({
         where: { name: roleData.name },
         update: { description: roleData.description },
         create: { name: roleData.name, description: roleData.description },
@@ -45,26 +58,32 @@ export async function seedRoles() {
 
       console.log(`✅ Role upserted: ${role.name}`);
 
-      // Link permissions
+      // ✅ Link permissions (RBAC)
       for (const permName of roleData.permissionNames) {
-        const permission = permissions.find(p => p.name === permName);
+        const permission = seededPermissions.find((p) => p.name === permName);
         if (!permission) {
           console.warn(`⚠️ Permission ${permName} not found for role ${role.name}`);
           continue;
         }
 
-        await prisma.rolePermission.upsert({
+        await prisma.userRolePermission.upsert({
           where: {
-            roleId_permissionId: { roleId: role.id, permissionId: permission.id },
+            roleId_permissionId: {
+              roleId: role.id,
+              permissionId: permission.id,
+            },
           },
           update: {},
           create: { roleId: role.id, permissionId: permission.id },
         });
       }
+
       console.log(`🔗 Permissions linked for role: ${role.name}`);
+      seededRoles.push(role);
     }
 
     console.log("✅ All roles and permissions seeded successfully.");
+    return seededRoles;
   } catch (error) {
     console.error("❌ Error seeding roles:", error);
     throw error;
