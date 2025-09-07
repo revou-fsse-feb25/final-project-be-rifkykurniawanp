@@ -9,9 +9,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ================= MODELS & ENUMS (FULL HYBRID) =================
+// ================= RBAC SYSTEM =================
 
-// ---------------- RBAC: Enums ----------------
 enum Role {
   ADMIN
   SUPPLIER
@@ -25,9 +24,9 @@ enum Permission {
   MANAGE_PRODUCTS
   MANAGE_COURSES
   MANAGE_USERS
+  MANAGE_SEARCH
 }
 
-// ---------------- RBAC: Models ----------------
 model UserRole {
   id          Int                @id @default(autoincrement())
   name        Role               @unique
@@ -41,8 +40,6 @@ model UserPermission {
   name        Permission         @unique
   description String?
   roles       UserRolePermission[]
-
-  // ABAC: per-user assignments (new)
   assignments UserPermissionAssignment[]
 }
 
@@ -55,24 +52,83 @@ model UserRolePermission {
   @@id([roleId, permissionId])
 }
 
-/// ---------------- ABAC: per-user permission assignment ---------------
-/// This join table allows granting (or later revoking) individual users
-/// specific permissions without changing their role. Use when you want
-/// temporary or fine-grained overrides.
 model UserPermissionAssignment {
   userId       Int
   permissionId Int
   conditions   Json? 
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission   UserPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  assignedAt DateTime @default(now())
+  assignedAt   DateTime       @default(now())
 
   @@id([userId, permissionId])
   @@index([permissionId])
 }
 
-// ================= EXISTING MODELS =================
+// ================= SEARCH SYSTEM =================
+
+enum EntityType {
+  PRODUCT
+  COURSE
+}
+
+model SearchIndex {
+  id           Int         @id @default(autoincrement())
+  entityType   EntityType
+  entityId     Int
+  title        String
+  description  String?
+  content      String?
+  tags         String[]    @default([])
+  category     String
+  subcategory  String?
+  level        String?
+  price        Decimal     @db.Decimal(12, 2)
+  rating       Decimal     @default(0) @db.Decimal(2, 1)
+  popularity   Int         @default(0)
+  isActive     Boolean     @default(true)
+  language     String      @default("id")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([entityType, isActive])
+  @@index([category, isActive])
+  @@index([price, rating, popularity])
+  @@index([language, isActive])
+  @@unique([entityType, entityId])
+}
+
+model SearchQuery {
+  id            Int      @id @default(autoincrement())
+  userId        Int?
+  query         String
+  filters       Json?
+  resultsCount  Int      @default(0)
+  selectedItems Json?
+  sessionId     String?
+  ipAddress     String?
+  searchedAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([query, searchedAt])
+  @@index([userId, searchedAt])
+}
+
+model SearchSuggestion {
+  id          Int      @id @default(autoincrement())
+  query       String   @unique
+  popularity  Int      @default(1)
+  category    String?
+  language    String   @default("id")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([popularity, isActive])
+  @@index([category, language, isActive])
+}
+
+// ================= USER MANAGEMENT =================
 
 model User {
   id        Int       @id @default(autoincrement())
@@ -82,6 +138,7 @@ model User {
   lastName  String?
   phone     String?
   address   String?
+  avatar    String?
   roleId    Int?
   role      UserRole? @relation(fields: [roleId], references: [id], onDelete: SetNull)
   isBuyer   Boolean   @default(false)
@@ -90,7 +147,6 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  // Relations
   assignmentSubmissions AssignmentSubmission[]
   carts                 Cart[]
   courseEnrollments     CourseEnrollment[]
@@ -101,23 +157,23 @@ model User {
   productReviews        ProductReview[]
   courseReviews         CourseReview[]
   instructor            Instructor?
-  refreshTokens         RefreshToken[]   // 👈 Relasi ke RefreshToken
-
-  // ABAC: user-specific permission assignments
+  refreshTokens         RefreshToken[]
   permissionAssignments UserPermissionAssignment[]
+  searchQueries         SearchQuery[]
 
   @@index([email])
   @@index([roleId])
   @@index([deletedAt])
+  @@index([firstName, lastName])
 }
 
 model RefreshToken {
   id        Int      @id @default(autoincrement())
-  token     String   // hashed token, jangan simpan plain
+  token     String   @unique
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  device    String?  // contoh: "Chrome on Windows"
-  ipAddress String?  // opsional, untuk keamanan
+  device    String?
+  ipAddress String?
   expiresAt DateTime
   createdAt DateTime @default(now())
   revokedAt DateTime?
@@ -126,422 +182,31 @@ model RefreshToken {
   @@index([token])
 }
 
-
 model Instructor {
   id            Int      @id @default(autoincrement())
   userId        Int      @unique
   bio           String?
   profileImage  String?
-  expertise     String[] // Array of expertise areas
-  experience    String? // Years of experience
-  socialLinks   Json? // Social media links as JSON
+  expertise     String[]
+  experience    String?
+  socialLinks   Json?
   isVerified    Boolean  @default(false)
   rating        Decimal  @default(0) @db.Decimal(2, 1)
   totalStudents Int      @default(0)
   totalCourses  Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
 
-  // Relations
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courses Course[]
 
-  // Performance Indexes
-  @@index([isVerified, rating])  // Verified instructor listings
-  @@index([totalStudents])       // Popular instructors
+  @@index([isVerified, rating])
+  @@index([totalStudents])
+  @@index([deletedAt])
 }
 
-model Product {
-  id          Int             @id @default(autoincrement())
-  slug        String          @unique
-  name        String
-  description String?
-  price       Decimal         @db.Decimal(12, 2)
-  stock       Int             @default(0)
-  images      String[] // Multiple images (Postgres text[])
-  category    ProductCategory
-  status      ProductStatus
-  supplierId  Int
-  rating      Decimal         @default(0) @db.Decimal(2, 1)
-  reviewCount Int             @default(0)
-  origin      ProductOrigin
-  weight      String?
-  tags        ProductTag[] // enum array
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  deletedAt   DateTime?
-
-  // Relations
-  supplier   User               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  cartItems  CartItem[]
-  orderItems ProductOrderItem[]
-  reviews    ProductReview[]
-
-  // Performance Indexes
-  @@index([slug])
-  @@index([name])
-  @@index([description])
-  @@index([category, status])        // E-commerce filtering
-  @@index([rating, reviewCount])     // Popular products
-  @@index([supplierId, status])      // Supplier products
-  @@index([deletedAt])               // Soft delete filtering
-}
-
-model ProductReview {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  userId    Int
-  rating    Int      @db.SmallInt // 1-5 rating
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([productId, rating])       // Product reviews sorted by rating
-  @@index([userId, createdAt])       // User review history
-  @@unique([productId, userId])      // One review per user per product
-}
-
-model Course {
-  id               Int            @id @default(autoincrement())
-  title            String
-  slug             String         @unique
-  description      String?
-  shortDescription String? // Brief description for cards
-  syllabus         String?
-  price            Decimal        @db.Decimal(12, 2)
-  instructorId     Int
-  rating           Decimal        @default(0) @db.Decimal(2, 1)
-  reviewCount      Int            @default(0)
-  students         Int            @default(0)
-  level            CourseLevel
-  category         CourseCategory
-  language         String         @default("id")
-  subtitles        String[]       @default([])
-
-  // Udemy-style fields
-  thumbnail        String?
-  previewVideo     String?
-  whatYouWillLearn String[] @default([])
-  requirements     String[] @default([])
-  targetAudience   String[] @default([])
-  totalDuration    Int? // Total minutes (calculated)
-  totalLessons     Int? // Total lessons (calculated)
-  certificate      Boolean  @default(false)
-
-  // Status and metadata
-  status      CourseStatus @default(DRAFT)
-  isPublished Boolean      @default(false)
-  maxStudents Int? // Enrollment limit
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  deletedAt   DateTime?
-
-  // Relations
-  instructor  Instructor         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
-  cartItems   CartItem[]
-  enrollments CourseEnrollment[]
-  modules     CourseModule[]
-  reviews     CourseReview[]
-
-  // Performance Indexes
-  @@index([slug])
-  @@index([title])
-  @@index([shortDescription])
-  @@index([category, level, status])     // Course filtering
-  @@index([rating, students])            // Popular courses
-  @@index([instructorId, isPublished])   // Instructor courses
-  @@index([isPublished, createdAt])      // Recent published courses
-  @@index([deletedAt])                   // Soft delete filtering
-}
-
-model CourseReview {
-  id        Int      @id @default(autoincrement())
-  courseId  Int
-  userId    Int
-  rating    Int      @db.SmallInt // 1-5 rating
-  comment   String?
-  createdAt DateTime @default(now())
-
-  // Relations
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([courseId, rating])        // Course reviews sorted by rating
-  @@index([userId, createdAt])       // User review history
-  @@unique([courseId, userId])       // One review per user per course
-}
-
-model CourseModule {
-  id          Int       @id @default(autoincrement())
-  courseId    Int
-  title       String
-  description String?
-  orderNumber Int
-  isPublished Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-
-  // Relations
-  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons Lesson[]
-
-  // Performance Indexes
-  @@index([courseId, orderNumber])   // Module ordering
-  @@index([courseId, isPublished])   // Published modules
-}
-
-model Lesson {
-  id            Int        @id @default(autoincrement())
-  moduleId      Int
-  slug          String     @unique
-  title         String
-  description   String?
-  duration      Int? // Duration in minutes
-  type          LessonType @default(VIDEO)
-  videoUrl      String?
-  content       String? // Text content for articles
-  quizQuestions Json?
-  passingScore  Decimal    @default(70) @db.Decimal(5, 2)
-  orderNumber   Int
-  isPreview     Boolean    @default(false) // Free preview lesson
-  isPublished   Boolean    @default(false)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  deletedAt     DateTime?
-
-  // Relations
-  module      CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  assignments Assignment[]
-  progresses  LessonProgress[]
-
-  // Performance Indexes
-  @@index([slug])
-  @@index([moduleId, orderNumber])   // Lesson ordering
-  @@index([moduleId, isPublished])   // Published lessons
-  @@index([isPreview])               // Free preview lessons
-}
-
-model LessonProgress {
-  lessonId    Int
-  userId      Int
-  completed   Boolean   @default(false)
-  timeSpent   Int?      @default(0) // Minutes spent
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([userId, completed])           // User progress dashboard
-  @@index([lessonId, completed])         // Lesson completion stats
-  @@index([userId, completed, createdAt]) // Progress timeline
-  @@id([lessonId, userId])
-}
-
-model Assignment {
-  id           Int       @id @default(autoincrement())
-  lessonId     Int
-  title        String
-  instructions String
-  dueDate      DateTime?
-  maxScore     Decimal?  @db.Decimal(5, 2)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt     DateTime?
-
-  // Relations
-  lesson      Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  submissions AssignmentSubmission[]
-
-  // Performance Indexes
-  @@index([lessonId])                // Lesson assignments
-  @@index([dueDate])                 // Upcoming assignments
-}
-
-model AssignmentSubmission {
-  id           Int       @id @default(autoincrement())
-  assignmentId Int
-  userId       Int
-  content      String?
-  attachments  String[]  @default([]) // File URLs
-  grade        Decimal?  @db.Decimal(5, 2)
-  feedback     String?
-  submittedAt  DateTime  @default(now())
-  gradedAt     DateTime?
-
-  // Relations
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([assignmentId, userId])    // Assignment submissions
-  @@index([userId, submittedAt])     // User submission history
-  @@index([assignmentId, grade])     // Grading overview
-}
-
-model Cart {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @unique // One cart per user
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  // Relations
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items    CartItem[]
-  payments Payment[]
-
-  // Performance Indexes - userId is already indexed due to @unique
-}
-
-model CartItem {
-  id       Int          @id @default(autoincrement())
-  cartId   Int
-  itemType CartItemType
-
-  // Polymorphic relations - only one should be set
-  productId Int?
-  courseId  Int?
-
-  quantity      Int       @default(1)
-  priceSnapshot Decimal   @db.Decimal(12, 2) // Price at time of adding to cart
-  addedAt       DateTime  @default(now())
-  deletedAt     DateTime?
-
-  // Relations
-  cart    Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([cartId, deletedAt])       // Active cart items
-  @@index([productId])               // Product cart analytics
-  @@index([courseId])                // Course cart analytics
-
-  // NOTE:
-  // Prisma does not support @@check. Enforce these rules in service layer
-  // or add DB CHECK constraints manually in a migration:
-  // 1) exactly one of productId/courseId must be non-null
-  // 2) quantity must equal 1 for course items
-}
-
-model Payment {
-  id            Int           @id @default(autoincrement())
-  userId        Int
-  cartId        Int
-  amount        Decimal       @db.Decimal(12, 2)
-  paymentMethod String
-  status        PaymentStatus @default(PENDING)
-  transactionId String? // External payment provider ID
-  paidAt        DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  deletedAt     DateTime?
-
-  // Relations
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cart              Cart               @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  courseEnrollments CourseEnrollment[]
-  productOrders     ProductOrder[]
-
-  // Performance Indexes
-  @@index([userId, status, createdAt])   // Payment history with status
-  @@index([status, paidAt])              // Admin payment reports
-  @@index([transactionId])               // External payment lookup
-}
-
-model ProductOrder {
-  id         Int         @id @default(autoincrement())
-  buyerId    Int
-  paymentId  Int
-  totalPrice Decimal     @db.Decimal(12, 2)
-  status     OrderStatus @default(PENDING)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  deletedAt  DateTime?
-
-  // Relations
-  buyer   User               @relation(fields: [buyerId], references: [id], onDelete: Cascade)
-  payment Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  items   ProductOrderItem[]
-
-  // Performance Indexes
-  @@index([buyerId, status])             // User order history
-  @@index([status, createdAt])           // Admin order management
-  @@index([paymentId])                   // Payment-order lookup
-}
-
-model ProductOrderItem {
-  id        Int     @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int
-  priceEach Decimal @db.Decimal(12, 2)
-
-  // Relations
-  order   ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([orderId])                     // Order items
-  @@index([productId])                   // Product sales analytics
-}
-
-model CourseEnrollment {
-  id                 Int       @id @default(autoincrement())
-  courseId           Int
-  studentId          Int
-  paymentId          Int
-  pricePaid          Decimal   @db.Decimal(12, 2)
-  progress           Int       @default(0) // Percentage 0-100
-  certificateAwarded Boolean   @default(false)
-  enrolledAt         DateTime  @default(now())
-  completedAt        DateTime?
-  lastAccessedAt     DateTime?
-
-  // Relations
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  student     User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  payment     Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  certificate Certificate?
-
-  // Performance Indexes
-  @@index([studentId, enrolledAt])       // "My Courses" sorted by date
-  @@index([courseId, progress])          // Course completion statistics
-  @@index([studentId, progress])         // Student progress overview
-  @@index([certificateAwarded])          // Certificate eligible students
-  @@unique([courseId, studentId])        // One enrollment per student per course
-}
-
-model Certificate {
-  id                        Int       @id @default(autoincrement())
-  enrollmentId              Int       @unique
-  certificateNumber         String    @unique
-  finalLessonsCompleted     Boolean   @default(false)
-  finalAssignmentsCompleted Boolean   @default(false)
-  eligible                  Boolean   @default(false)
-  issuedAt                  DateTime?
-  certificateUrl            String?
-
-  // Relations
-  enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-
-  // Performance Indexes
-  @@index([certificateNumber])          // Certificate verification
-  @@index([eligible, issuedAt])         // Certificate generation queue
-}
-
-// ==================== ENUMS ====================
+// ================= PRODUCT MANAGEMENT =================
 
 enum ProductCategory {
   COFFEE
@@ -581,6 +246,59 @@ enum ProductTag {
   SINGLE_ORIGIN
 }
 
+model Product {
+  id          Int             @id @default(autoincrement())
+  slug        String          @unique
+  name        String
+  description String?
+  price       Decimal         @db.Decimal(12, 2)
+  stock       Int             @default(0)
+  images      String[]
+  category    ProductCategory
+  status      ProductStatus
+  supplierId  Int
+  rating      Decimal         @default(0) @db.Decimal(2, 1)
+  reviewCount Int             @default(0)
+  origin      ProductOrigin
+  weight      String?
+  tags        ProductTag[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?
+
+  supplier   User               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems ProductOrderItem[]
+  reviews    ProductReview[]
+
+  @@index([slug])
+  @@index([name])
+  @@index([description])
+  @@index([category, status, deletedAt])
+  @@index([rating, reviewCount])
+  @@index([supplierId, status, deletedAt])
+  @@index([deletedAt])
+}
+
+model ProductReview {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int
+  rating    Int      @db.SmallInt
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId, rating])
+  @@index([userId, createdAt])
+  @@unique([productId, userId])
+}
+
+// ================= COURSE MANAGEMENT =================
+
 enum CourseCategory {
   COFFEE_BREWING
   COFFEE_ROASTING
@@ -609,9 +327,88 @@ enum CourseStatus {
   ARCHIVED
 }
 
-enum CartItemType {
-  PRODUCT
-  COURSE
+model Course {
+  id               Int            @id @default(autoincrement())
+  title            String
+  slug             String         @unique
+  description      String?
+  shortDescription String?
+  syllabus         String?
+  price            Decimal        @db.Decimal(12, 2)
+  instructorId     Int
+  rating           Decimal        @default(0) @db.Decimal(2, 1)
+  reviewCount      Int            @default(0)
+  students         Int            @default(0)
+  level            CourseLevel
+  category         CourseCategory
+  language         String         @default("id")
+  subtitles        String[]       @default([])
+
+  thumbnail        String?
+  previewVideo     String?
+  whatYouWillLearn String[]       @default([])
+  requirements     String[]       @default([])
+  targetAudience   String[]       @default([])
+  totalDuration    Int?
+  totalLessons     Int?
+  certificate      Boolean        @default(false)
+
+  status      CourseStatus @default(DRAFT)
+  isPublished Boolean      @default(false)
+  maxStudents Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  instructor  Instructor         @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  cartItems   CartItem[]
+  enrollments CourseEnrollment[]
+  modules     CourseModule[]
+  reviews     CourseReview[]
+
+  @@index([slug])
+  @@index([title])
+  @@index([shortDescription])
+  @@index([category, level, status, deletedAt])
+  @@index([rating, students])
+  @@index([instructorId, isPublished, deletedAt])
+  @@index([isPublished, createdAt])
+  @@index([deletedAt])
+}
+
+model CourseReview {
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  userId    Int
+  rating    Int      @db.SmallInt
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, rating])
+  @@index([userId, createdAt])
+  @@unique([courseId, userId])
+}
+
+model CourseModule {
+  id          Int       @id @default(autoincrement())
+  courseId    Int
+  title       String
+  description String?
+  orderNumber Int
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId, orderNumber, deletedAt])
+  @@index([courseId, isPublished, deletedAt])
 }
 
 enum LessonType {
@@ -621,6 +418,135 @@ enum LessonType {
   ASSIGNMENT
   LIVE_SESSION
 }
+
+model Lesson {
+  id            Int        @id @default(autoincrement())
+  moduleId      Int
+  slug          String     @unique
+  title         String
+  description   String?
+  duration      Int?
+  type          LessonType @default(VIDEO)
+  videoUrl      String?
+  content       String?
+  quizQuestions Json?
+  passingScore  Decimal    @default(70) @db.Decimal(5, 2)
+  orderNumber   Int
+  isPreview     Boolean    @default(false)
+  isPublished   Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
+
+  module      CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  assignments Assignment[]
+  progresses  LessonProgress[]
+
+  @@index([slug])
+  @@index([moduleId, orderNumber, deletedAt])
+  @@index([moduleId, isPublished, deletedAt])
+  @@index([isPreview])
+}
+
+model LessonProgress {
+  lessonId    Int
+  userId      Int
+  completed   Boolean   @default(false)
+  timeSpent   Int?      @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, userId])
+  @@index([userId, completed])
+  @@index([lessonId, completed])
+  @@index([userId, completed, createdAt])
+}
+
+model Assignment {
+  id           Int       @id @default(autoincrement())
+  lessonId     Int
+  title        String
+  instructions String
+  dueDate      DateTime?
+  maxScore     Decimal?  @db.Decimal(5, 2)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  lesson      Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+
+  @@index([lessonId, deletedAt])
+  @@index([dueDate])
+}
+
+model AssignmentSubmission {
+  id           Int       @id @default(autoincrement())
+  assignmentId Int
+  userId       Int
+  content      String?
+  attachments  String[]  @default([])
+  grade        Decimal?  @db.Decimal(5, 2)
+  feedback     String?
+  submittedAt  DateTime  @default(now())
+  gradedAt     DateTime?
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([assignmentId, userId])
+  @@index([userId, submittedAt])
+  @@index([assignmentId, grade])
+}
+
+// ================= CART SYSTEM =================
+
+enum CartItemType {
+  PRODUCT
+  COURSE
+}
+
+model Cart {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items    CartItem[]
+  payments Payment[]
+
+  @@index([deletedAt])
+}
+
+model CartItem {
+  id       Int          @id @default(autoincrement())
+  cartId   Int
+  itemType CartItemType
+
+  productId Int?
+  courseId  Int?
+
+  quantity      Int       @default(1)
+  priceSnapshot Decimal   @db.Decimal(12, 2)
+  addedAt       DateTime  @default(now())
+  deletedAt     DateTime?
+
+  cart    Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([cartId, deletedAt])
+  @@index([productId])
+  @@index([courseId])
+}
+
+// ================= PAYMENT & ORDER SYSTEM =================
 
 enum PaymentStatus {
   PENDING
@@ -639,4 +565,98 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
   REFUNDED
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  userId        Int
+  cartId        Int
+  amount        Decimal       @db.Decimal(12, 2)
+  paymentMethod String
+  status        PaymentStatus @default(PENDING)
+  transactionId String?       @unique
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cart              Cart               @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  courseEnrollments CourseEnrollment[]
+  productOrders     ProductOrder[]
+
+  @@index([userId, status, createdAt])
+  @@index([status, paidAt])
+  @@index([transactionId])
+}
+
+model ProductOrder {
+  id         Int         @id @default(autoincrement())
+  buyerId    Int
+  paymentId  Int
+  totalPrice Decimal     @db.Decimal(12, 2)
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  buyer   User               @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  payment Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  items   ProductOrderItem[]
+
+  @@index([buyerId, status])
+  @@index([status, createdAt])
+  @@index([paymentId])
+}
+
+model ProductOrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  priceEach Decimal @db.Decimal(12, 2)
+
+  order   ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model CourseEnrollment {
+  id                 Int       @id @default(autoincrement())
+  courseId           Int
+  studentId          Int
+  paymentId          Int
+  pricePaid          Decimal   @db.Decimal(12, 2)
+  progress           Int       @default(0)
+  certificateAwarded Boolean   @default(false)
+  enrolledAt         DateTime  @default(now())
+  completedAt        DateTime?
+  lastAccessedAt     DateTime?
+
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student     User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payment     Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  certificate Certificate?
+
+  @@unique([courseId, studentId])
+  @@index([studentId, enrolledAt])
+  @@index([courseId, progress])
+  @@index([studentId, progress])
+  @@index([certificateAwarded])
+}
+
+model Certificate {
+  id                        Int       @id @default(autoincrement())
+  enrollmentId              Int       @unique
+  certificateNumber         String    @unique
+  finalLessonsCompleted     Boolean   @default(false)
+  finalAssignmentsCompleted Boolean   @default(false)
+  eligible                  Boolean   @default(false)
+  issuedAt                  DateTime?
+  certificateUrl            String?
+
+  enrollment CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([certificateNumber])
+  @@index([eligible, issuedAt])
 }
