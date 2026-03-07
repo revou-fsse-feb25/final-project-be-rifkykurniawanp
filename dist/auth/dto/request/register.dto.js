@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegisterDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
@@ -84,7 +85,7 @@ __decorate([
         enumName: 'RoleName'
     }),
     (0, class_validator_1.IsEnum)(client_1.RoleName),
-    __metadata("design:type", String)
+    __metadata("design:type", typeof (_a = typeof client_1.RoleName !== "undefined" && client_1.RoleName) === "function" ? _a : Object)
 ], RegisterDto.prototype, "role", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({

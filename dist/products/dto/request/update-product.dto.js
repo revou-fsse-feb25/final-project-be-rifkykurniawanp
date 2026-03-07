@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateProductDto = void 0;
 const class_validator_1 = require("class-validator");
@@ -69,7 +70,7 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'Category of the product', enum: client_1.ProductCategory }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(client_1.ProductCategory),
-    __metadata("design:type", String)
+    __metadata("design:type", typeof (_a = typeof client_1.ProductCategory !== "undefined" && client_1.ProductCategory) === "function" ? _a : Object)
 ], UpdateProductDto.prototype, "category", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'Status of the product', enum: client_1.ProductStatus }),

@@ -12,6 +12,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;
@@ -26,6 +27,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;
@@ -40,6 +42,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;
@@ -54,6 +57,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;
@@ -68,6 +72,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;
@@ -82,6 +87,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;
@@ -96,6 +102,7 @@ export declare class CertificatesRepository {
     } & {
         id: number;
         enrollmentId: number;
+        certificateNumber: string;
         finalLessonsCompleted: boolean;
         finalAssignmentsCompleted: boolean;
         eligible: boolean;

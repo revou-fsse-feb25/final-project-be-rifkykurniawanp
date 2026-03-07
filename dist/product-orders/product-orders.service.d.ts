@@ -6,58 +6,63 @@ export declare class ProductOrdersService {
     constructor(repository: ProductOrdersRepository);
     create(dto: CreateOrderDto): import(".prisma/client").Prisma.Prisma__ProductOrderClient<{
         id: number;
-        buyerId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.OrderStatus;
         paymentId: number;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
-        status: import(".prisma/client").$Enums.OrderStatus;
-        createdAt: Date;
+        buyerId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     findAll(): import(".prisma/client").Prisma.PrismaPromise<({
         items: {
             id: number;
-            orderId: number;
             productId: number;
             quantity: number;
             priceEach: import("@prisma/client/runtime/library").Decimal;
+            orderId: number;
         }[];
     } & {
         id: number;
-        buyerId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.OrderStatus;
         paymentId: number;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
-        status: import(".prisma/client").$Enums.OrderStatus;
-        createdAt: Date;
+        buyerId: number;
     })[]>;
     findOne(id: number): import(".prisma/client").Prisma.Prisma__ProductOrderClient<({
         items: {
             id: number;
-            orderId: number;
             productId: number;
             quantity: number;
             priceEach: import("@prisma/client/runtime/library").Decimal;
+            orderId: number;
         }[];
     } & {
         id: number;
-        buyerId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.OrderStatus;
         paymentId: number;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
-        status: import(".prisma/client").$Enums.OrderStatus;
-        createdAt: Date;
+        buyerId: number;
     }) | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     update(id: number, dto: UpdateOrderDto): import(".prisma/client").Prisma.Prisma__ProductOrderClient<{
         id: number;
-        buyerId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.OrderStatus;
         paymentId: number;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
-        status: import(".prisma/client").$Enums.OrderStatus;
-        createdAt: Date;
+        buyerId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     remove(id: number): import(".prisma/client").Prisma.Prisma__ProductOrderClient<{
         id: number;
-        buyerId: number;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import(".prisma/client").$Enums.OrderStatus;
         paymentId: number;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
-        status: import(".prisma/client").$Enums.OrderStatus;
-        createdAt: Date;
+        buyerId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
 }

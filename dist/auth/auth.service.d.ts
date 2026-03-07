@@ -12,15 +12,19 @@ export declare class AuthService {
     private generateToken;
     getUserProfile(userId: number): Promise<{
         email: string;
+        password: string;
         firstName: string | null;
         lastName: string | null;
         phone: string | null;
         address: string | null;
-        role: import(".prisma/client").$Enums.RoleName;
         isBuyer: boolean;
         isStudent: boolean;
         id: number;
+        avatar: string | null;
+        dynamicRoleId: number | null;
         createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
     }>;
     updateProfile(userId: number, updateData: {
         firstName?: string;
@@ -29,28 +33,37 @@ export declare class AuthService {
         address?: string;
     }): Promise<{
         email: string;
+        password: string;
         firstName: string | null;
         lastName: string | null;
         phone: string | null;
         address: string | null;
-        role: import(".prisma/client").$Enums.RoleName;
         isBuyer: boolean;
         isStudent: boolean;
         id: number;
+        avatar: string | null;
+        dynamicRoleId: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
     }>;
     changePassword(userId: number, currentPassword: string, newPassword: string): Promise<{
         message: string;
     }>;
     verifyToken(token: string): Promise<{
         email: string;
+        password: string;
         firstName: string | null;
         lastName: string | null;
         phone: string | null;
         address: string | null;
-        role: import(".prisma/client").$Enums.RoleName;
         isBuyer: boolean;
         isStudent: boolean;
         id: number;
+        avatar: string | null;
+        dynamicRoleId: number | null;
         createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
     }>;
 }

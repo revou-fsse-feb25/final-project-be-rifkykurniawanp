@@ -13,20 +13,24 @@ export declare class CartsService {
     remove(id: number, userId: number, role: RoleName): Promise<Cart>;
     addItem(cartId: number, userId: number, itemType: 'PRODUCT' | 'COURSE', itemId: number, quantity: number, role: RoleName): Promise<{
         id: number;
+        deletedAt: Date | null;
+        productId: number | null;
+        courseId: number | null;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
-        itemId: number;
         quantity: number;
-        price: Prisma.Decimal;
-        deletedAt: Date | null;
+        priceSnapshot: Prisma.Decimal;
+        addedAt: Date;
     }>;
     removeItem(cartId: number, userId: number, itemId: number, role: RoleName): Promise<{
         id: number;
+        deletedAt: Date | null;
+        productId: number | null;
+        courseId: number | null;
         cartId: number;
         itemType: import(".prisma/client").$Enums.CartItemType;
-        itemId: number;
         quantity: number;
-        price: Prisma.Decimal;
-        deletedAt: Date | null;
+        priceSnapshot: Prisma.Decimal;
+        addedAt: Date;
     }>;
 }

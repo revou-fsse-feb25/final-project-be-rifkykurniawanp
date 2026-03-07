@@ -26,6 +26,9 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
         assignmentId: number;
         grade: import("@prisma/client/runtime/library").Decimal | null;
         submittedAt: Date;
+        attachments: string[];
+        feedback: string | null;
+        gradedAt: Date | null;
     } | null>;
     update(id: number, data: UpdateAssignmentSubmissionDto): Promise<AssignmentSubmission>;
     updateGrade(id: number, grade: number): Promise<AssignmentSubmission>;
@@ -49,6 +52,9 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
             assignmentId: number;
             grade: import("@prisma/client/runtime/library").Decimal | null;
             submittedAt: Date;
+            attachments: string[];
+            feedback: string | null;
+            gradedAt: Date | null;
         }[];
         total: number;
     }>;
@@ -72,11 +78,15 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
                         instructorId: number;
                     };
                 } & {
+                    description: string | null;
                     title: string;
                     id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
                     deletedAt: Date | null;
-                    courseId: number;
+                    isPublished: boolean;
                     orderNumber: number;
+                    courseId: number;
                 };
             } & {
                 type: import(".prisma/client").$Enums.LessonType;
@@ -84,24 +94,29 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
                 title: string;
                 id: number;
                 createdAt: Date;
+                updatedAt: Date;
                 deletedAt: Date | null;
                 content: string | null;
-                slug: string | null;
-                duration: string | null;
+                slug: string;
+                duration: number | null;
+                isPublished: boolean;
                 orderNumber: number;
                 moduleId: number;
                 videoUrl: string | null;
                 quizQuestions: import("@prisma/client/runtime/library").JsonValue | null;
                 passingScore: import("@prisma/client/runtime/library").Decimal;
+                isPreview: boolean;
             };
         } & {
             title: string;
             id: number;
             createdAt: Date;
+            updatedAt: Date;
             deletedAt: Date | null;
             lessonId: number;
             instructions: string;
             dueDate: Date | null;
+            maxScore: import("@prisma/client/runtime/library").Decimal | null;
         };
     } & {
         id: number;
@@ -110,5 +125,8 @@ export declare class AssignmentSubmissionRepository implements IAssignmentSubmis
         assignmentId: number;
         grade: import("@prisma/client/runtime/library").Decimal | null;
         submittedAt: Date;
+        attachments: string[];
+        feedback: string | null;
+        gradedAt: Date | null;
     }) | null>;
 }
